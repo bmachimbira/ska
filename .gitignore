@@ -1,0 +1,73 @@
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Environment variables
+.env
+.env.local
+.env.*.local
+*.env
+
+# Dependencies
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Build outputs
+dist/
+build/
+out/
+.next/
+*.log
+
+# Android
+*.apk
+*.aab
+*.ap_
+*.dex
+.gradle/
+local.properties
+.cxx/
+captures/
+mobile-android/.gradle
+mobile-android/build/
+mobile-android/app/build/
+mobile-android/**/build/
+mobile-android/.idea
+*.iml
+
+# Terraform
+infrastructure/**/.terraform/
+infrastructure/**/*.tfstate
+infrastructure/**/*.tfstate.*
+infrastructure/**/.terraform.lock.hcl
+
+# Secrets
+secrets/
+*.key
+*.pem
+*.p12
+credentials.json
+
+# Database
+*.db
+*.sqlite
+*.sqlite3
+
+# Test coverage
+coverage/
+.nyc_output/
+*.lcov
+
+# Temp files
+tmp/
+temp/
+*.tmp
+
+# OS
+Thumbs.db

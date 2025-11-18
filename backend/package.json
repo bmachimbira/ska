@@ -1,0 +1,60 @@
+{
+  "name": "sda-backend",
+  "version": "0.1.0",
+  "description": "SDA Content App - Backend API",
+  "main": "dist/main.js",
+  "scripts": {
+    "dev": "tsx watch src/main.ts",
+    "build": "tsc",
+    "start": "node dist/main.js",
+    "test": "vitest",
+    "test:integration": "vitest --config vitest.integration.config.ts",
+    "test:e2e": "vitest --config vitest.e2e.config.ts",
+    "test:cov": "vitest --coverage",
+    "lint": "eslint src --ext .ts",
+    "format": "prettier --write \"src/**/*.ts\"",
+    "type-check": "tsc --noEmit",
+    "migrate": "node -r dotenv/config scripts/migrate.js",
+    "migrate:create": "node -r dotenv/config scripts/create-migration.js",
+    "migrate:rollback": "node -r dotenv/config scripts/rollback.js",
+    "seed": "node -r dotenv/config scripts/seed.js"
+  },
+  "keywords": [
+    "sda",
+    "content",
+    "api",
+    "backend"
+  ],
+  "author": "SDA Team",
+  "license": "UNLICENSED",
+  "dependencies": {
+    "@supabase/supabase-js": "^2.38.4",
+    "cors": "^2.8.5",
+    "dotenv": "^16.3.1",
+    "express": "^4.18.2",
+    "express-rate-limit": "^7.1.5",
+    "helmet": "^7.1.0",
+    "jsonwebtoken": "^9.0.2",
+    "pg": "^8.11.3",
+    "zod": "^3.22.4"
+  },
+  "devDependencies": {
+    "@types/cors": "^2.8.17",
+    "@types/express": "^4.17.21",
+    "@types/jsonwebtoken": "^9.0.5",
+    "@types/node": "^20.10.5",
+    "@types/pg": "^8.10.9",
+    "@typescript-eslint/eslint-plugin": "^6.15.0",
+    "@typescript-eslint/parser": "^6.15.0",
+    "@vitest/coverage-v8": "^1.1.0",
+    "eslint": "^8.56.0",
+    "prettier": "^3.1.1",
+    "tsx": "^4.7.0",
+    "typescript": "^5.3.3",
+    "vitest": "^1.1.0"
+  },
+  "engines": {
+    "node": ">=20.0.0",
+    "npm": ">=10.0.0"
+  }
+}
