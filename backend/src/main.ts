@@ -1,0 +1,139 @@
+/**
+ * SDA Content App - Backend API
+ * Main application entry point
+ */
+
+import express, { Application, Request, Response, NextFunction } from 'express';
+import cors from 'cors';
+import helmet from 'helmet';
+import rateLimit from 'express-rate-limit';
+import * as dotenv from 'dotenv';
+import { createServer } from 'http';
+
+// Load environment variables
+dotenv.config();
+
+// Import routes
+import { createApiRouter } from './routes';
+import { errorHandler } from './middleware/error-handler';
+import { requestLogger } from './middleware/logger';
+
+const app: Application = express();
+const PORT = process.env.PORT || 3000;
+const NODE_ENV = process.env.NODE_ENV || 'development';
+
+// ============================================================================
+// Middleware
+// ============================================================================
+
+// Security
+app.use(helmet());
+
+// CORS
+const corsOptions = {
+  origin: process.env.CORS_ORIGIN?.split(',') || '*',
+  credentials: true,
+};
+app.use(cors(corsOptions));
+
+// Body parsing
+app.use(express.json({ limit: '10mb' }));
+app.use(express.urlencoded({ extended: true, limit: '10mb' }));
+
+// Request logging
+app.use(requestLogger);
+
+// Rate limiting
+const limiter = rateLimit({
+  windowMs: parseInt(process.env.RATE_LIMIT_WINDOW_MS || '900000'), // 15 minutes
+  max: parseInt(process.env.RATE_LIMIT_MAX_REQUESTS || '100'),
+  message: 'Too many requests from this IP, please try again later.',
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+app.use('/v1', limiter);
+
+// ============================================================================
+// Routes
+// ============================================================================
+
+// Health check
+app.get('/health', (req: Request, res: Response) => {
+  res.json({
+    status: 'ok',
+    timestamp: new Date().toISOString(),
+    environment: NODE_ENV,
+    version: '0.1.0',
+  });
+});
+
+// API v1 routes
+app.use('/v1', createApiRouter());
+
+// Root endpoint
+app.get('/', (req: Request, res: Response) => {
+  res.json({
+    name: 'SDA Content App API',
+    version: '0.1.0',
+    documentation: '/api/docs',
+    health: '/health',
+  });
+});
+
+// 404 handler
+app.use((req: Request, res: Response) => {
+  res.status(404).json({
+    error: 'Not Found',
+    message: `Cannot ${req.method} ${req.path}`,
+    path: req.path,
+  });
+});
+
+// ============================================================================
+// Error Handling
+// ============================================================================
+
+app.use(errorHandler);
+
+// ============================================================================
+// Server Startup
+// ============================================================================
+
+const server = createServer(app);
+
+function startServer() {
+  server.listen(PORT, () => {
+    console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+    console.log('🚀 SDA Content App API');
+    console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+    console.log(`📡 Server:      http://localhost:${PORT}`);
+    console.log(`🌍 Environment: ${NODE_ENV}`);
+    console.log(`📚 API Docs:    http://localhost:${PORT}/api/docs`);
+    console.log(`❤️  Health:      http://localhost:${PORT}/health`);
+    console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
+  });
+}
+
+// Graceful shutdown
+process.on('SIGTERM', () => {
+  console.log('SIGTERM received. Shutting down gracefully...');
+  server.close(() => {
+    console.log('Server closed');
+    process.exit(0);
+  });
+});
+
+process.on('SIGINT', () => {
+  console.log('\nSIGINT received. Shutting down gracefully...');
+  server.close(() => {
+    console.log('Server closed');
+    process.exit(0);
+  });
+});
+
+// Start the server
+if (require.main === module) {
+  startServer();
+}
+
+export { app, server };

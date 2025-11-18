@@ -1,0 +1,32 @@
+/**
+ * API Router
+ * Combines all route modules
+ */
+
+import { Router } from 'express';
+import { homeRouter } from './home';
+import { sermonsRouter } from './sermons';
+import { devotionalsRouter } from './devotionals';
+import { quarterliesRouter } from './quarterlies';
+import { searchRouter } from './search';
+import { mediaRouter } from './media';
+import { chatRouter } from './chat';
+import { adminRouter } from './admin';
+
+export function createApiRouter(): Router {
+  const router = Router();
+
+  // Public routes
+  router.use('/home', homeRouter);
+  router.use('/sermons', sermonsRouter);
+  router.use('/devotionals', devotionalsRouter);
+  router.use('/quarterlies', quarterliesRouter);
+  router.use('/search', searchRouter);
+  router.use('/media', mediaRouter);
+  router.use('/chat', chatRouter);
+
+  // Admin routes (protected)
+  router.use('/admin', adminRouter);
+
+  return router;
+}

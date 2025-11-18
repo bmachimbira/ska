@@ -1,0 +1,478 @@
+openapi: 3.0.3
+info:
+  title: SDA Content App API
+  version: 0.1.0
+  description: |
+    REST API for the SDA Content App, providing access to sermons, devotionals,
+    Sabbath School quarterlies, and AI-powered study chat.
+  contact:
+    name: API Support
+    email: support@example.com
+  license:
+    name: Proprietary
+
+servers:
+  - url: http://localhost:3000/v1
+    description: Development server
+  - url: https://api-staging.example.com/v1
+    description: Staging server
+  - url: https://api.example.com/v1
+    description: Production server
+
+tags:
+  - name: Home
+    description: Featured content and highlights
+  - name: Sermons
+    description: Sermon management and playback
+  - name: Devotionals
+    description: Daily devotional readings
+  - name: Quarterlies
+    description: Sabbath School quarterlies
+  - name: Search
+    description: Full-text search
+  - name: Media
+    description: Media asset delivery
+  - name: Chat
+    description: AI-powered study chat (RAG)
+  - name: Admin
+    description: Administrative operations
+
+paths:
+  /home:
+    get:
+      summary: Get home page content
+      description: Returns featured sermons, today's devotional, and current quarterlies
+      tags: [Home]
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HomeResponse'
+
+  /sermons:
+    get:
+      summary: List sermons
+      description: Get a paginated list of sermons with optional filtering
+      tags: [Sermons]
+      parameters:
+        - name: search
+          in: query
+          schema:
+            type: string
+          description: Search query
+        - name: tag
+          in: query
+          schema:
+            type: string
+          description: Filter by tag slug
+        - name: series
+          in: query
+          schema:
+            type: integer
+          description: Filter by series ID
+        - name: speaker
+          in: query
+          schema:
+            type: integer
+          description: Filter by speaker ID
+        - name: page
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 20
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SermonListResponse'
+
+  /sermons/{id}:
+    get:
+      summary: Get sermon by ID
+      tags: [Sermons]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Sermon'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /devotionals/today:
+    get:
+      summary: Get today's devotional
+      tags: [Devotionals]
+      parameters:
+        - name: tz
+          in: query
+          schema:
+            type: string
+            default: UTC
+          description: Timezone (IANA timezone name)
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Devotional'
+
+  /devotionals:
+    get:
+      summary: List devotionals
+      tags: [Devotionals]
+      parameters:
+        - name: date
+          in: query
+          schema:
+            type: string
+            format: date
+        - name: page
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+      responses:
+        '200':
+          description: Success
+
+  /quarterlies:
+    get:
+      summary: List quarterlies
+      tags: [Quarterlies]
+      parameters:
+        - name: kind
+          in: query
+          schema:
+            type: string
+            enum: [adult, youth, kids]
+        - name: lang
+          in: query
+          schema:
+            type: string
+            default: en
+      responses:
+        '200':
+          description: Success
+
+  /search:
+    get:
+      summary: Search content
+      tags: [Search]
+      parameters:
+        - name: q
+          in: query
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Success
+
+  /chat/query:
+    post:
+      summary: Query the study chat AI
+      tags: [Chat]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ChatRequest'
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ChatResponse'
+
+components:
+  schemas:
+    HomeResponse:
+      type: object
+      properties:
+        featuredSermons:
+          type: array
+          items:
+            $ref: '#/components/schemas/SermonSummary'
+        todayDevotional:
+          $ref: '#/components/schemas/DevotionalSummary'
+        currentQuarterlies:
+          type: array
+          items:
+            $ref: '#/components/schemas/QuarterlySummary'
+
+    Sermon:
+      type: object
+      properties:
+        id:
+          type: integer
+        title:
+          type: string
+        description:
+          type: string
+        scriptureRefs:
+          type: array
+          items:
+            type: string
+        speaker:
+          $ref: '#/components/schemas/Speaker'
+        series:
+          $ref: '#/components/schemas/Series'
+        videoAsset:
+          $ref: '#/components/schemas/MediaAsset'
+        audioAsset:
+          $ref: '#/components/schemas/MediaAsset'
+        thumbnailAsset:
+          $ref: '#/components/schemas/MediaAsset'
+        publishedAt:
+          type: string
+          format: date-time
+        isFeatured:
+          type: boolean
+        tags:
+          type: array
+          items:
+            $ref: '#/components/schemas/Tag'
+
+    SermonSummary:
+      type: object
+      properties:
+        id:
+          type: integer
+        title:
+          type: string
+        description:
+          type: string
+        thumbnailUrl:
+          type: string
+        speaker:
+          type: object
+          properties:
+            id:
+              type: integer
+            name:
+              type: string
+        publishedAt:
+          type: string
+          format: date-time
+
+    SermonListResponse:
+      type: object
+      properties:
+        sermons:
+          type: array
+          items:
+            $ref: '#/components/schemas/SermonSummary'
+        pagination:
+          $ref: '#/components/schemas/Pagination'
+
+    Devotional:
+      type: object
+      properties:
+        id:
+          type: integer
+        slug:
+          type: string
+        title:
+          type: string
+        author:
+          type: string
+        bodyMd:
+          type: string
+        date:
+          type: string
+          format: date
+        audioAsset:
+          $ref: '#/components/schemas/MediaAsset'
+
+    DevotionalSummary:
+      type: object
+      properties:
+        id:
+          type: integer
+        title:
+          type: string
+        author:
+          type: string
+        date:
+          type: string
+          format: date
+        excerpt:
+          type: string
+
+    QuarterlySummary:
+      type: object
+      properties:
+        id:
+          type: integer
+        kind:
+          type: string
+          enum: [adult, youth, kids]
+        title:
+          type: string
+        year:
+          type: integer
+        quarter:
+          type: integer
+
+    Speaker:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        bio:
+          type: string
+
+    Series:
+      type: object
+      properties:
+        id:
+          type: integer
+        title:
+          type: string
+        description:
+          type: string
+
+    Tag:
+      type: object
+      properties:
+        id:
+          type: integer
+        slug:
+          type: string
+        name:
+          type: string
+
+    MediaAsset:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        kind:
+          type: string
+          enum: [video, audio, image, doc]
+        hlsUrl:
+          type: string
+        dashUrl:
+          type: string
+        downloadUrl:
+          type: string
+        width:
+          type: integer
+        height:
+          type: integer
+        durationSeconds:
+          type: integer
+
+    ChatRequest:
+      type: object
+      required:
+        - mode
+        - query
+      properties:
+        mode:
+          type: string
+          enum: [quarterly, bible]
+        contextRef:
+          type: string
+          description: "e.g., 'lesson_day:123'"
+        query:
+          type: string
+        lang:
+          type: string
+          default: en
+        topK:
+          type: integer
+          default: 6
+
+    ChatResponse:
+      type: object
+      properties:
+        answer:
+          type: string
+        citations:
+          type: array
+          items:
+            $ref: '#/components/schemas/Citation'
+        safety:
+          type: object
+          properties:
+            flagged:
+              type: boolean
+
+    Citation:
+      type: object
+      properties:
+        sourceRef:
+          type: string
+        snippet:
+          type: string
+        title:
+          type: string
+        url:
+          type: string
+
+    Pagination:
+      type: object
+      properties:
+        page:
+          type: integer
+        limit:
+          type: integer
+        total:
+          type: integer
+        pages:
+          type: integer
+
+    Error:
+      type: object
+      properties:
+        error:
+          type: object
+          properties:
+            message:
+              type: string
+            statusCode:
+              type: integer
+
+  responses:
+    NotFound:
+      description: Resource not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+security: []
