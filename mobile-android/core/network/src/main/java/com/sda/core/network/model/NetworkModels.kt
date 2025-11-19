@@ -193,29 +193,23 @@ data class SearchResult(
 // Chat
 // ========================================
 
-data class ChatRequest(
-    @SerializedName("mode") val mode: String,
-    @SerializedName("contextRef") val contextRef: String?,
+data class ChatQueryRequest(
     @SerializedName("query") val query: String,
-    @SerializedName("lang") val lang: String = "en",
-    @SerializedName("topK") val topK: Int = 6
+    @SerializedName("mode") val mode: String = "general",
+    @SerializedName("filter") val filter: Map<String, Any>? = null,
+    @SerializedName("stream") val stream: Boolean = false,
+    @SerializedName("conversationHistory") val conversationHistory: List<Map<String, String>> = emptyList()
 )
 
 data class ChatResponse(
     @SerializedName("answer") val answer: String,
-    @SerializedName("citations") val citations: List<Citation>,
-    @SerializedName("safety") val safety: SafetyInfo
+    @SerializedName("sources") val sources: List<ChatSource>
 )
 
-data class Citation(
-    @SerializedName("sourceRef") val sourceRef: String,
-    @SerializedName("snippet") val snippet: String,
-    @SerializedName("title") val title: String,
-    @SerializedName("url") val url: String?
-)
-
-data class SafetyInfo(
-    @SerializedName("flagged") val flagged: Boolean
+data class ChatSource(
+    @SerializedName("index") val index: Int,
+    @SerializedName("source") val source: String,
+    @SerializedName("metadata") val metadata: Map<String, Any>
 )
 
 // ========================================

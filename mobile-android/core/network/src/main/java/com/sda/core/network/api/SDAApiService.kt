@@ -105,6 +105,6 @@ interface SDAApiService {
 
     @POST("chat/query")
     suspend fun chatQuery(
-        @Body request: ChatRequest
+        @Body request: ChatQueryRequest
     ): Response<ChatResponse>
 }
