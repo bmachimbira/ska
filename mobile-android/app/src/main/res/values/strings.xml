@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">SDA Content</string>
+
+    <!-- Navigation -->
+    <string name="nav_home">Home</string>
+    <string name="nav_sermons">Sermons</string>
+    <string name="nav_devotionals">Devotionals</string>
+    <string name="nav_quarterlies">Quarterlies</string>
+
+    <!-- Common -->
+    <string name="error_generic">Something went wrong</string>
+    <string name="error_network">Network error. Please check your connection.</string>
+    <string name="error_not_found">Content not found</string>
+    <string name="retry">Retry</string>
+    <string name="loading">Loading…</string>
+    <string name="search">Search</string>
+    <string name="share">Share</string>
+    <string name="download">Download</string>
+    <string name="play">Play</string>
+    <string name="pause">Pause</string>
+
+    <!-- Home -->
+    <string name="home_featured_sermons">Featured Sermons</string>
+    <string name="home_todays_devotional">Today\'s Devotional</string>
+    <string name="home_current_quarterlies">Current Quarterlies</string>
+
+    <!-- Sermons -->
+    <string name="sermons_title">Sermons</string>
+    <string name="sermon_watch">Watch</string>
+    <string name="sermon_listen">Listen</string>
+
+    <!-- Devotionals -->
+    <string name="devotionals_title">Devotionals</string>
+    <string name="devotionals_today">Today</string>
+
+    <!-- Quarterlies -->
+    <string name="quarterlies_title">Sabbath School</string>
+    <string name="quarterlies_adult">Adult</string>
+    <string name="quarterlies_youth">Youth</string>
+    <string name="quarterlies_kids">Kids</string>
+    <string name="lesson_day_format">Day %d</string>
+
+    <!-- Player -->
+    <string name="player_title">Now Playing</string>
+
+    <!-- Settings -->
+    <string name="settings_title">Settings</string>
+    <string name="settings_theme">Theme</string>
+    <string name="settings_notifications">Notifications</string>
+    <string name="settings_downloads">Downloads</string>
+</resources>
