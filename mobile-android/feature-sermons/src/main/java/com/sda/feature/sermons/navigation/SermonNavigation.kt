@@ -5,6 +5,8 @@ import androidx.navigation.NavHostController
 import androidx.navigation.NavType
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
+import com.sda.feature.devotionals.navigation.DevotionalDestinations
+import com.sda.feature.quarterlies.navigation.QuarterlyDestinations
 import com.sda.feature.sermons.presentation.detail.SermonDetailScreen
 import com.sda.feature.sermons.presentation.home.HomeScreen
 import com.sda.feature.sermons.presentation.list.SermonListScreen
@@ -45,10 +47,10 @@ fun NavGraphBuilder.sermonGraph(navController: NavHostController) {
                 navController.navigate(SermonDestinations.sermonDetailRoute(sermonId))
             },
             onDevotionalClick = {
-                // TODO: Navigate to devotionals
+                navController.navigate(DevotionalDestinations.TODAY_ROUTE)
             },
             onQuarterlyClick = { quarterlyId ->
-                // TODO: Navigate to quarterly detail
+                navController.navigate(QuarterlyDestinations.lessonListRoute(quarterlyId))
             }
         )
     }

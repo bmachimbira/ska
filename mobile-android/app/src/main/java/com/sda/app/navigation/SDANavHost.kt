@@ -5,6 +5,8 @@ import androidx.compose.ui.Modifier
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.rememberNavController
+import com.sda.feature.devotionals.navigation.devotionalGraph
+import com.sda.feature.quarterlies.navigation.quarterlyGraph
 import com.sda.feature.sermons.navigation.SermonDestinations
 import com.sda.feature.sermons.navigation.sermonGraph
 
@@ -26,9 +28,13 @@ fun SDANavHost(
         // Sermon feature (includes Home screen)
         sermonGraph(navController)
 
-        // TODO: Add other feature navigation graphs
-        // devotionalsGraph(navController)
-        // quarterliesGraph(navController)
+        // Devotional feature
+        devotionalGraph(navController)
+
+        // Quarterly feature
+        quarterlyGraph(navController)
+
+        // TODO: Add chat feature navigation graph
         // chatGraph(navController)
     }
 }
