@@ -32,3 +32,40 @@
 -keep class dagger.** { *; }
 -keep class javax.inject.** { *; }
 -keep class * extends dagger.hilt.android.internal.managers.ViewComponentManager$FragmentContextWrapper { *; }
+
+# Kotlin Coroutines
+-keepnames class kotlinx.coroutines.internal.MainDispatcherFactory {}
+-keepnames class kotlinx.coroutines.CoroutineExceptionHandler {}
+-keepclassmembernames class kotlinx.** {
+    volatile <fields>;
+}
+
+# Jetpack Compose
+-keep class androidx.compose.** { *; }
+-dontwarn androidx.compose.**
+
+# ExoPlayer / Media3
+-keep class com.google.android.exoplayer2.** { *; }
+-keep class androidx.media3.** { *; }
+-dontwarn com.google.android.exoplayer2.**
+-dontwarn androidx.media3.**
+
+# Coil (Image Loading)
+-keep class coil.** { *; }
+-keep interface coil.** { *; }
+-dontwarn coil.**
+
+# Keep ViewModel classes
+-keep class * extends androidx.lifecycle.ViewModel {
+    <init>();
+}
+
+# WorkManager
+-keep class * extends androidx.work.Worker
+-keep class androidx.work.impl.WorkManagerImpl
+
+# Remove logging in release builds
+-assumenosideeffects class android.util.Log {
+    public static *** d(...);
+    public static *** v(...);
+}

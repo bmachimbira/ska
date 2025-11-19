@@ -45,14 +45,56 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
 
-            <!-- Deep links -->
+            <!-- Deep links for sermons -->
             <intent-filter android:autoVerify="true">
                 <action android:name="android.intent.action.VIEW" />
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
                 <data
                     android:scheme="https"
-                    android:host="sda.example.com" />
+                    android:host="sda-content.app"
+                    android:pathPrefix="/sermons" />
+            </intent-filter>
+
+            <!-- Deep links for devotionals -->
+            <intent-filter android:autoVerify="true">
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data
+                    android:scheme="https"
+                    android:host="sda-content.app"
+                    android:pathPrefix="/devotionals" />
+            </intent-filter>
+
+            <!-- Deep links for quarterlies -->
+            <intent-filter android:autoVerify="true">
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data
+                    android:scheme="https"
+                    android:host="sda-content.app"
+                    android:pathPrefix="/quarterlies" />
+            </intent-filter>
+
+            <!-- Deep links for chat -->
+            <intent-filter android:autoVerify="true">
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data
+                    android:scheme="https"
+                    android:host="sda-content.app"
+                    android:pathPrefix="/chat" />
+            </intent-filter>
+
+            <!-- Custom scheme for compatibility -->
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="sdacontent" />
             </intent-filter>
         </activity>
 
