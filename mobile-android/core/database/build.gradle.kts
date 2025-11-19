@@ -39,6 +39,9 @@ dependencies {
     // Coroutines
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.3")
 
+    // Gson for type converters
+    implementation("com.google.code.gson:gson:2.10.1")
+
     // Testing
     testImplementation("junit:junit:4.13.2")
     testImplementation("androidx.room:room-testing:2.6.1")

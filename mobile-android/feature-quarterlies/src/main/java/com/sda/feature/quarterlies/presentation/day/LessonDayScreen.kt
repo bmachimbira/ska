@@ -165,7 +165,7 @@ private fun LessonDayContent(
 
         // Navigation buttons
         if (onPreviousDay != null || onNextDay != null) {
-            HorizontalDivider()
+            Divider()
             Row(
                 modifier = Modifier
                     .fillMaxWidth()

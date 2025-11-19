@@ -187,7 +187,7 @@ private fun SermonDetailContent(
             }
 
             // Scripture References
-            if (!sermon.scriptureRefs.isNullOrEmpty()) {
+            sermon.scriptureRefs?.takeIf { it.isNotEmpty() }?.let { scriptureRefs ->
                 Card {
                     Column(
                         modifier = Modifier.padding(16.dp),
@@ -197,7 +197,7 @@ private fun SermonDetailContent(
                             text = "Scripture References",
                             style = MaterialTheme.typography.titleSmall
                         )
-                        sermon.scriptureRefs.forEach { ref ->
+                        scriptureRefs.forEach { ref ->
                             Text(
                                 text = "• $ref",
                                 style = MaterialTheme.typography.bodyMedium
@@ -222,7 +222,7 @@ private fun SermonDetailContent(
             }
 
             // Tags
-            if (!sermon.tags.isNullOrEmpty()) {
+            sermon.tags?.takeIf { it.isNotEmpty() }?.let { tags ->
                 Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     Text(
                         text = "Topics",
@@ -232,7 +232,7 @@ private fun SermonDetailContent(
                         horizontalArrangement = Arrangement.spacedBy(8.dp),
                         modifier = Modifier.fillMaxWidth()
                     ) {
-                        sermon.tags.take(5).forEach { tag ->
+                        tags.take(5).forEach { tag ->
                             AssistChip(
                                 onClick = { },
                                 label = { Text(tag.name) }
