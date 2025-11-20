@@ -45,8 +45,8 @@ dependencies {
     implementation("com.google.code.gson:gson:2.10.1")
 
     // Hilt
-    implementation("com.google.dagger:hilt-android:2.48")
-    kapt("com.google.dagger:hilt-android-compiler:2.48")
+    implementation("com.google.dagger:hilt-android:2.51.1")
+    kapt("com.google.dagger:hilt-android-compiler:2.51.1")
 
     // Testing
     testImplementation("junit:junit:4.13.2")
