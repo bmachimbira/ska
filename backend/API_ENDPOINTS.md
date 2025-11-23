@@ -4,7 +4,7 @@ This document describes the implemented API endpoints for accessing quarterly an
 
 ## Base URL
 
-**Development:** `http://localhost:3002/v1`
+**Development:** `http://localhost:3000/v1`
 
 ## Authentication
 
@@ -27,13 +27,13 @@ Get a list of all quarterlies with optional filtering.
 **Example Requests:**
 ```bash
 # Get all quarterlies
-curl http://localhost:3002/v1/quarterlies
+curl http://localhost:3000/v1/quarterlies
 
 # Get only adult quarterlies
-curl http://localhost:3002/v1/quarterlies?kind=adult
+curl http://localhost:3000/v1/quarterlies?kind=adult
 
 # Get youth quarterlies in English
-curl http://localhost:3002/v1/quarterlies?kind=youth&lang=en
+curl http://localhost:3000/v1/quarterlies?kind=youth&lang=en
 ```
 
 **Response:**
@@ -66,7 +66,7 @@ Get details of a specific quarterly by ID.
 
 **Example Request:**
 ```bash
-curl http://localhost:3002/v1/quarterlies/4
+curl http://localhost:3000/v1/quarterlies/4
 ```
 
 **Response:**
@@ -97,7 +97,7 @@ Get all lessons for a specific quarterly.
 
 **Example Request:**
 ```bash
-curl http://localhost:3002/v1/quarterlies/4/lessons
+curl http://localhost:3000/v1/quarterlies/4/lessons
 ```
 
 **Response:**
@@ -128,7 +128,7 @@ Get details of a specific lesson including all its daily content.
 
 **Example Request:**
 ```bash
-curl http://localhost:3002/v1/lessons/9
+curl http://localhost:3000/v1/lessons/9
 ```
 
 **Response:**
@@ -183,7 +183,7 @@ Get a specific day of a lesson by day index.
 **Example Request:**
 ```bash
 # Get Sunday (day index 2) for lesson 9
-curl http://localhost:3002/v1/lessons/9/days/2
+curl http://localhost:3000/v1/lessons/9/days/2
 ```
 
 **Response:**
@@ -264,7 +264,7 @@ The database currently contains:
 ## Next Steps
 
 ### For Android App Integration:
-1. Update `NEXT_PUBLIC_API_URL` in admin panel to `http://localhost:3002/v1`
+1. Update `NEXT_PUBLIC_API_URL` in admin panel to `http://localhost:3000/v1`
 2. Update Android app's `BASE_URL` to point to your backend server
 3. The Android app is already fully implemented and ready to consume these endpoints!
 
@@ -279,4 +279,4 @@ The database currently contains:
 
 All endpoints have been tested and are working correctly. See test examples above.
 
-Server is running on: **http://localhost:3002**
+Server is running on: **http://localhost:3000**

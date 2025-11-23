@@ -8,7 +8,7 @@
 - **Data:** Q4 2025 Adult English Lessons imported (13 lessons, 90 lesson days)
 
 ### API Server
-- **Running on:** `http://localhost:3002/v1`
+- **Running on:** `http://localhost:3000/v1`
 - **Framework:** Express + TypeScript
 - **Database:** Connection pooling with `pg`
 - **Validation:** Zod schemas
@@ -49,7 +49,7 @@
 
 Create `/admin-panel/.env.local`:
 ```bash
-NEXT_PUBLIC_API_URL=http://localhost:3002/v1
+NEXT_PUBLIC_API_URL=http://localhost:3000/v1
 ```
 
 ### Step 2: Update Quarterlies Page
@@ -329,7 +329,7 @@ export default function NewQuarterlyPage() {
 
 ```bash
 # Create a new quarterly
-curl -X POST http://localhost:3002/v1/quarterlies \
+curl -X POST http://localhost:3000/v1/quarterlies \
   -H "Content-Type: application/json" \
   -d '{
     "kind": "adult",
@@ -341,14 +341,14 @@ curl -X POST http://localhost:3002/v1/quarterlies \
   }'
 
 # Update a quarterly
-curl -X PUT http://localhost:3002/v1/quarterlies/4 \
+curl -X PUT http://localhost:3000/v1/quarterlies/4 \
   -H "Content-Type: application/json" \
   -d '{
     "title": "Updated Title"
   }'
 
 # Create a lesson
-curl -X POST http://localhost:3002/v1/quarterlies/4/lessons \
+curl -X POST http://localhost:3000/v1/quarterlies/4/lessons \
   -H "Content-Type: application/json" \
   -d '{
     "indexInQuarter": 14,
@@ -357,7 +357,7 @@ curl -X POST http://localhost:3002/v1/quarterlies/4/lessons \
   }'
 
 # Create a lesson day
-curl -X POST http://localhost:3002/v1/lessons/9/days \
+curl -X POST http://localhost:3000/v1/lessons/9/days \
   -H "Content-Type: application/json" \
   -d '{
     "dayIndex": 1,
@@ -375,7 +375,7 @@ The Android app is **100% ready** to use these endpoints. Just update the base U
 
 In `core/network/build.gradle` or wherever the base URL is configured:
 ```kotlin
-const val BASE_URL = "http://YOUR_SERVER_IP:3002/v1/"
+const val BASE_URL = "http://YOUR_SERVER_IP:3000/v1/"
 ```
 
 All the endpoints match perfectly with the Android app's network models!
@@ -442,14 +442,14 @@ All the endpoints match perfectly with the Android app's network models!
 ## ⚡ Quick Start
 
 ```bash
-# Backend is already running on port 3002
+# Backend is already running on port 3000
 # To restart:
 cd backend
 npm run dev
 
 # Start admin panel:
 cd admin-panel
-echo "NEXT_PUBLIC_API_URL=http://localhost:3002/v1" > .env.local
+echo "NEXT_PUBLIC_API_URL=http://localhost:3000/v1" > .env.local
 npm run dev
 
 # Access admin panel at:

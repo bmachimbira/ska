@@ -37,7 +37,7 @@ export default function QuarterliesPage() {
       setQuarterlies(data.quarterlies);
     } catch (error) {
       console.error('Failed to load quarterlies:', error);
-      alert('Failed to load quarterlies. Please check if the backend is running on http://localhost:3002');
+      alert('Failed to load quarterlies. Please check if the backend is running on http://localhost:3000');
     } finally {
       setLoading(false);
     }
