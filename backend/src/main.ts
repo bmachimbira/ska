@@ -3,12 +3,15 @@
  * Main application entry point
  */
 
-import express, { Application, Request, Response, NextFunction } from 'express';
+import express, { Application, Request, Response } from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
 import rateLimit from 'express-rate-limit';
 import * as dotenv from 'dotenv';
 import { createServer } from 'http';
+import swaggerUi from 'swagger-ui-express';
+import YAML from 'yamljs';
+import path from 'path';
 
 // Load environment variables
 dotenv.config();
@@ -18,6 +21,9 @@ import { createApiRouter } from './routes';
 import { errorHandler } from './middleware/error-handler';
 import { requestLogger } from './middleware/logger';
 
+// Load OpenAPI specification
+const swaggerDocument = YAML.load(path.join(__dirname, '../openapi/api-spec.yaml'));
+
 const app: Application = express();
 const PORT = process.env.PORT || 3000;
 const NODE_ENV = process.env.NODE_ENV || 'development';
@@ -26,8 +32,17 @@ const NODE_ENV = process.env.NODE_ENV || 'development';
 // Middleware
 // ============================================================================
 
-// Security
-app.use(helmet());
+// Security - Allow Swagger UI to load its assets
+app.use(helmet({
+  contentSecurityPolicy: {
+    directives: {
+      ...helmet.contentSecurityPolicy.getDefaultDirectives(),
+      "img-src": ["'self'", "data:", "validator.swagger.io"],
+      "script-src": ["'self'", "'unsafe-inline'"],
+      "style-src": ["'self'", "'unsafe-inline'"],
+    },
+  },
+}));
 
 // CORS
 const corsOptions = {
@@ -66,6 +81,12 @@ app.get('/health', (req: Request, res: Response) => {
     version: '0.1.0',
   });
 });
+
+// API Documentation
+app.use('/api/docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument, {
+  customSiteTitle: 'SDA Content App API',
+  customCss: '.swagger-ui .topbar { display: none }',
+}));
 
 // API v1 routes
 app.use('/v1', createApiRouter());
