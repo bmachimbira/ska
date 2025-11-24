@@ -5,6 +5,7 @@
 
 import { Router, Request, Response } from 'express';
 import { asyncHandler } from '../middleware/async-handler';
+import { getPool } from '../config/database';
 
 export const homeRouter = Router();
 
@@ -15,53 +16,70 @@ export const homeRouter = Router();
 homeRouter.get(
   '/',
   asyncHandler(async (req: Request, res: Response) => {
-    // TODO: Implement actual database queries
-    // For now, return mock data
+    const pool = getPool();
+
+    // Get current year and quarter
+    const now = new Date();
+    const currentYear = now.getFullYear();
+    const currentMonth = now.getMonth() + 1; // 0-indexed
+    const currentQuarter = Math.ceil(currentMonth / 3);
+
+    // Query current quarterlies from database
+    const quarterliesResult = await pool.query(
+      `
+      SELECT
+        id,
+        kind,
+        year,
+        quarter,
+        title
+      FROM quarterly
+      WHERE year = $1 AND quarter = $2
+      ORDER BY
+        CASE kind
+          WHEN 'adult' THEN 1
+          WHEN 'youth' THEN 2
+          WHEN 'kids' THEN 3
+          ELSE 4
+        END
+      `,
+      [currentYear, currentQuarter]
+    );
+
+    // TODO: Query featured sermons from database
+    const featuredSermons = [
+      {
+        id: 1,
+        title: 'The Power of Grace',
+        description: "Discover how God's grace transforms our lives.",
+        thumbnailUrl: 'https://via.placeholder.com/400x225',
+        speaker: {
+          id: 1,
+          name: 'Pastor John Smith',
+        },
+        publishedAt: new Date().toISOString(),
+      },
+    ];
+
+    // TODO: Query today's devotional from database
+    const todayDevotional = {
+      id: 1,
+      title: "God's Unfailing Love",
+      author: 'Ellen G. White',
+      date: new Date().toISOString().split('T')[0],
+      excerpt: "For God so loved the world...",
+    };
 
     const homeData = {
-      featuredSermons: [
-        {
-          id: 1,
-          title: 'The Power of Grace',
-          description: "Discover how God's grace transforms our lives.",
-          thumbnailUrl: 'https://via.placeholder.com/400x225',
-          speaker: {
-            id: 1,
-            name: 'Pastor John Smith',
-          },
-          publishedAt: new Date().toISOString(),
-        },
-      ],
-      todayDevotional: {
-        id: 1,
-        title: "God's Unfailing Love",
-        author: 'Ellen G. White',
-        date: new Date().toISOString().split('T')[0],
-        excerpt: "For God so loved the world...",
-      },
-      currentQuarterlies: [
-        {
-          id: 1,
-          kind: 'adult',
-          title: 'The Book of Romans',
-          year: 2025,
-          quarter: 1,
-        },
-        {
-          id: 2,
-          kind: 'youth',
-          title: 'Heroes of Faith',
-          year: 2025,
-          quarter: 1,
-        },
-        {
-          id: 3,
-          kind: 'kids',
-          title: 'Jesus and Me',
-          year: 2025,
-          quarter: 1,
-        },
-      ],
+      featuredSermons,
+      todayDevotional,
+      currentQuarterlies: quarterliesResult.rows.map(row => ({
+        id: row.id,
+        kind: row.kind,
+        title: row.title,
+        year: row.year,
+        quarter: row.quarter,
+      })),
     };
 
     res.json(homeData);
