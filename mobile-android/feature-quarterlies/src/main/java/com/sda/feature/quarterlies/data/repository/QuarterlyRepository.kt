@@ -90,8 +90,9 @@ class QuarterlyRepository @Inject constructor(
             val response = apiService.getLesson(lessonId)
 
             if (response.isSuccessful) {
-                val lesson = response.body()
-                if (lesson != null) {
+                val wrapper = response.body()
+                if (wrapper != null) {
+                    val lesson = wrapper.lesson
                     // Cache lesson
                     cacheLesson(lesson)
                     emit(Result.Success(lesson))
@@ -116,8 +117,9 @@ class QuarterlyRepository @Inject constructor(
             val response = apiService.getLessonDay(lessonId, dayIndex)
 
             if (response.isSuccessful) {
-                val day = response.body()
-                if (day != null) {
+                val wrapper = response.body()
+                if (wrapper != null) {
+                    val day = wrapper.day
                     // Cache lesson day
                     cacheLessonDay(day)
                     emit(Result.Success(day))

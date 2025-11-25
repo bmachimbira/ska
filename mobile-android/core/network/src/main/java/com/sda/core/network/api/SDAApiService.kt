@@ -71,7 +71,7 @@ interface SDAApiService {
     @GET("quarterlies/{id}")
     suspend fun getQuarterly(
         @Path("id") id: Long
-    ): Response<QuarterlyResponse>
+    ): Response<QuarterlyResponseWrapper>
 
     @GET("quarterlies/{id}/lessons")
     suspend fun getLessons(
@@ -81,13 +81,13 @@ interface SDAApiService {
     @GET("lessons/{id}")
     suspend fun getLesson(
         @Path("id") id: Long
-    ): Response<LessonResponse>
+    ): Response<LessonResponseWrapper>
 
     @GET("lessons/{id}/days/{dayIndex}")
     suspend fun getLessonDay(
         @Path("id") lessonId: Long,
         @Path("dayIndex") dayIndex: Int
-    ): Response<LessonDayResponse>
+    ): Response<LessonDayResponseWrapper>
 
     // ========================================
     // Search

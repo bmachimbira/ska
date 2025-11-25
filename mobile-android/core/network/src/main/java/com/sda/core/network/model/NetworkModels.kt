@@ -103,7 +103,11 @@ data class QuarterlyListResponse(
     @SerializedName("quarterlies") val quarterlies: List<QuarterlySummary>
 )
 
-data class QuarterlyResponse(
+data class QuarterlyResponseWrapper(
+    @SerializedName("quarterly") val quarterly: QuarterlyResponseData
+)
+
+data class QuarterlyResponseData(
     @SerializedName("id") val id: Long,
     @SerializedName("kind") val kind: String,
     @SerializedName("title") val title: String,
@@ -112,6 +116,9 @@ data class QuarterlyResponse(
     @SerializedName("quarter") val quarter: Int,
     @SerializedName("lang") val lang: String
 )
+
+// Keep the old type alias for backward compatibility
+typealias QuarterlyResponse = QuarterlyResponseData
 
 data class QuarterlySummary(
     @SerializedName("id") val id: Long,
@@ -125,7 +132,11 @@ data class LessonListResponse(
     @SerializedName("lessons") val lessons: List<LessonSummary>
 )
 
-data class LessonResponse(
+data class LessonResponseWrapper(
+    @SerializedName("lesson") val lesson: LessonResponseData
+)
+
+data class LessonResponseData(
     @SerializedName("id") val id: Long,
     @SerializedName("quarterlyId") val quarterlyId: Long,
     @SerializedName("indexInQuarter") val indexInQuarter: Int,
@@ -134,13 +145,20 @@ data class LessonResponse(
     @SerializedName("days") val days: List<LessonDaySummary>?
 )
 
+// Keep the old type alias for backward compatibility
+typealias LessonResponse = LessonResponseData
+
 data class LessonSummary(
     @SerializedName("id") val id: Long,
     @SerializedName("indexInQuarter") val indexInQuarter: Int,
     @SerializedName("title") val title: String
 )
 
-data class LessonDayResponse(
+data class LessonDayResponseWrapper(
+    @SerializedName("day") val day: LessonDayResponseData
+)
+
+data class LessonDayResponseData(
     @SerializedName("id") val id: Long,
     @SerializedName("lessonId") val lessonId: Long,
     @SerializedName("dayIndex") val dayIndex: Int,
@@ -150,6 +168,9 @@ data class LessonDayResponse(
     @SerializedName("memoryVerse") val memoryVerse: String?,
     @SerializedName("audioAsset") val audioAsset: MediaAsset?
 )
+
+// Keep the old type alias for backward compatibility
+typealias LessonDayResponse = LessonDayResponseData
 
 data class LessonDaySummary(
     @SerializedName("id") val id: Long,

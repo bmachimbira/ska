@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { ArrowLeft, Save } from 'lucide-react';
+import VideoUpload from '@/components/VideoUpload';
 
 export default function NewSermonPage() {
   const router = useRouter();
@@ -14,6 +15,7 @@ export default function NewSermonPage() {
     speakerId: '',
     seriesId: '',
     scriptureRefs: '',
+    videoAssetId: '',
     videoUrl: '',
     audioUrl: '',
     thumbnailUrl: '',
@@ -177,61 +179,82 @@ export default function NewSermonPage() {
             />
           </div>
 
-          {/* Media URLs */}
-          <div className="space-y-4">
-            <div>
-              <label
-                htmlFor="videoUrl"
-                className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
-              >
-                Video URL
-              </label>
-              <input
-                type="url"
-                id="videoUrl"
-                name="videoUrl"
-                value={formData.videoUrl}
-                onChange={handleChange}
-                className="w-full px-4 py-2 border border-gray-300 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-900 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                placeholder="https://..."
-              />
-            </div>
+          {/* Video Upload */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              Video Upload
+            </label>
+            <VideoUpload
+              onUploadComplete={(assetId, hlsUrl, thumbnailUrl) => {
+                setFormData((prev) => ({
+                  ...prev,
+                  videoAssetId: assetId,
+                  videoUrl: hlsUrl,
+                  thumbnailUrl: thumbnailUrl,
+                }));
+              }}
+              onError={(error) => {
+                console.error('Upload error:', error);
+                alert(`Upload failed: ${error}`);
+              }}
+            />
+          </div>
 
-            <div>
-              <label
-                htmlFor="audioUrl"
-                className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
-              >
-                Audio URL
-              </label>
-              <input
-                type="url"
-                id="audioUrl"
-                name="audioUrl"
-                value={formData.audioUrl}
-                onChange={handleChange}
-                className="w-full px-4 py-2 border border-gray-300 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-900 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                placeholder="https://..."
-              />
+          {/* Display current video info if available */}
+          {formData.videoUrl && (
+            <div className="bg-blue-50 dark:bg-blue-900/10 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
+              <p className="text-sm font-medium text-blue-900 dark:text-blue-100 mb-2">
+                Video Information
+              </p>
+              <div className="space-y-1 text-sm text-blue-700 dark:text-blue-300">
+                <p>
+                  <span className="font-medium">HLS URL:</span>{' '}
+                  <a
+                    href={formData.videoUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="underline hover:text-blue-800"
+                  >
+                    {formData.videoUrl}
+                  </a>
+                </p>
+                {formData.thumbnailUrl && (
+                  <p>
+                    <span className="font-medium">Thumbnail:</span>{' '}
+                    <a
+                      href={formData.thumbnailUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="underline hover:text-blue-800"
+                    >
+                      View
+                    </a>
+                  </p>
+                )}
+              </div>
             </div>
+          )}
 
-            <div>
-              <label
-                htmlFor="thumbnailUrl"
-                className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
-              >
-                Thumbnail URL
-              </label>
-              <input
-                type="url"
-                id="thumbnailUrl"
-                name="thumbnailUrl"
-                value={formData.thumbnailUrl}
-                onChange={handleChange}
-                className="w-full px-4 py-2 border border-gray-300 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-900 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                placeholder="https://..."
-              />
-            </div>
+          {/* Optional: Audio URL */}
+          <div>
+            <label
+              htmlFor="audioUrl"
+              className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+            >
+              Audio URL (Optional)
+            </label>
+            <input
+              type="url"
+              id="audioUrl"
+              name="audioUrl"
+              value={formData.audioUrl}
+              onChange={handleChange}
+              className="w-full px-4 py-2 border border-gray-300 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-900 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+              placeholder="https://..."
+            />
+            <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+              Leave empty if video is the only source
+            </p>
           </div>
 
           {/* Published Date */}
