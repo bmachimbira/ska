@@ -26,7 +26,7 @@ homeRouter.get(
 
     // Query current quarterlies from database
     const quarterliesResult = await pool.query(
-      \`
+      `
       SELECT
         id,
         kind,
@@ -42,13 +42,13 @@ homeRouter.get(
           WHEN 'kids' THEN 3
           ELSE 4
         END
-      \`,
+      `,
       [currentYear, currentQuarter]
     );
 
     // Query featured sermon from database
     const featuredSermonResult = await pool.query(
-      \`
+      `
       SELECT
         s.id,
         s.title,
@@ -83,12 +83,12 @@ homeRouter.get(
       AND s.published_at IS NOT NULL
       ORDER BY s.published_at DESC
       LIMIT 1
-      \`
+      `
     );
 
     // Query recent sermons from database
     const recentSermonsResult = await pool.query(
-      \`
+      `
       SELECT
         s.id,
         s.title,
@@ -122,12 +122,12 @@ homeRouter.get(
       WHERE s.published_at IS NOT NULL
       ORDER BY s.published_at DESC
       LIMIT 6
-      \`
+      `
     );
 
     // Query today's devotional from database
     const todayDevotionalResult = await pool.query(
-      \`
+      `
       SELECT
         d.id,
         d.slug,
@@ -144,7 +144,7 @@ homeRouter.get(
       WHERE d.date = CURRENT_DATE
       AND d.lang = 'en'
       LIMIT 1
-      \`
+      `
     );
 
     const featuredSermon = featuredSermonResult.rows[0] || null;
