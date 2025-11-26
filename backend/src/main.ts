@@ -60,11 +60,12 @@ app.use(requestLogger);
 
 // Rate limiting
 const limiter = rateLimit({
-  windowMs: parseInt(process.env.RATE_LIMIT_WINDOW_MS || '900000'), // 15 minutes
-  max: parseInt(process.env.RATE_LIMIT_MAX_REQUESTS || '100'),
+  windowMs: parseInt(process.env.RATE_LIMIT_WINDOW_MS || '60000'), // 1 minute
+  max: parseInt(process.env.RATE_LIMIT_MAX_REQUESTS || '1000'), // More generous for dev
   message: 'Too many requests from this IP, please try again later.',
   standardHeaders: true,
   legacyHeaders: false,
+  skip: (req) => NODE_ENV === 'development', // Skip rate limiting in development
 });
 app.use('/v1', limiter);
 
@@ -122,17 +123,26 @@ app.use(errorHandler);
 
 const server = createServer(app);
 
-function startServer() {
-  server.listen(PORT, () => {
-    console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-    console.log('🚀 SDA Content App API');
-    console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-    console.log(`📡 Server:      http://localhost:${PORT}`);
-    console.log(`🌍 Environment: ${NODE_ENV}`);
-    console.log(`📚 API Docs:    http://localhost:${PORT}/api/docs`);
-    console.log(`❤️  Health:      http://localhost:${PORT}/health`);
-    console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
-  });
+async function startServer() {
+  try {
+    // Initialize MinIO storage
+    const { initializeStorage } = await import('./services/storage');
+    await initializeStorage();
+    
+    server.listen(PORT, () => {
+      console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+      console.log('🚀 SDA Content App API');
+      console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+      console.log(`📡 Server:      http://localhost:${PORT}`);
+      console.log(`🌍 Environment: ${NODE_ENV}`);
+      console.log(`📚 API Docs:    http://localhost:${PORT}/api/docs`);
+      console.log(`❤️  Health:      http://localhost:${PORT}/health`);
+      console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
+    });
+  } catch (error) {
+    console.error('Failed to start server:', error);
+    process.exit(1);
+  }
 }
 
 // Graceful shutdown

@@ -1,15 +1,34 @@
 'use client';
 
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useState, useEffect } from 'react';
+import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { ArrowLeft, Save } from 'lucide-react';
-import VideoUpload from '@/components/VideoUpload';
 import { apiClient } from '@/lib/api-client';
 
-export default function NewSermonPage() {
+interface Sermon {
+  id: string;
+  title: string;
+  description: string | null;
+  transcript: string | null;
+  scripture_refs: string[] | null;
+  speaker_id: number | null;
+  series_id: number | null;
+  video_asset: string | null;
+  audio_asset: string | null;
+  thumbnail_asset: string | null;
+  published_at: string | null;
+  is_featured: boolean;
+}
+
+export default function EditSermonPage() {
+  const params = useParams();
   const router = useRouter();
-  const [loading, setLoading] = useState(false);
+  const id = params.id as string;
+
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [sermon, setSermon] = useState<Sermon | null>(null);
   const [formData, setFormData] = useState({
     title: '',
     description: '',
@@ -18,16 +37,46 @@ export default function NewSermonPage() {
     seriesId: '',
     scriptureRefs: '',
     videoAssetId: '',
-    videoUrl: '',
-    audioUrl: '',
-    thumbnailUrl: '',
     publishedAt: '',
     isFeatured: false,
   });
 
+  useEffect(() => {
+    loadSermon();
+  }, [id]);
+
+  async function loadSermon() {
+    try {
+      setLoading(true);
+      const response = await apiClient.get<Sermon>(`/sermons/${id}`);
+      setSermon(response);
+      
+      // Populate form data
+      setFormData({
+        title: response.title,
+        description: response.description || '',
+        transcript: response.transcript || '',
+        speakerId: response.speaker_id?.toString() || '',
+        seriesId: response.series_id?.toString() || '',
+        scriptureRefs: response.scripture_refs?.join(', ') || '',
+        videoAssetId: response.video_asset || '',
+        publishedAt: response.published_at 
+          ? new Date(response.published_at).toISOString().slice(0, 16)
+          : '',
+        isFeatured: response.is_featured,
+      });
+    } catch (error) {
+      console.error('Failed to load sermon:', error);
+      alert('Failed to load sermon');
+      router.push('/dashboard/sermons');
+    } finally {
+      setLoading(false);
+    }
+  }
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setLoading(true);
+    setSaving(true);
 
     try {
       // Parse scripture refs into array
@@ -36,7 +85,7 @@ export default function NewSermonPage() {
         .map(ref => ref.trim())
         .filter(ref => ref.length > 0);
 
-      await apiClient.post('/sermons', {
+      await apiClient.put(`/sermons/${id}`, {
         title: formData.title,
         description: formData.description || null,
         transcript: formData.transcript || null,
@@ -50,10 +99,10 @@ export default function NewSermonPage() {
 
       router.push('/dashboard/sermons');
     } catch (error: any) {
-      console.error('Error creating sermon:', error);
-      alert('Failed to create sermon: ' + (error.message || 'Unknown error'));
+      console.error('Error updating sermon:', error);
+      alert('Failed to update sermon: ' + (error.message || 'Unknown error'));
     } finally {
-      setLoading(false);
+      setSaving(false);
     }
   };
 
@@ -70,6 +119,17 @@ export default function NewSermonPage() {
     }));
   };
 
+  if (loading) {
+    return (
+      <div className="p-8">
+        <div className="text-center py-12">
+          <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600"></div>
+          <p className="mt-4 text-gray-600 dark:text-gray-400">Loading sermon...</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="p-8">
       {/* Header */}
@@ -82,10 +142,10 @@ export default function NewSermonPage() {
         </Link>
         <div>
           <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
-            Add New Sermon
+            Edit Sermon
           </h1>
           <p className="text-gray-600 dark:text-gray-400 mt-2">
-            Create a new sermon entry
+            Update sermon information
           </p>
         </div>
       </div>
@@ -219,82 +279,23 @@ export default function NewSermonPage() {
             </p>
           </div>
 
-          {/* Video Upload */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-              Video Upload
-            </label>
-            <VideoUpload
-              onUploadComplete={(assetId, hlsUrl, thumbnailUrl) => {
-                setFormData((prev) => ({
-                  ...prev,
-                  videoAssetId: assetId,
-                  videoUrl: hlsUrl,
-                  thumbnailUrl: thumbnailUrl,
-                }));
-              }}
-              onError={(error) => {
-                console.error('Upload error:', error);
-                alert(`Upload failed: ${error}`);
-              }}
-            />
-          </div>
-
-          {/* Display current video info if available */}
-          {formData.videoUrl && (
-            <div className="bg-blue-50 dark:bg-blue-900/10 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
-              <p className="text-sm font-medium text-blue-900 dark:text-blue-100 mb-2">
-                Video Information
-              </p>
-              <div className="space-y-1 text-sm text-blue-700 dark:text-blue-300">
-                <p>
-                  <span className="font-medium">HLS URL:</span>{' '}
-                  <a
-                    href={formData.videoUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="underline hover:text-blue-800"
-                  >
-                    {formData.videoUrl}
-                  </a>
-                </p>
-                {formData.thumbnailUrl && (
-                  <p>
-                    <span className="font-medium">Thumbnail:</span>{' '}
-                    <a
-                      href={formData.thumbnailUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="underline hover:text-blue-800"
-                    >
-                      View
-                    </a>
-                  </p>
-                )}
-              </div>
-            </div>
-          )}
-
-          {/* Optional: Audio URL */}
+          {/* Video Asset ID */}
           <div>
             <label
-              htmlFor="audioUrl"
+              htmlFor="videoAssetId"
               className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
             >
-              Audio URL (Optional)
+              Video Asset ID (Optional)
             </label>
             <input
-              type="url"
-              id="audioUrl"
-              name="audioUrl"
-              value={formData.audioUrl}
+              type="text"
+              id="videoAssetId"
+              name="videoAssetId"
+              value={formData.videoAssetId}
               onChange={handleChange}
               className="w-full px-4 py-2 border border-gray-300 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-900 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-              placeholder="https://..."
+              placeholder="UUID of video asset"
             />
-            <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-              Leave empty if video is the only source
-            </p>
           </div>
 
           {/* Published Date */}
@@ -337,11 +338,11 @@ export default function NewSermonPage() {
           <div className="flex items-center gap-4 pt-6 border-t border-gray-200 dark:border-gray-700">
             <button
               type="submit"
-              disabled={loading}
+              disabled={saving}
               className="flex items-center gap-2 px-6 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <Save className="w-4 h-4" />
-              {loading ? 'Saving...' : 'Save Sermon'}
+              {saving ? 'Saving...' : 'Save Changes'}
             </button>
             <Link
               href="/dashboard/sermons"
