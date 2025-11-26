@@ -14,6 +14,7 @@ import {
   Users,
   FileText,
   BarChart3,
+  Mic,
 } from 'lucide-react';
 
 interface NavItem {
@@ -35,6 +36,13 @@ const navItems: NavItem[] = [
     href: '/dashboard/sermons',
     icon: Video,
     resource: 'sermons',
+    action: 'read',
+  },
+  {
+    label: 'Speakers',
+    href: '/dashboard/speakers',
+    icon: Mic,
+    resource: 'speakers',
     action: 'read',
   },
   {

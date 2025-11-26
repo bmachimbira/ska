@@ -1,15 +1,21 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { ArrowLeft, Save } from 'lucide-react';
 import VideoUpload from '@/components/VideoUpload';
 import { apiClient } from '@/lib/api-client';
 
+interface Speaker {
+  id: number;
+  name: string;
+}
+
 export default function NewSermonPage() {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
+  const [speakers, setSpeakers] = useState<Speaker[]>([]);
   const [formData, setFormData] = useState({
     title: '',
     description: '',
@@ -24,6 +30,19 @@ export default function NewSermonPage() {
     publishedAt: '',
     isFeatured: false,
   });
+
+  useEffect(() => {
+    loadSpeakers();
+  }, []);
+
+  async function loadSpeakers() {
+    try {
+      const data = await apiClient.get<{ speakers: Speaker[] }>('/speakers');
+      setSpeakers(data.speakers);
+    } catch (error) {
+      console.error('Failed to load speakers:', error);
+    }
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -135,12 +154,21 @@ export default function NewSermonPage() {
           {/* Speaker and Series */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
-              <label
-                htmlFor="speakerId"
-                className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
-              >
-                Speaker
-              </label>
+              <div className="flex items-center justify-between mb-2">
+                <label
+                  htmlFor="speakerId"
+                  className="block text-sm font-medium text-gray-700 dark:text-gray-300"
+                >
+                  Speaker
+                </label>
+                <Link
+                  href="/dashboard/speakers"
+                  className="text-xs text-primary-600 hover:text-primary-700 dark:text-primary-400 dark:hover:text-primary-300"
+                  target="_blank"
+                >
+                  Manage Speakers
+                </Link>
+              </div>
               <select
                 id="speakerId"
                 name="speakerId"
@@ -149,8 +177,11 @@ export default function NewSermonPage() {
                 className="w-full px-4 py-2 border border-gray-300 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-900 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-transparent"
               >
                 <option value="">Select speaker</option>
-                <option value="1">John Smith</option>
-                <option value="2">Jane Doe</option>
+                {speakers.map(speaker => (
+                  <option key={speaker.id} value={speaker.id}>
+                    {speaker.name}
+                  </option>
+                ))}
               </select>
             </div>
 
