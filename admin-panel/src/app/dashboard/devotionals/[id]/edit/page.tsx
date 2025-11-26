@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { ArrowLeft, Save, Eye, Code } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
@@ -14,11 +14,30 @@ interface Speaker {
   name: string;
 }
 
-export default function NewDevotionalPage() {
+interface Devotional {
+  id: number;
+  slug: string;
+  title: string;
+  author: string | null;
+  speaker_id: number | null;
+  body_md: string;
+  date: string;
+  content_type: 'text' | 'audio' | 'video';
+  audio_asset: string | null;
+  video_asset: string | null;
+  lang: string;
+}
+
+export default function EditDevotionalPage() {
+  const params = useParams();
   const router = useRouter();
-  const [loading, setLoading] = useState(false);
+  const id = params.id as string;
+
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
   const [previewMode, setPreviewMode] = useState(false);
   const [speakers, setSpeakers] = useState<Speaker[]>([]);
+  const [devotional, setDevotional] = useState<Devotional | null>(null);
   const [formData, setFormData] = useState({
     date: '',
     title: '',
@@ -29,14 +48,13 @@ export default function NewDevotionalPage() {
     content: '',
     videoAssetId: '',
     audioAssetId: '',
+    lang: 'en',
   });
 
   useEffect(() => {
+    loadDevotional();
     loadSpeakers();
-    // Set default date to today
-    const today = new Date().toISOString().split('T')[0];
-    setFormData(prev => ({ ...prev, date: today }));
-  }, []);
+  }, [id]);
 
   async function loadSpeakers() {
     try {
@@ -47,23 +65,40 @@ export default function NewDevotionalPage() {
     }
   }
 
-  // Auto-generate slug from title
-  useEffect(() => {
-    if (formData.title && !formData.slug) {
-      const slug = formData.title
-        .toLowerCase()
-        .replace(/[^a-z0-9]+/g, '-')
-        .replace(/^-|-$/g, '');
-      setFormData(prev => ({ ...prev, slug }));
+  async function loadDevotional() {
+    try {
+      setLoading(true);
+      const response = await apiClient.get<Devotional>(`/devotionals/${id}`);
+      setDevotional(response);
+      
+      // Populate form data
+      setFormData({
+        date: response.date.split('T')[0], // Format date for input
+        title: response.title,
+        slug: response.slug,
+        author: response.author || '',
+        speakerId: response.speaker_id?.toString() || '',
+        contentType: response.content_type,
+        content: response.body_md,
+        videoAssetId: response.video_asset || '',
+        audioAssetId: response.audio_asset || '',
+        lang: response.lang,
+      });
+    } catch (error) {
+      console.error('Failed to load devotional:', error);
+      alert('Failed to load devotional');
+      router.push('/dashboard/devotionals');
+    } finally {
+      setLoading(false);
     }
-  }, [formData.title]);
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setLoading(true);
+    setSaving(true);
 
     try {
-      await apiClient.post('/devotionals', {
+      await apiClient.put(`/devotionals/${id}`, {
         title: formData.title,
         slug: formData.slug,
         author: formData.author || null,
@@ -73,15 +108,15 @@ export default function NewDevotionalPage() {
         contentType: formData.contentType,
         videoAsset: formData.videoAssetId || null,
         audioAsset: formData.audioAssetId || null,
-        lang: 'en',
+        lang: formData.lang,
       });
 
       router.push('/dashboard/devotionals');
     } catch (error: any) {
-      console.error('Error creating devotional:', error);
-      alert('Failed to create devotional: ' + (error.message || 'Unknown error'));
+      console.error('Error updating devotional:', error);
+      alert('Failed to update devotional: ' + (error.message || 'Unknown error'));
     } finally {
-      setLoading(false);
+      setSaving(false);
     }
   };
 
@@ -95,6 +130,17 @@ export default function NewDevotionalPage() {
     }));
   };
 
+  if (loading) {
+    return (
+      <div className="p-8">
+        <div className="text-center py-12">
+          <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600"></div>
+          <p className="mt-4 text-gray-600 dark:text-gray-400">Loading devotional...</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="p-8">
       {/* Header */}
@@ -107,10 +153,10 @@ export default function NewDevotionalPage() {
         </Link>
         <div className="flex-1">
           <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
-            Add New Devotional
+            Edit Devotional
           </h1>
           <p className="text-gray-600 dark:text-gray-400 mt-2">
-            Create a new daily devotional
+            Update devotional information
           </p>
         </div>
         <button
@@ -226,9 +272,6 @@ export default function NewDevotionalPage() {
                 className="w-full px-4 py-2 border border-gray-300 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-900 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                 placeholder="url-friendly-slug"
               />
-              <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                Auto-generated from title
-              </p>
             </div>
           </div>
 
@@ -273,7 +316,7 @@ export default function NewDevotionalPage() {
                 value={formData.content}
                 onChange={handleChange}
                 className="w-full px-4 py-3 border border-gray-300 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-900 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-transparent font-mono text-sm"
-                placeholder="Write your devotional content in markdown...&#10;&#10;## Heading&#10;**Bold text**&#10;*Italic text*&#10;- List item"
+                placeholder="Write your devotional content in markdown..."
               />
             )}
             <p className="mt-2 text-sm text-gray-500 dark:text-gray-400">
@@ -285,8 +328,13 @@ export default function NewDevotionalPage() {
           {formData.contentType === 'video' && (
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                Video
+                Video {formData.videoAssetId && '(Current video will be replaced)'}
               </label>
+              {formData.videoAssetId && (
+                <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">
+                  Current Video Asset: {formData.videoAssetId}
+                </p>
+              )}
               <VideoUpload
                 onUploadComplete={(assetId, url) => {
                   setFormData(prev => ({ ...prev, videoAssetId: assetId }));
@@ -324,11 +372,11 @@ export default function NewDevotionalPage() {
           <div className="flex items-center gap-4 pt-6 border-t border-gray-200 dark:border-gray-700">
             <button
               type="submit"
-              disabled={loading}
+              disabled={saving}
               className="flex items-center gap-2 px-6 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <Save className="w-4 h-4" />
-              {loading ? 'Saving...' : 'Save Devotional'}
+              {saving ? 'Saving...' : 'Save Changes'}
             </button>
             <Link
               href="/dashboard/devotionals"

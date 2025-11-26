@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { Plus, Search, Edit, Trash2 } from 'lucide-react';
+import { Plus, Search, Edit, Trash2, Eye } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { formatDate } from '@/lib/utils';
 import { apiClient } from '@/lib/api-client';
@@ -10,17 +10,26 @@ interface Devotional {
   id: number;
   slug: string;
   title: string;
-  author: string;
+  author: string | null;
+  speaker_id: number | null;
   body_md: string;
   date: string;
+  content_type: 'text' | 'audio' | 'video';
+  audio_asset: string | null;
+  video_asset: string | null;
   lang: string;
   view_count: number;
+  speaker?: {
+    id: number;
+    name: string;
+  } | null;
 }
 
 export default function DevotionalsPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [devotionals, setDevotionals] = useState<Devotional[]>([]);
   const [loading, setLoading] = useState(true);
+  const [deleting, setDeleting] = useState<number | null>(null);
 
   useEffect(() => {
     loadDevotionals();
@@ -36,6 +45,27 @@ export default function DevotionalsPage() {
       alert('Failed to load devotionals. Please check if the backend is running on http://localhost:3000');
     } finally {
       setLoading(false);
+    }
+  }
+
+  async function handleDelete(devotional: Devotional) {
+    const confirmed = window.confirm(
+      `Are you sure you want to delete "${devotional.title}"?\n\nThis action cannot be undone.`
+    );
+
+    if (!confirmed) return;
+
+    try {
+      setDeleting(devotional.id);
+      await apiClient.delete(`/devotionals/${devotional.id}`);
+      
+      // Remove from local state
+      setDevotionals(prev => prev.filter(d => d.id !== devotional.id));
+    } catch (error: any) {
+      console.error('Failed to delete devotional:', error);
+      alert('Failed to delete devotional: ' + (error.message || 'Unknown error'));
+    } finally {
+      setDeleting(null);
     }
   }
 
@@ -108,7 +138,10 @@ export default function DevotionalsPage() {
                   Title
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                  Author
+                  Speaker
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                  Type
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                   Views
@@ -131,7 +164,18 @@ export default function DevotionalsPage() {
                     {devotional.title}
                   </td>
                   <td className="px-6 py-4 text-sm text-gray-600 dark:text-gray-300">
-                    {devotional.author}
+                    {devotional.speaker?.name || devotional.author || '-'}
+                  </td>
+                  <td className="px-6 py-4">
+                    <span className={`px-2 py-1 text-xs font-medium rounded ${
+                      devotional.content_type === 'video' 
+                        ? 'bg-purple-100 dark:bg-purple-900/30 text-purple-800 dark:text-purple-400'
+                        : devotional.content_type === 'audio'
+                        ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-400'
+                        : 'bg-gray-100 dark:bg-gray-900/30 text-gray-800 dark:text-gray-400'
+                    }`}>
+                      {devotional.content_type}
+                    </span>
                   </td>
                   <td className="px-6 py-4 text-sm text-gray-600 dark:text-gray-300">
                     {devotional.view_count.toLocaleString()}
@@ -139,13 +183,30 @@ export default function DevotionalsPage() {
                   <td className="px-6 py-4">
                     <div className="flex items-center justify-end gap-2">
                       <Link
+                        href={`/dashboard/devotionals/${devotional.id}`}
+                        className="p-2 text-gray-600 dark:text-gray-400 hover:text-primary-600 dark:hover:text-primary-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition-colors"
+                        title="View devotional"
+                      >
+                        <Eye className="w-4 h-4" />
+                      </Link>
+                      <Link
                         href={`/dashboard/devotionals/${devotional.id}/edit`}
                         className="p-2 text-gray-600 dark:text-gray-400 hover:text-primary-600 dark:hover:text-primary-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition-colors"
+                        title="Edit devotional"
                       >
                         <Edit className="w-4 h-4" />
                       </Link>
-                      <button className="p-2 text-gray-600 dark:text-gray-400 hover:text-red-600 dark:hover:text-red-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition-colors">
-                        <Trash2 className="w-4 h-4" />
+                      <button 
+                        onClick={() => handleDelete(devotional)}
+                        disabled={deleting === devotional.id}
+                        className="p-2 text-gray-600 dark:text-gray-400 hover:text-red-600 dark:hover:text-red-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                        title="Delete devotional"
+                      >
+                        {deleting === devotional.id ? (
+                          <div className="w-4 h-4 border-2 border-red-600 border-t-transparent rounded-full animate-spin" />
+                        ) : (
+                          <Trash2 className="w-4 h-4" />
+                        )}
                       </button>
                     </div>
                   </td>

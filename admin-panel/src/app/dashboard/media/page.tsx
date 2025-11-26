@@ -1,79 +1,77 @@
 'use client';
 
-import { useState, useCallback } from 'react';
-import { Upload, Search, Trash2, Download, Eye } from 'lucide-react';
+import { useState, useCallback, useEffect } from 'react';
+import { Upload, Search, Trash2, Download, Eye, Play } from 'lucide-react';
 import { useDropzone } from 'react-dropzone';
 import { formatBytes } from '@/lib/utils';
+import { apiClient } from '@/lib/api-client';
+import VideoUpload from '@/components/VideoUpload';
 
-// Mock data
-const mockMedia = [
-  {
-    id: '1',
-    type: 'video',
-    url: 'https://example.com/video1.mp4',
-    filename: 'sermon-video-1.mp4',
-    size: 15728640,
-    mimeType: 'video/mp4',
-    uploadedAt: '2024-06-15T10:00:00Z',
-  },
-  {
-    id: '2',
-    type: 'audio',
-    url: 'https://example.com/audio1.mp3',
-    filename: 'devotional-audio-1.mp3',
-    size: 5242880,
-    mimeType: 'audio/mpeg',
-    uploadedAt: '2024-06-14T10:00:00Z',
-  },
-  {
-    id: '3',
-    type: 'image',
-    url: 'https://example.com/image1.jpg',
-    filename: 'sermon-thumbnail.jpg',
-    size: 1048576,
-    mimeType: 'image/jpeg',
-    uploadedAt: '2024-06-13T10:00:00Z',
-  },
-];
+interface MediaAsset {
+  id: string;
+  kind: string;
+  hls_url: string | null;
+  dash_url: string | null;
+  download_url: string | null;
+  width: number | null;
+  height: number | null;
+  duration_seconds: number | null;
+  metadata: {
+    muxAssetId?: string;
+    muxPlaybackId?: string;
+    minioObjectName?: string;
+    status?: string;
+    duration?: number;
+  };
+  created_at: string;
+  updated_at: string;
+}
+
 
 export default function MediaLibraryPage() {
   const [searchQuery, setSearchQuery] = useState('');
-  const [media] = useState(mockMedia);
+  const [media, setMedia] = useState<MediaAsset[]>([]);
+  const [loading, setLoading] = useState(true);
   const [uploading, setUploading] = useState(false);
 
-  const onDrop = useCallback(async (acceptedFiles: File[]) => {
-    setUploading(true);
-
-    try {
-      // TODO: Upload files to backend
-      console.log('Uploading files:', acceptedFiles);
-
-      // Simulate upload
-      await new Promise((resolve) => setTimeout(resolve, 2000));
-    } catch (error) {
-      console.error('Error uploading files:', error);
-    } finally {
-      setUploading(false);
-    }
+  useEffect(() => {
+    loadMedia();
   }, []);
 
-  const { getRootProps, getInputProps, isDragActive } = useDropzone({
-    onDrop,
-    accept: {
-      'video/*': ['.mp4', '.mov', '.avi'],
-      'audio/*': ['.mp3', '.wav', '.m4a'],
-      'image/*': ['.jpg', '.jpeg', '.png', '.gif'],
-    },
-  });
+  async function loadMedia() {
+    try {
+      setLoading(true);
+      const data = await apiClient.get<{ media: MediaAsset[] }>('/media?limit=100');
+      setMedia(data.media);
+    } catch (error) {
+      console.error('Failed to load media:', error);
+      alert('Failed to load media');
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  const getFilename = (asset: MediaAsset): string => {
+    return asset.metadata?.minioObjectName?.split('/').pop() || `${asset.kind}-${asset.id.substring(0, 8)}`;
+  };
+
+  const getFileSize = (asset: MediaAsset): string => {
+    // Estimate size from duration for videos
+    if (asset.kind === 'video' && asset.duration_seconds) {
+      const estimatedBytes = asset.duration_seconds * 500000; // ~500KB per second estimate
+      return formatBytes(estimatedBytes);
+    }
+    return 'N/A';
+  };
 
   const filteredMedia = media.filter((item) =>
-    item.filename.toLowerCase().includes(searchQuery.toLowerCase())
+    getFilename(item).toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  const getMediaIcon = (type: string) => {
-    switch (type) {
+  const getMediaIcon = (kind: string) => {
+    switch (kind) {
       case 'video':
-        return '🎥';
+        return <Play className="w-6 h-6 text-purple-600 dark:text-purple-400" />;
       case 'audio':
         return '🎵';
       case 'image':
@@ -95,42 +93,21 @@ export default function MediaLibraryPage() {
         </p>
       </div>
 
-      {/* Upload Area */}
-      <div
-        {...getRootProps()}
-        className={`mb-8 p-12 border-2 border-dashed rounded-lg transition-colors cursor-pointer ${
-          isDragActive
-            ? 'border-primary-500 bg-primary-50 dark:bg-primary-900/20'
-            : 'border-gray-300 dark:border-gray-700 hover:border-primary-400 hover:bg-gray-50 dark:hover:bg-gray-800'
-        }`}
-      >
-        <input {...getInputProps()} />
-        <div className="text-center">
-          <Upload className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-          {uploading ? (
-            <div>
-              <p className="text-lg font-medium text-gray-900 dark:text-white mb-2">
-                Uploading...
-              </p>
-              <div className="w-64 h-2 bg-gray-200 dark:bg-gray-700 rounded-full mx-auto overflow-hidden">
-                <div className="h-full bg-primary-600 rounded-full animate-pulse" style={{ width: '60%' }} />
-              </div>
-            </div>
-          ) : isDragActive ? (
-            <p className="text-lg font-medium text-gray-900 dark:text-white">
-              Drop files here...
-            </p>
-          ) : (
-            <div>
-              <p className="text-lg font-medium text-gray-900 dark:text-white mb-2">
-                Drop files here or click to browse
-              </p>
-              <p className="text-sm text-gray-500 dark:text-gray-400">
-                Supports: Video (MP4, MOV), Audio (MP3, WAV), Images (JPG, PNG)
-              </p>
-            </div>
-          )}
-        </div>
+      {/* Video Upload */}
+      <div className="mb-8">
+        <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+          Upload New Video
+        </h2>
+        <VideoUpload
+          onUploadComplete={(assetId, url) => {
+            loadMedia(); // Refresh the list
+            alert('Video uploaded successfully!');
+          }}
+          onUploadError={(error) => {
+            console.error('Video upload error:', error);
+            alert('Video upload failed: ' + error);
+          }}
+        />
       </div>
 
       {/* Search */}
@@ -147,7 +124,26 @@ export default function MediaLibraryPage() {
         </div>
       </div>
 
+      {/* Loading State */}
+      {loading && (
+        <div className="text-center py-12">
+          <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600"></div>
+          <p className="mt-4 text-gray-600 dark:text-gray-400">Loading media...</p>
+        </div>
+      )}
+
+      {/* Empty State */}
+      {!loading && filteredMedia.length === 0 && (
+        <div className="text-center py-12 bg-white dark:bg-gray-800 rounded-lg shadow border border-gray-200 dark:border-gray-700">
+          <Upload className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+          <p className="text-gray-600 dark:text-gray-400">
+            {searchQuery ? 'No media found matching your search' : 'No media uploaded yet. Upload a video to get started.'}
+          </p>
+        </div>
+      )}
+
       {/* Media Grid */}
+      {!loading && filteredMedia.length > 0 && (
       <div className="bg-white dark:bg-gray-800 rounded-lg shadow border border-gray-200 dark:border-gray-700 overflow-hidden">
         <table className="w-full">
           <thead className="bg-gray-50 dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700">
@@ -162,7 +158,10 @@ export default function MediaLibraryPage() {
                 Size
               </th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                URL
+                Status
+              </th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                Mux ID
               </th>
               <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                 Actions
@@ -177,41 +176,74 @@ export default function MediaLibraryPage() {
               >
                 <td className="px-6 py-4">
                   <div className="flex items-center gap-3">
-                    <span className="text-2xl">{getMediaIcon(item.type)}</span>
-                    <span className="text-sm font-medium text-gray-900 dark:text-white">
-                      {item.filename}
-                    </span>
+                    {getMediaIcon(item.kind)}
+                    <div>
+                      <p className="text-sm font-medium text-gray-900 dark:text-white">
+                        {getFilename(item)}
+                      </p>
+                      <p className="text-xs text-gray-500 dark:text-gray-400">
+                        {new Date(item.created_at).toLocaleDateString()}
+                      </p>
+                    </div>
                   </div>
                 </td>
                 <td className="px-6 py-4">
                   <span className="px-2 py-1 text-xs font-medium bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-200 rounded capitalize">
-                    {item.type}
+                    {item.kind}
                   </span>
                 </td>
                 <td className="px-6 py-4 text-sm text-gray-600 dark:text-gray-300">
-                  {formatBytes(item.size)}
+                  {getFileSize(item)}
+                </td>
+                <td className="px-6 py-4">
+                  <span className={`px-2 py-1 text-xs font-medium rounded ${
+                    item.metadata?.status === 'ready'
+                      ? 'bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-400'
+                      : 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-400'
+                  }`}>
+                    {item.metadata?.status || 'processing'}
+                  </span>
                 </td>
                 <td className="px-6 py-4">
                   <button
-                    onClick={() => navigator.clipboard.writeText(item.url)}
-                    className="text-sm text-primary-600 dark:text-primary-400 hover:underline"
+                    onClick={() => navigator.clipboard.writeText(item.metadata?.muxPlaybackId || item.id)}
+                    className="text-xs font-mono text-gray-600 dark:text-gray-400 hover:text-primary-600 dark:hover:text-primary-400"
+                    title="Click to copy"
                   >
-                    Copy URL
+                    {item.metadata?.muxPlaybackId?.substring(0, 16)}...
                   </button>
                 </td>
                 <td className="px-6 py-4">
                   <div className="flex items-center justify-end gap-2">
-                    <button className="p-2 text-gray-600 dark:text-gray-400 hover:text-primary-600 dark:hover:text-primary-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition-colors">
-                      <Eye className="w-4 h-4" />
-                    </button>
-                    <a
-                      href={item.url}
-                      download
-                      className="p-2 text-gray-600 dark:text-gray-400 hover:text-primary-600 dark:hover:text-primary-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition-colors"
+                    {item.hls_url && (
+                      <button
+                        onClick={() => window.open(item.hls_url!, '_blank')}
+                        className="p-2 text-gray-600 dark:text-gray-400 hover:text-primary-600 dark:hover:text-primary-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition-colors"
+                        title="Open HLS URL"
+                      >
+                        <Play className="w-4 h-4" />
+                      </button>
+                    )}
+                    {item.download_url && (
+                      <a
+                        href={item.download_url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="p-2 text-gray-600 dark:text-gray-400 hover:text-primary-600 dark:hover:text-primary-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition-colors"
+                        title="Download"
+                      >
+                        <Download className="w-4 h-4" />
+                      </a>
+                    )}
+                    <button
+                      onClick={() => {
+                        if (confirm('Delete this media asset?')) {
+                          alert('Delete functionality coming soon');
+                        }
+                      }}
+                      className="p-2 text-gray-600 dark:text-gray-400 hover:text-red-600 dark:hover:text-red-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition-colors"
+                      title="Delete"
                     >
-                      <Download className="w-4 h-4" />
-                    </a>
-                    <button className="p-2 text-gray-600 dark:text-gray-400 hover:text-red-600 dark:hover:text-red-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition-colors">
                       <Trash2 className="w-4 h-4" />
                     </button>
                   </div>
@@ -221,6 +253,7 @@ export default function MediaLibraryPage() {
           </tbody>
         </table>
       </div>
+      )}
     </div>
   );
 }

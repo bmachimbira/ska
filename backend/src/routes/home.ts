@@ -26,7 +26,7 @@ homeRouter.get(
 
     // Query current quarterlies from database
     const quarterliesResult = await pool.query(
-      `
+      \`
       SELECT
         id,
         kind,
@@ -42,36 +42,118 @@ homeRouter.get(
           WHEN 'kids' THEN 3
           ELSE 4
         END
-      `,
+      \`,
       [currentYear, currentQuarter]
     );
 
-    // TODO: Query featured sermons from database
-    const featuredSermons = [
-      {
-        id: 1,
-        title: 'The Power of Grace',
-        description: "Discover how God's grace transforms our lives.",
-        thumbnailUrl: 'https://via.placeholder.com/400x225',
-        speaker: {
-          id: 1,
-          name: 'Pastor John Smith',
-        },
-        publishedAt: new Date().toISOString(),
-      },
-    ];
+    // Query featured sermon from database
+    const featuredSermonResult = await pool.query(
+      \`
+      SELECT
+        s.id,
+        s.title,
+        s.description,
+        s.scripture_refs,
+        s.published_at,
+        s.is_featured,
+        s.view_count,
+        s.created_at,
+        s.updated_at,
+        s.video_asset,
+        s.audio_asset,
+        s.thumbnail_asset,
+        CASE WHEN sp.id IS NOT NULL THEN
+          json_build_object(
+            'id', sp.id,
+            'name', sp.name,
+            'bio', sp.bio
+          )
+        ELSE NULL END as speaker,
+        CASE WHEN se.id IS NOT NULL THEN
+          json_build_object(
+            'id', se.id,
+            'title', se.title,
+            'description', se.description
+          )
+        ELSE NULL END as series
+      FROM sermon s
+      LEFT JOIN speaker sp ON s.speaker_id = sp.id
+      LEFT JOIN series se ON s.series_id = se.id
+      WHERE s.is_featured = true
+      AND s.published_at IS NOT NULL
+      ORDER BY s.published_at DESC
+      LIMIT 1
+      \`
+    );
 
-    // TODO: Query today's devotional from database
-    const todayDevotional = {
-      id: 1,
-      title: "God's Unfailing Love",
-      author: 'Ellen G. White',
-      date: new Date().toISOString().split('T')[0],
-      excerpt: "For God so loved the world...",
-    };
+    // Query recent sermons from database
+    const recentSermonsResult = await pool.query(
+      \`
+      SELECT
+        s.id,
+        s.title,
+        s.description,
+        s.scripture_refs,
+        s.published_at,
+        s.is_featured,
+        s.view_count,
+        s.created_at,
+        s.updated_at,
+        s.video_asset,
+        s.audio_asset,
+        s.thumbnail_asset,
+        CASE WHEN sp.id IS NOT NULL THEN
+          json_build_object(
+            'id', sp.id,
+            'name', sp.name,
+            'bio', sp.bio
+          )
+        ELSE NULL END as speaker,
+        CASE WHEN se.id IS NOT NULL THEN
+          json_build_object(
+            'id', se.id,
+            'title', se.title,
+            'description', se.description
+          )
+        ELSE NULL END as series
+      FROM sermon s
+      LEFT JOIN speaker sp ON s.speaker_id = sp.id
+      LEFT JOIN series se ON s.series_id = se.id
+      WHERE s.published_at IS NOT NULL
+      ORDER BY s.published_at DESC
+      LIMIT 6
+      \`
+    );
+
+    // Query today's devotional from database
+    const todayDevotionalResult = await pool.query(
+      \`
+      SELECT
+        d.id,
+        d.slug,
+        d.title,
+        d.author,
+        d.body_md as content,
+        d.date,
+        d.lang,
+        d.view_count,
+        d.created_at,
+        d.updated_at,
+        d.audio_asset
+      FROM devotional d
+      WHERE d.date = CURRENT_DATE
+      AND d.lang = 'en'
+      LIMIT 1
+      \`
+    );
+
+    const featuredSermon = featuredSermonResult.rows[0] || null;
+    const recentSermons = recentSermonsResult.rows || [];
+    const todayDevotional = todayDevotionalResult.rows[0] || null;
 
     const homeData = {
-      featuredSermons,
+      featuredSermon,
+      recentSermons,
       todayDevotional,
       currentQuarterlies: quarterliesResult.rows.map(row => ({
         id: row.id,

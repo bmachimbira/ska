@@ -188,12 +188,17 @@ export default function SermonsPage() {
                 </td>
                 <td className="px-6 py-4">
                   <div className="flex items-center justify-end gap-2">
-                    <button className="p-2 text-gray-600 dark:text-gray-400 hover:text-primary-600 dark:hover:text-primary-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition-colors">
+                    <Link
+                      href={`/dashboard/sermons/${sermon.id}`}
+                      className="p-2 text-gray-600 dark:text-gray-400 hover:text-primary-600 dark:hover:text-primary-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition-colors"
+                      title="View sermon"
+                    >
                       <Eye className="w-4 h-4" />
-                    </button>
+                    </Link>
                     <Link
                       href={`/dashboard/sermons/${sermon.id}/edit`}
                       className="p-2 text-gray-600 dark:text-gray-400 hover:text-primary-600 dark:hover:text-primary-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition-colors"
+                      title="Edit sermon"
                     >
                       <Edit className="w-4 h-4" />
                     </Link>

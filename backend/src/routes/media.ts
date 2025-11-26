@@ -13,6 +13,71 @@ import { getPool } from '../config/database';
 export const mediaRouter = Router();
 
 /**
+ * GET /v1/media
+ * List all media assets
+ */
+mediaRouter.get(
+  '/',
+  asyncHandler(async (req: Request, res: Response) => {
+    const { kind, page = '1', limit = '50' } = req.query;
+    const pool = getPool();
+
+    const pageNum = parseInt(page as string);
+    const limitNum = parseInt(limit as string);
+    const offset = (pageNum - 1) * limitNum;
+
+    // Build WHERE clause
+    const conditions: string[] = [];
+    const params: any[] = [];
+    let paramIndex = 1;
+
+    if (kind) {
+      conditions.push(`kind = $${paramIndex++}`);
+      params.push(kind);
+    }
+
+    const whereClause = conditions.length > 0 ? `WHERE ${conditions.join(' AND ')}` : '';
+
+    // Get total count
+    const countQuery = `SELECT COUNT(*) as total FROM media_asset ${whereClause}`;
+    const countResult = await pool.query(countQuery, params);
+    const total = parseInt(countResult.rows[0].total);
+
+    // Get media assets
+    const query = `
+      SELECT
+        id,
+        kind,
+        hls_url,
+        dash_url,
+        download_url,
+        width,
+        height,
+        duration_seconds,
+        metadata,
+        created_at,
+        updated_at
+      FROM media_asset
+      ${whereClause}
+      ORDER BY created_at DESC
+      LIMIT $${paramIndex} OFFSET $${paramIndex + 1}
+    `;
+
+    const result = await pool.query(query, [...params, limitNum, offset]);
+
+    res.json({
+      media: result.rows,
+      pagination: {
+        page: pageNum,
+        limit: limitNum,
+        total,
+        pages: Math.ceil(total / limitNum),
+      },
+    });
+  })
+);
+
+/**
  * POST /v1/media/upload-url
  * Get a presigned URL for uploading a video to MinIO
  */
