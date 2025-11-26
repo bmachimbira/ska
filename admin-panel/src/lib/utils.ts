@@ -11,8 +11,10 @@ export function cn(...inputs: ClassValue[]) {
 /**
  * Format date to readable string
  */
-export function formatDate(date: string | Date): string {
+export function formatDate(date: string | Date | null | undefined): string {
+  if (!date) return 'N/A';
   const d = typeof date === 'string' ? new Date(date) : date;
+  if (isNaN(d.getTime())) return 'Invalid Date';
   return d.toLocaleDateString('en-US', {
     year: 'numeric',
     month: 'long',
@@ -23,8 +25,10 @@ export function formatDate(date: string | Date): string {
 /**
  * Format date and time to readable string
  */
-export function formatDateTime(date: string | Date): string {
+export function formatDateTime(date: string | Date | null | undefined): string {
+  if (!date) return 'N/A';
   const d = typeof date === 'string' ? new Date(date) : date;
+  if (isNaN(d.getTime())) return 'Invalid Date';
   return d.toLocaleString('en-US', {
     year: 'numeric',
     month: 'short',

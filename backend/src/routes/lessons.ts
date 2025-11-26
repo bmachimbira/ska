@@ -23,15 +23,21 @@ const CreateLessonDaySchema = z.object({
   dayIndex: z.number().int().min(1).max(7),
   title: z.string().min(1).max(500),
   bodyMd: z.string(),
-  memoryVerse: z.string().optional(),
-  date: z.string().optional(), // ISO date string
+  memoryVerse: z.string().nullish(),
+  date: z.string().nullish(), // ISO date string
+  studyAim: z.string().nullish(),
+  studyHelp: z.string().nullish(),
+  introduction: z.string().nullish(),
 });
 
 const UpdateLessonDaySchema = z.object({
   title: z.string().min(1).max(500).optional(),
   bodyMd: z.string().optional(),
-  memoryVerse: z.string().optional(),
-  date: z.string().optional(),
+  memoryVerse: z.string().nullish(),
+  date: z.string().nullish(),
+  studyAim: z.string().nullish(),
+  studyHelp: z.string().nullish(),
+  introduction: z.string().nullish(),
 });
 
 export const lessonsRouter = Router();
@@ -67,6 +73,9 @@ lessonsRouter.get(
         ld.title,
         ld.body_md,
         ld.memory_verse,
+        ld.study_aim,
+        ld.study_help,
+        ld.introduction,
         ld.audio_asset,
         ld.created_at,
         ld.updated_at,
@@ -103,6 +112,9 @@ lessonsRouter.get(
         title: day.title,
         bodyMd: day.body_md,
         memoryVerse: day.memory_verse,
+        studyAim: day.study_aim,
+        studyHelp: day.study_help,
+        introduction: day.introduction,
         audioAsset: day.audio_asset,
         createdAt: day.created_at,
         updatedAt: day.updated_at,
@@ -176,6 +188,9 @@ lessonsRouter.get(
         title,
         body_md,
         memory_verse,
+        study_aim,
+        study_help,
+        introduction,
         audio_asset,
         created_at,
         updated_at
@@ -210,6 +225,9 @@ lessonsRouter.get(
           title: day.title,
           bodyMd: day.body_md,
           memoryVerse: day.memory_verse,
+          studyAim: day.study_aim,
+          studyHelp: day.study_help,
+          introduction: day.introduction,
           audioAsset: day.audio_asset,
           createdAt: day.created_at,
           updatedAt: day.updated_at,
@@ -359,10 +377,13 @@ lessonsRouter.post(
         body_md,
         memory_verse,
         date,
+        study_aim,
+        study_help,
+        introduction,
         created_at,
         updated_at
-      ) VALUES ($1, $2, $3, $4, $5, $6, NOW(), NOW())
-      RETURNING id, lesson_id, day_index, date, title, body_md, memory_verse, audio_asset, created_at, updated_at
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, NOW(), NOW())
+      RETURNING id, lesson_id, day_index, date, title, body_md, memory_verse, study_aim, study_help, introduction, audio_asset, created_at, updated_at
       `,
       [
         id,
@@ -371,6 +392,9 @@ lessonsRouter.post(
         validated.bodyMd,
         validated.memoryVerse || null,
         validated.date || null,
+        validated.studyAim || null,
+        validated.studyHelp || null,
+        validated.introduction || null,
       ]
     );
 
@@ -384,6 +408,9 @@ lessonsRouter.post(
         title: row.title,
         bodyMd: row.body_md,
         memoryVerse: row.memory_verse,
+        studyAim: row.study_aim,
+        studyHelp: row.study_help,
+        introduction: row.introduction,
         audioAsset: row.audio_asset,
         createdAt: row.created_at,
         updatedAt: row.updated_at,
@@ -436,6 +463,21 @@ lessonsRouter.put(
       values.push(validated.date);
     }
 
+    if (validated.studyAim !== undefined) {
+      updates.push(`study_aim = $${paramCount++}`);
+      values.push(validated.studyAim);
+    }
+
+    if (validated.studyHelp !== undefined) {
+      updates.push(`study_help = $${paramCount++}`);
+      values.push(validated.studyHelp);
+    }
+
+    if (validated.introduction !== undefined) {
+      updates.push(`introduction = $${paramCount++}`);
+      values.push(validated.introduction);
+    }
+
     if (updates.length === 0) {
       return res.status(400).json({
         error: 'Bad Request',
@@ -451,7 +493,7 @@ lessonsRouter.put(
       UPDATE lesson_day
       SET ${updates.join(', ')}
       WHERE lesson_id = $${paramCount++} AND day_index = $${paramCount}
-      RETURNING id, lesson_id, day_index, date, title, body_md, memory_verse, audio_asset, created_at, updated_at
+      RETURNING id, lesson_id, day_index, date, title, body_md, memory_verse, study_aim, study_help, introduction, audio_asset, created_at, updated_at
       `,
       values
     );
@@ -473,6 +515,9 @@ lessonsRouter.put(
         title: row.title,
         bodyMd: row.body_md,
         memoryVerse: row.memory_verse,
+        studyAim: row.study_aim,
+        studyHelp: row.study_help,
+        introduction: row.introduction,
         audioAsset: row.audio_asset,
         createdAt: row.created_at,
         updatedAt: row.updated_at,
