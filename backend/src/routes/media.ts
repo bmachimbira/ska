@@ -62,7 +62,6 @@ mediaRouter.post(
     const muxAsset = await muxService.createAssetFromUrl(videoUrl, {
       passthrough,
       playbackPolicy: 'public',
-      mp4Support: 'standard',
     });
 
     // Store media asset in database
@@ -128,7 +127,6 @@ mediaRouter.post(
       corsOrigin,
       newAssetSettings: {
         playbackPolicy: 'public',
-        mp4Support: 'standard',
         passthrough,
       },
     });

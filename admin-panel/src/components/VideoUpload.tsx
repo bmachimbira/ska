@@ -42,20 +42,28 @@ export default function VideoUpload({
         });
 
         // Step 1: Get presigned upload URL from backend
-        const uploadUrlResponse = await fetch(
-          `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'}/v1/media/upload-url`,
-          {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              filename: file.name,
-              contentType: file.type,
-            }),
-          }
-        );
+        const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000/v1';
+        const uploadEndpoint = `${apiUrl}/media/upload-url`;
+        
+        console.log('Requesting upload URL from:', uploadEndpoint);
+        
+        const uploadUrlResponse = await fetch(uploadEndpoint, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            filename: file.name,
+            contentType: file.type,
+          }),
+        });
 
         if (!uploadUrlResponse.ok) {
-          throw new Error('Failed to get upload URL');
+          const errorText = await uploadUrlResponse.text();
+          console.error('Upload URL request failed:', {
+            status: uploadUrlResponse.status,
+            statusText: uploadUrlResponse.statusText,
+            body: errorText,
+          });
+          throw new Error(`Failed to get upload URL: ${uploadUrlResponse.status} ${uploadUrlResponse.statusText}`);
         }
 
         const { uploadUrl, objectName } = await uploadUrlResponse.json();
@@ -87,7 +95,7 @@ export default function VideoUpload({
 
         // Step 3: Process video with Mux
         const processResponse = await fetch(
-          `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'}/v1/media/process`,
+          `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000/v1'}/media/process`,
           {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },

@@ -8,10 +8,22 @@ import * as dotenv from 'dotenv';
 
 dotenv.config();
 
+// Check if Mux credentials are configured
+const MUX_TOKEN_ID = process.env.MUX_TOKEN_ID;
+const MUX_TOKEN_SECRET = process.env.MUX_TOKEN_SECRET;
+
+if (!MUX_TOKEN_ID || !MUX_TOKEN_SECRET || 
+    MUX_TOKEN_ID === 'your-mux-token-id' || 
+    MUX_TOKEN_SECRET === 'your-mux-token-secret') {
+  console.warn('⚠️  Mux credentials not configured. Video processing will fail.');
+  console.warn('   Set MUX_TOKEN_ID and MUX_TOKEN_SECRET in your .env file');
+  console.warn('   Get credentials at: https://dashboard.mux.com/settings/access-tokens');
+}
+
 // Initialize Mux client
 const mux = new Mux({
-  tokenId: process.env.MUX_TOKEN_ID,
-  tokenSecret: process.env.MUX_TOKEN_SECRET,
+  tokenId: MUX_TOKEN_ID,
+  tokenSecret: MUX_TOKEN_SECRET,
 });
 
 const { video } = mux;
@@ -38,12 +50,19 @@ export async function createAssetFromUrl(
   }
 ): Promise<MuxAssetData> {
   try {
-    const asset = await video.assets.create({
+    // Build asset creation params
+    const createParams: any = {
       input: [{ url: videoUrl }],
       playback_policy: [options?.playbackPolicy || 'public'],
-      mp4_support: options?.mp4Support || 'standard',
       passthrough: options?.passthrough,
-    });
+    };
+
+    // Only add mp4_support if explicitly set (deprecated on basic plans)
+    // if (options?.mp4Support && options.mp4Support !== 'standard') {
+    //   createParams.mp4_support = options.mp4Support;
+    // }
+
+    const asset = await video.assets.create(createParams);
 
     // Get the playback ID
     const playbackId = asset.playback_ids?.[0]?.id || '';
@@ -57,9 +76,15 @@ export async function createAssetFromUrl(
       maxStoredResolution: asset.max_stored_resolution,
       maxStoredFrameRate: asset.max_stored_frame_rate,
     };
-  } catch (error) {
+  } catch (error: any) {
     console.error('Failed to create Mux asset:', error);
-    throw error;
+    
+    // Check if it's an authentication error
+    if (error.message?.includes('authentication') || error.message?.includes('unauthorized')) {
+      throw new Error('Mux authentication failed. Please check your MUX_TOKEN_ID and MUX_TOKEN_SECRET in .env file');
+    }
+    
+    throw new Error(`Mux video processing failed: ${error.message || 'Unknown error'}`);
   }
 }
 
@@ -166,13 +191,20 @@ export async function createDirectUpload(
   }
 ): Promise<{ uploadId: string; uploadUrl: string }> {
   try {
+    // Build new asset settings
+    const newAssetSettings: any = {
+      playback_policy: [options?.newAssetSettings?.playbackPolicy || 'public'],
+      passthrough: options?.newAssetSettings?.passthrough,
+    };
+
+    // Only add mp4_support if explicitly set and not 'standard' (deprecated on basic plans)
+    // if (options?.newAssetSettings?.mp4Support && options.newAssetSettings.mp4Support !== 'standard') {
+    //   newAssetSettings.mp4_support = options.newAssetSettings.mp4Support;
+    // }
+
     const upload = await video.uploads.create({
       cors_origin: options?.corsOrigin || '*',
-      new_asset_settings: {
-        playback_policy: [options?.newAssetSettings?.playbackPolicy || 'public'],
-        mp4_support: options?.newAssetSettings?.mp4Support || 'standard',
-        passthrough: options?.newAssetSettings?.passthrough,
-      },
+      new_asset_settings: newAssetSettings,
     });
 
     return {
