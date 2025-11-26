@@ -2,6 +2,8 @@
 
 import { useSession } from 'next-auth/react';
 import { Video, BookOpen, Book, TrendingUp } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { apiClient } from '@/lib/api-client';
 
 interface StatCard {
   label: string;
@@ -11,38 +13,66 @@ interface StatCard {
   changeType?: 'increase' | 'decrease';
 }
 
-const stats: StatCard[] = [
-  {
-    label: 'Total Sermons',
-    value: '1,234',
-    icon: Video,
-    change: '+12%',
-    changeType: 'increase',
-  },
-  {
-    label: 'Devotionals',
-    value: '365',
-    icon: BookOpen,
-    change: '+5%',
-    changeType: 'increase',
-  },
-  {
-    label: 'Quarterlies',
-    value: '48',
-    icon: Book,
-    change: 'Current year',
-  },
-  {
-    label: 'Total Views',
-    value: '45.2K',
-    icon: TrendingUp,
-    change: '+23%',
-    changeType: 'increase',
-  },
-];
-
 export default function DashboardPage() {
   const { data: session } = useSession();
+  const [stats, setStats] = useState<StatCard[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    loadStats();
+  }, []);
+
+  async function loadStats() {
+    try {
+      setLoading(true);
+      const data = await apiClient.get<{
+        stats: {
+          sermons: { total: number; change?: string; changeType?: string };
+          devotionals: { total: number };
+          quarterlies: { total: number };
+          totalViews: { total: number };
+        };
+      }>('/stats');
+
+      const statsData: StatCard[] = [
+        {
+          label: 'Total Sermons',
+          value: data.stats.sermons.total.toString(),
+          icon: Video,
+          change: data.stats.sermons.change,
+          changeType: data.stats.sermons.changeType as 'increase' | 'decrease',
+        },
+        {
+          label: 'Devotionals',
+          value: data.stats.devotionals.total.toString(),
+          icon: BookOpen,
+        },
+        {
+          label: 'Quarterlies',
+          value: data.stats.quarterlies.total.toString(),
+          icon: Book,
+        },
+        {
+          label: 'Total Views',
+          value: data.stats.totalViews.total.toLocaleString(),
+          icon: TrendingUp,
+        },
+      ];
+
+      setStats(statsData);
+    } catch (error) {
+      console.error('Failed to load stats:', error);
+      // Set default empty stats on error
+      setStats([
+        { label: 'Total Sermons', value: '0', icon: Video },
+        { label: 'Devotionals', value: '0', icon: BookOpen },
+        { label: 'Quarterlies', value: '0', icon: Book },
+        { label: 'Total Views', value: '0', icon: TrendingUp },
+      ]);
+    } finally {
+      setLoading(false);
+    }
+  }
 
   return (
     <div className="p-8">
@@ -55,9 +85,18 @@ export default function DashboardPage() {
         </p>
       </div>
 
+      {/* Loading State */}
+      {loading && (
+        <div className="text-center py-12">
+          <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600"></div>
+          <p className="mt-4 text-gray-600 dark:text-gray-400">Loading statistics...</p>
+        </div>
+      )}
+
       {/* Stats Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-        {stats.map((stat) => {
+      {!loading && (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+          {stats.map((stat) => {
           const Icon = stat.icon;
           return (
             <div
@@ -89,9 +128,10 @@ export default function DashboardPage() {
                 {stat.label}
               </p>
             </div>
-          );
-        })}
-      </div>
+            );
+          })}
+        </div>
+      )}
 
       {/* Recent Activity */}
       <div className="bg-white dark:bg-gray-800 rounded-lg shadow border border-gray-200 dark:border-gray-700">

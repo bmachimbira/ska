@@ -6,12 +6,12 @@
 -- ADMIN USERS
 -- ============================================================================
 -- Password: 'password123' (hashed with bcrypt)
--- In production, use proper password hashing
+-- In production, change these passwords and use proper secrets
 
 INSERT INTO admin_user (email, password_hash, name, role) VALUES
-  ('admin@example.com', '$2a$10$YourHashedPasswordHere', 'Super Admin', 'super_admin'),
-  ('editor@example.com', '$2a$10$YourHashedPasswordHere', 'Content Editor', 'editor'),
-  ('uploader@example.com', '$2a$10$YourHashedPasswordHere', 'Media Uploader', 'uploader');
+  ('admin@example.com', '$2b$10$JtVYaKT8euq79AU33yTzTe1jP9qOislnB9apC87pjkcjjk570jsqy', 'Super Admin', 'super_admin'),
+  ('editor@example.com', '$2b$10$JtVYaKT8euq79AU33yTzTe1jP9qOislnB9apC87pjkcjjk570jsqy', 'Content Editor', 'editor'),
+  ('uploader@example.com', '$2b$10$JtVYaKT8euq79AU33yTzTe1jP9qOislnB9apC87pjkcjjk570jsqy', 'Media Uploader', 'uploader');
 
 -- ============================================================================
 -- TAGS

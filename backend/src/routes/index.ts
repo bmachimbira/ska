@@ -13,6 +13,7 @@ import { searchRouter } from './search';
 import { mediaRouter } from './media';
 import { chatRouter } from './chat';
 import { adminRouter } from './admin';
+import { statsRouter } from './stats';
 
 export function createApiRouter(): Router {
   const router = Router();
@@ -26,6 +27,7 @@ export function createApiRouter(): Router {
   router.use('/search', searchRouter);
   router.use('/media', mediaRouter);
   router.use('/chat', chatRouter);
+  router.use('/stats', statsRouter);
 
   // Admin routes (protected)
   router.use('/admin', adminRouter);

@@ -2,34 +2,44 @@
 
 import Link from 'next/link';
 import { Plus, Search, Edit, Trash2, Eye } from 'lucide-react';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { formatDate } from '@/lib/utils';
+import { apiClient } from '@/lib/api-client';
 
-// Mock data - in real app, this would come from API
-const mockSermons = [
-  {
-    id: 1,
-    title: 'The Power of Prayer',
-    speaker: { name: 'John Smith' },
-    series: { title: 'Living Faith' },
-    publishedAt: '2024-06-15T10:00:00Z',
-    isFeatured: true,
-    viewCount: 1234,
-  },
-  {
-    id: 2,
-    title: 'Walking in the Light',
-    speaker: { name: 'Jane Doe' },
-    series: { title: 'Christian Living' },
-    publishedAt: '2024-06-10T10:00:00Z',
-    isFeatured: false,
-    viewCount: 856,
-  },
-];
+interface Sermon {
+  id: number;
+  title: string;
+  description: string;
+  scripture_refs: string[];
+  published_at: string | null;
+  is_featured: boolean;
+  view_count: number;
+  speaker: { id: number; name: string } | null;
+  series: { id: number; title: string } | null;
+  tags: Array<{ id: number; name: string; slug: string }>;
+}
 
 export default function SermonsPage() {
   const [searchQuery, setSearchQuery] = useState('');
-  const [sermons] = useState(mockSermons);
+  const [sermons, setSermons] = useState<Sermon[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    loadSermons();
+  }, []);
+
+  async function loadSermons() {
+    try {
+      setLoading(true);
+      const data = await apiClient.get<{ sermons: Sermon[] }>('/sermons');
+      setSermons(data.sermons);
+    } catch (error) {
+      console.error('Failed to load sermons:', error);
+      alert('Failed to load sermons. Please check if the backend is running on http://localhost:3000');
+    } finally {
+      setLoading(false);
+    }
+  }
 
   const filteredSermons = sermons.filter((sermon) =>
     sermon.title.toLowerCase().includes(searchQuery.toLowerCase())
@@ -70,36 +80,54 @@ export default function SermonsPage() {
         </div>
       </div>
 
+      {/* Loading State */}
+      {loading && (
+        <div className="text-center py-12">
+          <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600"></div>
+          <p className="mt-4 text-gray-600 dark:text-gray-400">Loading sermons...</p>
+        </div>
+      )}
+
+      {/* Empty State */}
+      {!loading && filteredSermons.length === 0 && (
+        <div className="text-center py-12 bg-white dark:bg-gray-800 rounded-lg shadow border border-gray-200 dark:border-gray-700">
+          <p className="text-gray-600 dark:text-gray-400">
+            {searchQuery ? 'No sermons found matching your search' : 'No sermons found. Create one to get started.'}
+          </p>
+        </div>
+      )}
+
       {/* Table */}
-      <div className="bg-white dark:bg-gray-800 rounded-lg shadow border border-gray-200 dark:border-gray-700 overflow-hidden">
-        <table className="w-full">
-          <thead className="bg-gray-50 dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700">
-            <tr>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                Title
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                Speaker
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                Series
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                Published
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                Views
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                Status
-              </th>
-              <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                Actions
-              </th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
-            {filteredSermons.map((sermon) => (
+      {!loading && filteredSermons.length > 0 && (
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow border border-gray-200 dark:border-gray-700 overflow-hidden">
+          <table className="w-full">
+            <thead className="bg-gray-50 dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700">
+              <tr>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                  Title
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                  Speaker
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                  Series
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                  Published
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                  Views
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                  Status
+                </th>
+                <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                  Actions
+                </th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
+              {filteredSermons.map((sermon) => (
               <tr
                 key={sermon.id}
                 className="hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors"
@@ -109,7 +137,7 @@ export default function SermonsPage() {
                     <span className="text-sm font-medium text-gray-900 dark:text-white">
                       {sermon.title}
                     </span>
-                    {sermon.isFeatured && (
+                    {sermon.is_featured && (
                       <span className="px-2 py-1 text-xs font-medium bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-400 rounded">
                         Featured
                       </span>
@@ -117,16 +145,16 @@ export default function SermonsPage() {
                   </div>
                 </td>
                 <td className="px-6 py-4 text-sm text-gray-600 dark:text-gray-300">
-                  {sermon.speaker.name}
+                  {sermon.speaker?.name || 'N/A'}
                 </td>
                 <td className="px-6 py-4 text-sm text-gray-600 dark:text-gray-300">
-                  {sermon.series.title}
+                  {sermon.series?.title || 'N/A'}
                 </td>
                 <td className="px-6 py-4 text-sm text-gray-600 dark:text-gray-300">
-                  {formatDate(sermon.publishedAt)}
+                  {sermon.published_at ? formatDate(sermon.published_at) : 'Draft'}
                 </td>
                 <td className="px-6 py-4 text-sm text-gray-600 dark:text-gray-300">
-                  {sermon.viewCount.toLocaleString()}
+                  {sermon.view_count.toLocaleString()}
                 </td>
                 <td className="px-6 py-4">
                   <span className="px-2 py-1 text-xs font-medium bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-400 rounded">
@@ -150,10 +178,11 @@ export default function SermonsPage() {
                   </div>
                 </td>
               </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
     </div>
   );
 }
