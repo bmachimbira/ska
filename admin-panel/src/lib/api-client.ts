@@ -43,6 +43,11 @@ export class ApiClient {
       throw new Error(error.message || `HTTP ${response.status}`);
     }
 
+    // Handle 204 No Content responses (e.g., DELETE)
+    if (response.status === 204) {
+      return {} as T;
+    }
+
     return response.json();
   }
 

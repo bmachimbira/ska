@@ -23,6 +23,7 @@ export default function SermonsPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [sermons, setSermons] = useState<Sermon[]>([]);
   const [loading, setLoading] = useState(true);
+  const [deleting, setDeleting] = useState<number | null>(null);
 
   useEffect(() => {
     loadSermons();
@@ -38,6 +39,30 @@ export default function SermonsPage() {
       alert('Failed to load sermons. Please check if the backend is running on http://localhost:3000');
     } finally {
       setLoading(false);
+    }
+  }
+
+  async function handleDelete(sermon: Sermon) {
+    const confirmed = window.confirm(
+      `Are you sure you want to delete "${sermon.title}"?\n\nThis action cannot be undone.`
+    );
+
+    if (!confirmed) return;
+
+    try {
+      setDeleting(sermon.id);
+      await apiClient.delete(`/sermons/${sermon.id}`);
+      
+      // Remove from local state
+      setSermons(prev => prev.filter(s => s.id !== sermon.id));
+      
+      // Show success message (optional)
+      // You could use a toast notification library here
+    } catch (error: any) {
+      console.error('Failed to delete sermon:', error);
+      alert('Failed to delete sermon: ' + (error.message || 'Unknown error'));
+    } finally {
+      setDeleting(null);
     }
   }
 
@@ -172,8 +197,17 @@ export default function SermonsPage() {
                     >
                       <Edit className="w-4 h-4" />
                     </Link>
-                    <button className="p-2 text-gray-600 dark:text-gray-400 hover:text-red-600 dark:hover:text-red-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition-colors">
-                      <Trash2 className="w-4 h-4" />
+                    <button 
+                      onClick={() => handleDelete(sermon)}
+                      disabled={deleting === sermon.id}
+                      className="p-2 text-gray-600 dark:text-gray-400 hover:text-red-600 dark:hover:text-red-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                      title="Delete sermon"
+                    >
+                      {deleting === sermon.id ? (
+                        <div className="w-4 h-4 border-2 border-red-600 border-t-transparent rounded-full animate-spin" />
+                      ) : (
+                        <Trash2 className="w-4 h-4" />
+                      )}
                     </button>
                   </div>
                 </td>
