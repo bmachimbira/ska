@@ -60,6 +60,10 @@ export function Header() {
                 Sermons
               </Link>
 
+              <Link href="/locations" className="text-sm font-semibold uppercase tracking-wide text-gray-800 hover:text-primary-600 transition-colors">
+                Locations
+              </Link>
+
               <Link href="/about" className="text-sm font-semibold uppercase tracking-wide text-gray-800 hover:text-primary-600 transition-colors">
                 About
               </Link>
@@ -70,7 +74,7 @@ export function Header() {
           <div className="hidden lg:flex lg:w-1/4 lg:justify-end">
             <div className="flex items-center gap-4">
               <Link
-                href="/about"
+                href="/locations"
                 className="px-6 py-2 bg-primary-600 text-white text-sm font-semibold rounded hover:bg-primary-700 transition-colors"
               >
                 VISIT US

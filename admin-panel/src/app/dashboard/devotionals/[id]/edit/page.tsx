@@ -339,7 +339,7 @@ export default function EditDevotionalPage() {
                 onUploadComplete={(assetId, url) => {
                   setFormData(prev => ({ ...prev, videoAssetId: assetId }));
                 }}
-                onUploadError={(error) => {
+                onError={(error) => {
                   console.error('Video upload error:', error);
                   alert('Video upload failed: ' + error);
                 }}

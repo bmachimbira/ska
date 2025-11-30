@@ -10,19 +10,25 @@ export interface SermonCardProps {
 }
 
 export function SermonCard({ sermon }: SermonCardProps) {
-  const thumbnailUrl = sermon.thumbnailAsset?.url || '/placeholder-sermon.jpg';
+  const thumbnailUrl = sermon.thumbnailAsset?.url;
   const duration = sermon.videoAsset?.duration || sermon.audioAsset?.duration;
 
   return (
     <Link href={`/sermons/${sermon.id}`} className="group block">
       <Card className="h-full overflow-hidden transition-all hover:shadow-lg hover:scale-[1.02]">
         {/* Thumbnail */}
-        <div className="relative aspect-video w-full overflow-hidden bg-gray-200 dark:bg-gray-800">
-          <img
-            src={thumbnailUrl}
-            alt={sermon.title}
-            className="h-full w-full object-cover transition-transform group-hover:scale-105"
-          />
+        <div className="relative aspect-video w-full overflow-hidden bg-gradient-to-br from-primary-600 to-primary-800 dark:from-primary-700 dark:to-primary-900">
+          {thumbnailUrl ? (
+            <img
+              src={thumbnailUrl}
+              alt={sermon.title}
+              className="h-full w-full object-cover transition-transform group-hover:scale-105"
+            />
+          ) : (
+            <div className="flex h-full w-full items-center justify-center">
+              <Play className="h-16 w-16 text-white/30" />
+            </div>
+          )}
 
           {/* Play button overlay */}
           <div className="absolute inset-0 flex items-center justify-center bg-black/30 opacity-0 transition-opacity group-hover:opacity-100">

@@ -11,7 +11,7 @@ export interface QuarterlyCardProps {
 }
 
 export function QuarterlyCard({ quarterly }: QuarterlyCardProps) {
-  const coverUrl = quarterly.coverUrl || '/placeholder-quarterly.jpg';
+  const coverUrl = quarterly.coverUrl;
   const kindLabel = QUARTERLY_KINDS[quarterly.kind];
   const quarterLabel = `Q${quarterly.quarter} ${quarterly.year}`;
 
@@ -19,12 +19,21 @@ export function QuarterlyCard({ quarterly }: QuarterlyCardProps) {
     <Link href={`/sabbath-school/${quarterly.id}`} className="group block">
       <Card className="h-full overflow-hidden transition-all hover:shadow-lg hover:scale-[1.02]">
         {/* Cover image */}
-        <div className="relative aspect-[3/4] w-full overflow-hidden bg-gradient-to-br from-primary-100 to-secondary-100 dark:from-primary-950 dark:to-secondary-950">
-          <img
-            src={coverUrl}
-            alt={quarterly.title}
-            className="h-full w-full object-cover transition-transform group-hover:scale-105"
-          />
+        <div className="relative aspect-[3/4] w-full overflow-hidden bg-gradient-to-br from-secondary-400 to-secondary-600 dark:from-secondary-700 dark:to-secondary-900">
+          {coverUrl ? (
+            <img
+              src={coverUrl}
+              alt={quarterly.title}
+              className="h-full w-full object-cover transition-transform group-hover:scale-105"
+            />
+          ) : (
+            <div className="flex h-full w-full flex-col items-center justify-center p-6 text-center">
+              <Book className="h-20 w-20 text-white/40 mb-4" />
+              <h4 className="text-lg font-bold text-white line-clamp-3">
+                {quarterly.title}
+              </h4>
+            </div>
+          )}
 
           {/* Kind badge */}
           <Badge variant="quarterly" className="absolute left-2 top-2">

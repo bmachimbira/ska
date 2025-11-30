@@ -6,14 +6,20 @@ export function WelcomeSection() {
     <section className="py-20 bg-white">
       <div className="container mx-auto px-4">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
-          {/* Left side - Image */}
+          {/* Left side - Visual */}
           <div className="relative">
-            <div className="aspect-[4/3] rounded-lg overflow-hidden shadow-2xl">
-              <img
-                src="https://images.unsplash.com/photo-1438232992991-995b7058bbb3?w=800&h=600&fit=crop"
-                alt="Church Welcome"
-                className="w-full h-full object-cover"
-              />
+            <div className="aspect-[4/3] rounded-lg overflow-hidden shadow-2xl bg-gradient-to-br from-primary-600 via-primary-700 to-primary-900">
+              <div className="w-full h-full flex items-center justify-center p-12">
+                <div className="text-center">
+                  <Book className="h-32 w-32 text-white/20 mx-auto mb-6" />
+                  <h3 className="text-3xl font-bold text-white mb-4">Zimbabwe Conference</h3>
+                  <p className="text-xl text-white/90">Sabbath Keeping Adventists</p>
+                  <div className="mt-8 pt-8 border-t border-white/20">
+                    <p className="text-white/80 italic">"Thy way, O God, is in the sanctuary"</p>
+                    <p className="text-white/60 text-sm mt-2">Psalm 77:13</p>
+                  </div>
+                </div>
+              </div>
             </div>
             {/* Decorative element */}
             <div className="absolute -bottom-6 -right-6 w-48 h-48 bg-primary-100 rounded-lg -z-10"></div>

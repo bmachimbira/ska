@@ -25,6 +25,7 @@ async function getHomeData(): Promise<HomePageData> {
     return {
       recentSermons: [],
       currentQuarterlies: [],
+      activeCauses: [],
     };
   }
 }

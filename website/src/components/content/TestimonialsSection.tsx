@@ -7,25 +7,25 @@ const testimonials = [
   {
     name: 'Sarah Johnson',
     role: 'Church Member',
-    image: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150&h=150&fit=crop',
+    initials: 'SJ',
     quote: 'This church has been a beacon of light in my life. The warm fellowship and powerful Bible-based messages have helped me grow tremendously in my walk with God.',
   },
   {
     name: 'Michael Chen',
     role: 'Youth Leader',
-    image: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&h=150&fit=crop',
+    initials: 'MC',
     quote: 'The youth ministry here is exceptional. It\'s not just about fun activities, but about building genuine relationships and deepening our understanding of Scripture.',
   },
   {
     name: 'Grace Mutasa',
     role: 'New Member',
-    image: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=150&h=150&fit=crop',
+    initials: 'GM',
     quote: 'As a new believer, I was searching for a church family that would help me grow. I found exactly that here - a community that genuinely cares and teaches God\'s Word faithfully.',
   },
   {
     name: 'David Moyo',
     role: 'Deacon',
-    image: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150&h=150&fit=crop',
+    initials: 'DM',
     quote: 'Serving in this church has been one of my greatest blessings. The emphasis on both spiritual growth and community service reflects the heart of Christ.',
   },
 ];
@@ -84,11 +84,11 @@ export function TestimonialsSection() {
 
               {/* Author Info */}
               <div className="flex flex-col items-center">
-                <img
-                  src={currentTestimonial.image}
-                  alt={currentTestimonial.name}
-                  className="w-20 h-20 rounded-full border-4 border-white/30 mb-4 object-cover"
-                />
+                <div className="w-20 h-20 rounded-full border-4 border-white/30 mb-4 bg-secondary-500 flex items-center justify-center">
+                  <span className="text-2xl font-bold text-white">
+                    {currentTestimonial.initials}
+                  </span>
+                </div>
                 <cite className="not-italic">
                   <div className="text-xl font-bold text-white mb-1">
                     {currentTestimonial.name}

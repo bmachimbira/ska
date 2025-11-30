@@ -10,21 +10,21 @@ const slides = [
     title: 'Welcome To Our',
     subtitle: 'House of Worship',
     description: 'We Come To Serving & Believing God\'s Word and Spirit.',
-    image: 'https://images.unsplash.com/photo-1438232992991-995b7058bbb3?w=1920&h=1080&fit=crop',
+    gradient: 'from-primary-900 via-primary-800 to-primary-700',
   },
   {
     id: 2,
     title: 'Strengthen Your Faith',
     subtitle: 'Through God\'s Word',
     description: 'Join us for worship, fellowship, and spiritual growth.',
-    image: 'https://images.unsplash.com/photo-1507692049790-de58290a4334?w=1920&h=1080&fit=crop',
+    gradient: 'from-primary-800 via-primary-700 to-secondary-700',
   },
   {
     id: 3,
     title: 'Growing Together',
     subtitle: 'In Christ',
     description: 'Building a community rooted in faith and love.',
-    image: 'https://images.unsplash.com/photo-1501281668745-f7f57925c3b4?w=1920&h=1080&fit=crop',
+    gradient: 'from-secondary-800 via-secondary-700 to-primary-800',
   },
 ];
 
@@ -48,15 +48,14 @@ export function HeroSlider() {
             index === currentSlide ? 'opacity-100' : 'opacity-0'
           }`}
         >
-          {/* Background Image */}
-          <div
-            className="absolute inset-0 bg-cover bg-center"
-            style={{
-              backgroundImage: `url(${slide.image})`,
-              backgroundAttachment: 'fixed',
-            }}
-          >
-            <div className="absolute inset-0 bg-black/40"></div>
+          {/* Background Gradient */}
+          <div className={`absolute inset-0 bg-gradient-to-br ${slide.gradient}`}>
+            <div className="absolute inset-0 bg-black/20"></div>
+            {/* Decorative pattern overlay */}
+            <div className="absolute inset-0 opacity-10" style={{
+              backgroundImage: `radial-gradient(circle at 20% 50%, transparent 0%, rgba(255,255,255,0.1) 50%, transparent 100%),
+                               radial-gradient(circle at 80% 80%, transparent 0%, rgba(255,255,255,0.1) 50%, transparent 100%)`
+            }}></div>
           </div>
 
           {/* Content */}

@@ -136,7 +136,7 @@ export default async function QuarterlyPage({ params }: QuarterlyPageProps) {
                   <div className="flex items-start justify-between gap-4">
                     <div className="flex-1">
                       <div className="flex items-center gap-3 mb-2">
-                        <Badge variant="secondary">Lesson {(lesson as any).indexInQuarter || lesson.lessonNumber}</Badge>
+                        <Badge variant="secondary">Lesson {lesson.indexInQuarter}</Badge>
                         {lesson.startDate && lesson.endDate && (
                           <span className="text-sm text-gray-600 dark:text-gray-400">
                             {formatDate(lesson.startDate)} - {formatDate(lesson.endDate)}

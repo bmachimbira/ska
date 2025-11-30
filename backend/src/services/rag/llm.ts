@@ -82,7 +82,7 @@ async function generateOpenAIAnswer(messages: ChatMessage[]): Promise<string> {
     throw new Error(`OpenAI API error: ${error}`);
   }
 
-  const data = await response.json();
+  const data = await response.json() as any;
   return data.choices[0].message.content;
 }
 

@@ -53,7 +53,7 @@ async function generateOpenAIEmbedding(text: string): Promise<number[]> {
     throw new Error(`OpenAI API error: ${error}`);
   }
 
-  const data = await response.json();
+  const data = await response.json() as any;
   return data.data[0].embedding;
 }
 
@@ -91,7 +91,7 @@ async function generateOpenAIEmbeddings(texts: string[]): Promise<number[][]> {
       throw new Error(`OpenAI API error: ${error}`);
     }
 
-    const data = await response.json();
+    const data = await response.json() as any;
     const batchEmbeddings = data.data.map((item: any) => item.embedding);
     embeddings.push(...batchEmbeddings);
   }

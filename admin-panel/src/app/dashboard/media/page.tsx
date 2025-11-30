@@ -103,7 +103,7 @@ export default function MediaLibraryPage() {
             loadMedia(); // Refresh the list
             alert('Video uploaded successfully!');
           }}
-          onUploadError={(error) => {
+          onError={(error) => {
             console.error('Video upload error:', error);
             alert('Video upload failed: ' + error);
           }}
