@@ -15,10 +15,21 @@ export function EventSection({ event }: EventSectionProps) {
 
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
+    
+    // Check if date is valid
+    if (isNaN(date.getTime())) {
+      // Return default values for invalid dates
+      return {
+        day: '--',
+        month: 'TBA',
+        year: '',
+      };
+    }
+    
     return {
-      day: date.getDate(),
+      day: date.getDate().toString(),
       month: date.toLocaleDateString('en-US', { month: 'short' }),
-      year: date.getFullYear(),
+      year: date.getFullYear().toString(),
     };
   };
 

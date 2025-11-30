@@ -27,7 +27,7 @@ export function FeaturedSermonSection({ sermon }: FeaturedSermonSectionProps) {
               <div>
                 <h2 className="text-2xl font-bold text-white">Latest Sermon</h2>
                 <p className="text-gray-300 text-sm">
-                  {new Date(sermon.date).toLocaleDateString('en-US', {
+                  {sermon.publishedAt && new Date(sermon.publishedAt).toLocaleDateString('en-US', {
                     year: 'numeric',
                     month: 'long',
                     day: 'numeric'
@@ -40,9 +40,9 @@ export function FeaturedSermonSection({ sermon }: FeaturedSermonSectionProps) {
               {/* Sermon Image */}
               <div className="lg:col-span-1">
                 <div className="relative aspect-square rounded-lg overflow-hidden shadow-xl">
-                  {sermon.thumbnailUrl ? (
+                  {sermon.thumbnailAsset?.url ? (
                     <img
-                      src={sermon.thumbnailUrl}
+                      src={sermon.thumbnailAsset.url}
                       alt={sermon.title}
                       className="w-full h-full object-cover"
                     />
@@ -60,14 +60,14 @@ export function FeaturedSermonSection({ sermon }: FeaturedSermonSectionProps) {
                   {sermon.title}
                 </h3>
                 <p className="text-lg text-gray-300 mb-6">
-                  - by: <span className="font-semibold text-white">{sermon.speaker}</span>
+                  - by: <span className="font-semibold text-white">{sermon.speaker?.name || 'Unknown'}</span>
                 </p>
 
                 {/* Action Buttons */}
                 <div className="flex flex-wrap gap-4 mb-8">
-                  {sermon.videoUrl && (
+                  {sermon.videoAsset?.url && (
                     <a
-                      href={sermon.videoUrl}
+                      href={sermon.videoAsset.url}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="flex items-center gap-2 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
@@ -76,9 +76,9 @@ export function FeaturedSermonSection({ sermon }: FeaturedSermonSectionProps) {
                       Watch
                     </a>
                   )}
-                  {sermon.audioUrl && (
+                  {sermon.audioAsset?.url && (
                     <a
-                      href={sermon.audioUrl}
+                      href={sermon.audioAsset.url}
                       download
                       className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
                     >
@@ -97,12 +97,12 @@ export function FeaturedSermonSection({ sermon }: FeaturedSermonSectionProps) {
                 </div>
 
                 {/* Audio Player */}
-                {sermon.audioUrl && (
+                {sermon.audioAsset?.url && (
                   <div className="bg-white/10 rounded-lg p-4 backdrop-blur-sm">
                     <audio
                       controls
                       className="w-full"
-                      src={sermon.audioUrl}
+                      src={sermon.audioAsset.url}
                       style={{
                         filter: 'invert(1) hue-rotate(180deg)',
                         width: '100%',

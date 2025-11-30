@@ -1,5 +1,5 @@
 import { Router, Request, Response } from 'express';
-import { getPool } from '../db';
+import { getPool } from '../config/database';
 import { asyncHandler } from '../middleware/async-handler';
 
 export const causesRouter = Router();
