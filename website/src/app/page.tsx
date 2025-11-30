@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { ArrowRight, Sparkles } from 'lucide-react';
+import { ArrowRight } from 'lucide-react';
 import { apiClient } from '@/lib/api-client';
 import { HomePageData } from '@/types/api';
 import { REVALIDATE_TIMES } from '@/lib/constants';
@@ -7,6 +7,9 @@ import { SermonCard } from '@/components/content/SermonCard';
 import { DevotionalCard } from '@/components/content/DevotionalCard';
 import { QuarterlyCard } from '@/components/content/QuarterlyCard';
 import { Button } from '@/components/ui/Button';
+import { HeroSlider } from '@/components/layout/HeroSlider';
+import { EventSection } from '@/components/content/EventSection';
+import { FeaturedSermonSection } from '@/components/content/FeaturedSermonSection';
 
 export const revalidate = REVALIDATE_TIMES.home;
 
@@ -28,37 +31,14 @@ export default async function HomePage() {
 
   return (
     <div className="min-h-screen">
-      {/* Hero Section */}
-      <section className="relative overflow-hidden bg-gradient-to-br from-primary-600 via-primary-700 to-primary-900 text-white">
-        <div className="absolute inset-0 bg-[url('/grid.svg')] opacity-10"></div>
-        <div className="relative mx-auto max-w-7xl px-4 py-24 sm:px-6 lg:px-8">
-          <div className="text-center">
-            <div className="mb-6 inline-flex items-center gap-2 rounded-full bg-white/10 px-4 py-2 text-sm font-medium backdrop-blur-sm">
-              <Sparkles className="h-4 w-4" />
-              Spiritual Resources for Every Day
-            </div>
-            <h1 className="mb-6 text-4xl font-bold tracking-tight sm:text-5xl lg:text-6xl">
-              Strengthen Your Faith
-              <span className="block text-secondary-400">Through God's Word</span>
-            </h1>
-            <p className="mx-auto mb-10 max-w-2xl text-lg text-primary-100">
-              Access inspiring sermons, daily devotionals, and Sabbath School lessons
-              to deepen your spiritual journey and grow closer to God.
-            </p>
-            <div className="flex flex-wrap justify-center gap-4">
-              <Button asChild size="lg" variant="secondary">
-                <Link href="/sermons">
-                  Browse Sermons
-                  <ArrowRight className="ml-2 h-5 w-5" />
-                </Link>
-              </Button>
-              <Button asChild size="lg" variant="outline" className="bg-white/10 border-white/20 text-white hover:bg-white/20">
-                <Link href="/devotionals/today">Today's Devotional</Link>
-              </Button>
-            </div>
-          </div>
-        </div>
-      </section>
+      {/* Hero Slider */}
+      <HeroSlider />
+
+      {/* Event Section */}
+      <EventSection />
+
+      {/* Featured Sermon */}
+      <FeaturedSermonSection sermon={data.featuredSermon} />
 
       {/* Today's Devotional */}
       {data.todayDevotional && (

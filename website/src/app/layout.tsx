@@ -1,19 +1,25 @@
 import type { Metadata } from "next";
-import { Inter, Merriweather } from "next/font/google";
+import { Raleway, Oswald, Noto_Serif } from "next/font/google";
 import "./globals.css";
 import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
 
-const inter = Inter({
+const raleway = Raleway({
   subsets: ["latin"],
-  variable: "--font-inter",
+  variable: "--font-raleway",
   display: "swap",
 });
 
-const merriweather = Merriweather({
-  weight: ["300", "400", "700"],
+const oswald = Oswald({
   subsets: ["latin"],
-  variable: "--font-merriweather",
+  variable: "--font-oswald",
+  display: "swap",
+});
+
+const notoSerif = Noto_Serif({
+  weight: ["400", "700"],
+  subsets: ["latin"],
+  variable: "--font-noto-serif",
   display: "swap",
 });
 
@@ -28,7 +34,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={`${inter.variable} ${merriweather.variable}`}>
+    <html lang="en" className={`${raleway.variable} ${oswald.variable} ${notoSerif.variable}`}>
       <body className="antialiased flex min-h-screen flex-col">
         <Header />
         <main className="flex-1">{children}</main>
