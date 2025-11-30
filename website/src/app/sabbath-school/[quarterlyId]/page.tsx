@@ -18,7 +18,8 @@ interface QuarterlyPageProps {
 
 async function getQuarterly(id: string): Promise<Quarterly | null> {
   try {
-    return await apiClient.get<Quarterly>(`/quarterlies/${id}`);
+    const response = await apiClient.get<{ quarterly: Quarterly }>(`/quarterlies/${id}`);
+    return response.quarterly;
   } catch (error) {
     return null;
   }
@@ -34,7 +35,8 @@ async function getLessons(quarterlyId: string): Promise<Lesson[]> {
 }
 
 export async function generateMetadata({ params }: QuarterlyPageProps): Promise<Metadata> {
-  const quarterly = await getQuarterly(params.quarterlyId);
+  const resolvedParams = await params;
+  const quarterly = await getQuarterly(resolvedParams.quarterlyId);
 
   if (!quarterly) {
     return { title: 'Quarterly Not Found' };
@@ -47,9 +49,10 @@ export async function generateMetadata({ params }: QuarterlyPageProps): Promise<
 }
 
 export default async function QuarterlyPage({ params }: QuarterlyPageProps) {
+  const resolvedParams = await params;
   const [quarterly, lessons] = await Promise.all([
-    getQuarterly(params.quarterlyId),
-    getLessons(params.quarterlyId),
+    getQuarterly(resolvedParams.quarterlyId),
+    getLessons(resolvedParams.quarterlyId),
   ]);
 
   if (!quarterly) {
@@ -66,10 +69,10 @@ export default async function QuarterlyPage({ params }: QuarterlyPageProps) {
         <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
           <div className="flex flex-col md:flex-row gap-8 items-start">
             {/* Cover Image */}
-            {quarterly.coverUrl && (
+            {(quarterly.coverUrl || (quarterly as any).heroImage) && (
               <div className="w-full md:w-64 flex-shrink-0">
                 <img
-                  src={quarterly.coverUrl}
+                  src={quarterly.coverUrl || (quarterly as any).heroImage}
                   alt={quarterly.title}
                   className="w-full rounded-lg shadow-lg"
                 />
@@ -93,12 +96,14 @@ export default async function QuarterlyPage({ params }: QuarterlyPageProps) {
                 </p>
               )}
 
-              <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
-                <Calendar className="h-4 w-4" />
-                <span>
-                  {formatDate(quarterly.startDate)} - {formatDate(quarterly.endDate)}
-                </span>
-              </div>
+              {quarterly.startDate && quarterly.endDate && (
+                <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
+                  <Calendar className="h-4 w-4" />
+                  <span>
+                    {formatDate(quarterly.startDate)} - {formatDate(quarterly.endDate)}
+                  </span>
+                </div>
+              )}
 
               <div className="mt-6">
                 <Button asChild variant="outline">
@@ -131,10 +136,12 @@ export default async function QuarterlyPage({ params }: QuarterlyPageProps) {
                   <div className="flex items-start justify-between gap-4">
                     <div className="flex-1">
                       <div className="flex items-center gap-3 mb-2">
-                        <Badge variant="secondary">Lesson {lesson.lessonNumber}</Badge>
-                        <span className="text-sm text-gray-600 dark:text-gray-400">
-                          {formatDate(lesson.startDate)} - {formatDate(lesson.endDate)}
-                        </span>
+                        <Badge variant="secondary">Lesson {(lesson as any).indexInQuarter || lesson.lessonNumber}</Badge>
+                        {lesson.startDate && lesson.endDate && (
+                          <span className="text-sm text-gray-600 dark:text-gray-400">
+                            {formatDate(lesson.startDate)} - {formatDate(lesson.endDate)}
+                          </span>
+                        )}
                       </div>
                       <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-100 group-hover:text-primary-600 dark:group-hover:text-primary-400 mb-2">
                         {lesson.title}
