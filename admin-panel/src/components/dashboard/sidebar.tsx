@@ -15,6 +15,8 @@ import {
   FileText,
   BarChart3,
   Mic,
+  Calendar,
+  Heart,
 } from 'lucide-react';
 
 interface NavItem {
@@ -43,6 +45,20 @@ const navItems: NavItem[] = [
     href: '/dashboard/speakers',
     icon: Mic,
     resource: 'speakers',
+    action: 'read',
+  },
+  {
+    label: 'Events',
+    href: '/dashboard/events',
+    icon: Calendar,
+    resource: 'events',
+    action: 'read',
+  },
+  {
+    label: 'Causes',
+    href: '/dashboard/causes',
+    icon: Heart,
+    resource: 'causes',
     action: 'read',
   },
   {

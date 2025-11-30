@@ -147,14 +147,70 @@ homeRouter.get(
       `
     );
 
+    // Query next upcoming event
+    const nextEventResult = await pool.query(
+      `
+      SELECT
+        e.id,
+        e.title,
+        e.description,
+        e.event_date,
+        e.event_time,
+        e.location,
+        e.thumbnail_asset,
+        e.is_featured,
+        e.created_at,
+        e.updated_at,
+        CASE WHEN sp.id IS NOT NULL THEN
+          json_build_object(
+            'id', sp.id,
+            'name', sp.name
+          )
+        ELSE NULL END as speaker
+      FROM event e
+      LEFT JOIN speaker sp ON e.speaker_id = sp.id
+      WHERE e.is_published = true AND e.event_date >= NOW()
+      ORDER BY e.event_date ASC
+      LIMIT 1
+      `
+    );
+
+    // Query active causes/projects
+    const activeCausesResult = await pool.query(
+      `
+      SELECT
+        id,
+        title,
+        description,
+        goal_amount,
+        raised_amount,
+        thumbnail_asset,
+        start_date,
+        end_date,
+        is_active,
+        is_featured,
+        created_at,
+        updated_at
+      FROM cause
+      WHERE is_active = true
+        AND (end_date IS NULL OR end_date >= NOW())
+      ORDER BY is_featured DESC, created_at DESC
+      LIMIT 3
+      `
+    );
+
     const featuredSermon = featuredSermonResult.rows[0] || null;
     const recentSermons = recentSermonsResult.rows || [];
     const todayDevotional = todayDevotionalResult.rows[0] || null;
+    const nextEvent = nextEventResult.rows[0] || null;
+    const activeCauses = activeCausesResult.rows || [];
 
     const homeData = {
       featuredSermon,
       recentSermons,
       todayDevotional,
+      nextEvent,
+      activeCauses,
       currentQuarterlies: quarterliesResult.rows.map(row => ({
         id: row.id,
         kind: row.kind,

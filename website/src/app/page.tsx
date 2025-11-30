@@ -10,6 +10,9 @@ import { Button } from '@/components/ui/Button';
 import { HeroSlider } from '@/components/layout/HeroSlider';
 import { EventSection } from '@/components/content/EventSection';
 import { FeaturedSermonSection } from '@/components/content/FeaturedSermonSection';
+import { WelcomeSection } from '@/components/content/WelcomeSection';
+import { MinistriesSection } from '@/components/content/MinistriesSection';
+import { CausesSection } from '@/components/content/CausesSection';
 
 export const revalidate = REVALIDATE_TIMES.home;
 
@@ -35,10 +38,16 @@ export default async function HomePage() {
       <HeroSlider />
 
       {/* Event Section */}
-      <EventSection />
+      {data.nextEvent && <EventSection event={data.nextEvent} />}
 
       {/* Featured Sermon */}
       <FeaturedSermonSection sermon={data.featuredSermon} />
+
+      {/* Welcome Section */}
+      <WelcomeSection />
+
+      {/* Ministries Section */}
+      <MinistriesSection />
 
       {/* Today's Devotional */}
       {data.todayDevotional && (
@@ -143,6 +152,9 @@ export default async function HomePage() {
           </div>
         </section>
       )}
+
+      {/* Causes/Projects Section */}
+      <CausesSection causes={data.activeCauses} />
 
       {/* CTA Section */}
       <section className="bg-primary-600 text-white py-16">

@@ -106,12 +106,44 @@ export interface LessonDay {
   updatedAt: string;
 }
 
+export interface Event {
+  id: number;
+  title: string;
+  description?: string;
+  eventDate: string;
+  eventTime?: string;
+  location?: string;
+  speaker?: Speaker;
+  thumbnailAsset?: MediaAsset;
+  isFeatured: boolean;
+  isPublished: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface Cause {
+  id: number;
+  title: string;
+  description: string;
+  goalAmount?: number;
+  raisedAmount: number;
+  thumbnailAsset?: MediaAsset;
+  startDate?: string;
+  endDate?: string;
+  isActive: boolean;
+  isFeatured: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
 // Home page response
 export interface HomePageData {
   featuredSermon?: Sermon;
   recentSermons: Sermon[];
   todayDevotional?: Devotional;
   currentQuarterlies: Quarterly[];
+  nextEvent?: Event;
+  activeCauses: Cause[];
 }
 
 // Backend pagination format

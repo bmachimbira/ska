@@ -15,6 +15,8 @@ import { mediaRouter } from './media';
 import { chatRouter } from './chat';
 import { adminRouter } from './admin';
 import { statsRouter } from './stats';
+import { eventsRouter } from './events';
+import { causesRouter } from './causes';
 
 export function createApiRouter(): Router {
   const router = Router();
@@ -30,6 +32,8 @@ export function createApiRouter(): Router {
   router.use('/media', mediaRouter);
   router.use('/chat', chatRouter);
   router.use('/stats', statsRouter);
+  router.use('/events', eventsRouter);
+  router.use('/causes', causesRouter);
 
   // Admin routes (protected)
   router.use('/admin', adminRouter);

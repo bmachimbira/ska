@@ -2,18 +2,19 @@
 
 import Link from 'next/link';
 import { Calendar, Clock, MapPin, User } from 'lucide-react';
+import type { Event } from '@/types/api';
 
-export function EventSection() {
-  // This would typically come from your API
-  const nextEvent = {
-    title: 'Sabbath Worship Service',
-    pastor: 'Pastor Name',
-    date: new Date(2025, 11, 6), // December 6, 2025
-    time: '9:00 to 12:00',
-    location: 'Church Address, City, Country',
-  };
+interface EventSectionProps {
+  event?: Event;
+}
 
-  const formatDate = (date: Date) => {
+export function EventSection({ event }: EventSectionProps) {
+  if (!event) {
+    return null;
+  }
+
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString);
     return {
       day: date.getDate(),
       month: date.toLocaleDateString('en-US', { month: 'short' }),
@@ -21,7 +22,13 @@ export function EventSection() {
     };
   };
 
-  const { day, month, year } = formatDate(nextEvent.date);
+  const { day, month, year } = formatDate(event.eventDate);
+  const nextEvent = {
+    title: event.title,
+    pastor: event.speaker?.name || 'TBA',
+    time: event.eventTime || 'TBA',
+    location: event.location || 'TBA',
+  };
 
   return (
     <div className="bg-primary-600 py-16">
