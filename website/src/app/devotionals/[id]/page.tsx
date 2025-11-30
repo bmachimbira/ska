@@ -13,7 +13,7 @@ import { notFound } from 'next/navigation';
 export const revalidate = REVALIDATE_TIMES.sermonDetail;
 
 interface DevotionalPageProps {
-  params: { id: string };
+  params: Promise<{ id: string }>;
 }
 
 async function getDevotional(id: string): Promise<Devotional | null> {
@@ -25,7 +25,8 @@ async function getDevotional(id: string): Promise<Devotional | null> {
 }
 
 export async function generateMetadata({ params }: DevotionalPageProps): Promise<Metadata> {
-  const devotional = await getDevotional(params.id);
+  const { id } = await params;
+  const devotional = await getDevotional(id);
 
   if (!devotional) {
     return {
@@ -40,7 +41,8 @@ export async function generateMetadata({ params }: DevotionalPageProps): Promise
 }
 
 export default async function DevotionalPage({ params }: DevotionalPageProps) {
-  const devotional = await getDevotional(params.id);
+  const { id } = await params;
+  const devotional = await getDevotional(id);
 
   if (!devotional) {
     notFound();

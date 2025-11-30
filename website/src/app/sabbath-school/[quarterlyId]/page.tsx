@@ -13,7 +13,7 @@ import { notFound } from 'next/navigation';
 export const revalidate = REVALIDATE_TIMES.quarterlies;
 
 interface QuarterlyPageProps {
-  params: { quarterlyId: string };
+  params: Promise<{ quarterlyId: string }>;
 }
 
 async function getQuarterly(id: string): Promise<Quarterly | null> {

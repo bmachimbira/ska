@@ -113,17 +113,41 @@ sermonsRouter.get(
         s.id,
         s.title,
         s.description,
-        s.scripture_refs,
-        s.video_asset,
-        s.audio_asset,
-        s.thumbnail_asset,
-        s.published_at,
-        s.is_featured,
-        s.view_count,
-        s.created_at,
-        s.updated_at,
-        json_build_object('id', sp.id, 'name', sp.name) as speaker,
-        json_build_object('id', se.id, 'title', se.title) as series,
+        s.scripture_refs as "scriptureRefs",
+        s.published_at as "publishedAt",
+        s.is_featured as "isFeatured",
+        s.view_count as "viewCount",
+        s.created_at as "createdAt",
+        s.updated_at as "updatedAt",
+        CASE WHEN sp.id IS NOT NULL THEN
+          json_build_object('id', sp.id, 'name', sp.name)
+        ELSE NULL END as speaker,
+        CASE WHEN se.id IS NOT NULL THEN
+          json_build_object('id', se.id, 'title', se.title)
+        ELSE NULL END as series,
+        CASE WHEN vid.id IS NOT NULL THEN
+          json_build_object(
+            'id', vid.id,
+            'type', vid.kind,
+            'url', COALESCE(vid.hls_url, vid.download_url),
+            'duration', vid.duration_seconds
+          )
+        ELSE NULL END as "videoAsset",
+        CASE WHEN aud.id IS NOT NULL THEN
+          json_build_object(
+            'id', aud.id,
+            'type', aud.kind,
+            'url', COALESCE(aud.download_url, aud.hls_url),
+            'duration', aud.duration_seconds
+          )
+        ELSE NULL END as "audioAsset",
+        CASE WHEN thumb.id IS NOT NULL THEN
+          json_build_object(
+            'id', thumb.id,
+            'type', thumb.kind,
+            'url', COALESCE(thumb.hls_url, thumb.download_url)
+          )
+        ELSE NULL END as "thumbnailAsset",
         COALESCE(
           (SELECT json_agg(json_build_object('id', t.id, 'name', t.name, 'slug', t.slug))
            FROM sermon_tag st
@@ -134,6 +158,9 @@ sermonsRouter.get(
       FROM sermon s
       LEFT JOIN speaker sp ON s.speaker_id = sp.id
       LEFT JOIN series se ON s.series_id = se.id
+      LEFT JOIN media_asset vid ON s.video_asset = vid.id
+      LEFT JOIN media_asset aud ON s.audio_asset = aud.id
+      LEFT JOIN media_asset thumb ON s.thumbnail_asset = thumb.id
       ${whereClause}
       ORDER BY s.published_at DESC NULLS LAST, s.created_at DESC
       LIMIT $${paramIndex} OFFSET $${paramIndex + 1}
@@ -175,19 +202,52 @@ sermonsRouter.get(
         s.title,
         s.description,
         s.transcript,
-        s.scripture_refs,
-        s.speaker_id,
-        s.series_id,
-        s.video_asset,
-        s.audio_asset,
-        s.thumbnail_asset,
-        s.published_at,
-        s.is_featured,
-        s.view_count,
-        s.created_at,
-        s.updated_at,
-        json_build_object('id', sp.id, 'name', sp.name, 'bio', sp.bio) as speaker,
-        json_build_object('id', se.id, 'title', se.title, 'description', se.description) as series,
+        s.scripture_refs as "scriptureRefs",
+        s.published_at as "publishedAt",
+        s.is_featured as "isFeatured",
+        s.view_count as "viewCount",
+        s.created_at as "createdAt",
+        s.updated_at as "updatedAt",
+        CASE WHEN sp.id IS NOT NULL THEN
+          json_build_object(
+            'id', sp.id,
+            'name', sp.name,
+            'bio', sp.bio,
+            'photoUrl', CASE WHEN sp_photo.id IS NOT NULL THEN sp_photo.hls_url ELSE NULL END
+          )
+        ELSE NULL END as speaker,
+        CASE WHEN se.id IS NOT NULL THEN
+          json_build_object(
+            'id', se.id,
+            'title', se.title,
+            'description', se.description
+          )
+        ELSE NULL END as series,
+        CASE WHEN vid.id IS NOT NULL THEN
+          json_build_object(
+            'id', vid.id,
+            'type', vid.kind,
+            'url', COALESCE(vid.hls_url, vid.download_url),
+            'duration', vid.duration_seconds,
+            'mimeType', vid.mime
+          )
+        ELSE NULL END as "videoAsset",
+        CASE WHEN aud.id IS NOT NULL THEN
+          json_build_object(
+            'id', aud.id,
+            'type', aud.kind,
+            'url', COALESCE(aud.download_url, aud.hls_url),
+            'duration', aud.duration_seconds,
+            'mimeType', aud.mime
+          )
+        ELSE NULL END as "audioAsset",
+        CASE WHEN thumb.id IS NOT NULL THEN
+          json_build_object(
+            'id', thumb.id,
+            'type', thumb.kind,
+            'url', COALESCE(thumb.hls_url, thumb.download_url)
+          )
+        ELSE NULL END as "thumbnailAsset",
         COALESCE(
           (SELECT json_agg(json_build_object('id', t.id, 'name', t.name, 'slug', t.slug))
            FROM sermon_tag st
@@ -197,7 +257,11 @@ sermonsRouter.get(
         ) as tags
       FROM sermon s
       LEFT JOIN speaker sp ON s.speaker_id = sp.id
+      LEFT JOIN media_asset sp_photo ON sp.photo_asset = sp_photo.id
       LEFT JOIN series se ON s.series_id = se.id
+      LEFT JOIN media_asset vid ON s.video_asset = vid.id
+      LEFT JOIN media_asset aud ON s.audio_asset = aud.id
+      LEFT JOIN media_asset thumb ON s.thumbnail_asset = thumb.id
       WHERE s.id = $1
     `;
 

@@ -15,7 +15,7 @@ import { notFound } from 'next/navigation';
 export const revalidate = REVALIDATE_TIMES.sermonDetail;
 
 interface SermonPageProps {
-  params: { id: string };
+  params: Promise<{ id: string }>;
 }
 
 async function getSermon(id: string): Promise<Sermon | null> {
@@ -27,7 +27,8 @@ async function getSermon(id: string): Promise<Sermon | null> {
 }
 
 export async function generateMetadata({ params }: SermonPageProps): Promise<Metadata> {
-  const sermon = await getSermon(params.id);
+  const { id } = await params;
+  const sermon = await getSermon(id);
 
   if (!sermon) {
     return {
@@ -48,7 +49,8 @@ export async function generateMetadata({ params }: SermonPageProps): Promise<Met
 }
 
 export default async function SermonPage({ params }: SermonPageProps) {
-  const sermon = await getSermon(params.id);
+  const { id } = await params;
+  const sermon = await getSermon(id);
 
   if (!sermon) {
     notFound();

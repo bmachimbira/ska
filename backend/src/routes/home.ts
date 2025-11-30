@@ -53,15 +53,12 @@ homeRouter.get(
         s.id,
         s.title,
         s.description,
-        s.scripture_refs,
-        s.published_at,
-        s.is_featured,
-        s.view_count,
-        s.created_at,
-        s.updated_at,
-        s.video_asset,
-        s.audio_asset,
-        s.thumbnail_asset,
+        s.scripture_refs as "scriptureRefs",
+        s.published_at as "publishedAt",
+        s.is_featured as "isFeatured",
+        s.view_count as "viewCount",
+        s.created_at as "createdAt",
+        s.updated_at as "updatedAt",
         CASE WHEN sp.id IS NOT NULL THEN
           json_build_object(
             'id', sp.id,
@@ -75,10 +72,36 @@ homeRouter.get(
             'title', se.title,
             'description', se.description
           )
-        ELSE NULL END as series
+        ELSE NULL END as series,
+        CASE WHEN vid.id IS NOT NULL THEN
+          json_build_object(
+            'id', vid.id,
+            'type', vid.kind,
+            'url', COALESCE(vid.hls_url, vid.download_url),
+            'duration', vid.duration_seconds
+          )
+        ELSE NULL END as "videoAsset",
+        CASE WHEN aud.id IS NOT NULL THEN
+          json_build_object(
+            'id', aud.id,
+            'type', aud.kind,
+            'url', COALESCE(aud.download_url, aud.hls_url),
+            'duration', aud.duration_seconds
+          )
+        ELSE NULL END as "audioAsset",
+        CASE WHEN thumb.id IS NOT NULL THEN
+          json_build_object(
+            'id', thumb.id,
+            'type', thumb.kind,
+            'url', COALESCE(thumb.hls_url, thumb.download_url)
+          )
+        ELSE NULL END as "thumbnailAsset"
       FROM sermon s
       LEFT JOIN speaker sp ON s.speaker_id = sp.id
       LEFT JOIN series se ON s.series_id = se.id
+      LEFT JOIN media_asset vid ON s.video_asset = vid.id
+      LEFT JOIN media_asset aud ON s.audio_asset = aud.id
+      LEFT JOIN media_asset thumb ON s.thumbnail_asset = thumb.id
       WHERE s.is_featured = true
       AND s.published_at IS NOT NULL
       ORDER BY s.published_at DESC
@@ -93,15 +116,12 @@ homeRouter.get(
         s.id,
         s.title,
         s.description,
-        s.scripture_refs,
-        s.published_at,
-        s.is_featured,
-        s.view_count,
-        s.created_at,
-        s.updated_at,
-        s.video_asset,
-        s.audio_asset,
-        s.thumbnail_asset,
+        s.scripture_refs as "scriptureRefs",
+        s.published_at as "publishedAt",
+        s.is_featured as "isFeatured",
+        s.view_count as "viewCount",
+        s.created_at as "createdAt",
+        s.updated_at as "updatedAt",
         CASE WHEN sp.id IS NOT NULL THEN
           json_build_object(
             'id', sp.id,
@@ -115,10 +135,36 @@ homeRouter.get(
             'title', se.title,
             'description', se.description
           )
-        ELSE NULL END as series
+        ELSE NULL END as series,
+        CASE WHEN vid.id IS NOT NULL THEN
+          json_build_object(
+            'id', vid.id,
+            'type', vid.kind,
+            'url', COALESCE(vid.hls_url, vid.download_url),
+            'duration', vid.duration_seconds
+          )
+        ELSE NULL END as "videoAsset",
+        CASE WHEN aud.id IS NOT NULL THEN
+          json_build_object(
+            'id', aud.id,
+            'type', aud.kind,
+            'url', COALESCE(aud.download_url, aud.hls_url),
+            'duration', aud.duration_seconds
+          )
+        ELSE NULL END as "audioAsset",
+        CASE WHEN thumb.id IS NOT NULL THEN
+          json_build_object(
+            'id', thumb.id,
+            'type', thumb.kind,
+            'url', COALESCE(thumb.hls_url, thumb.download_url)
+          )
+        ELSE NULL END as "thumbnailAsset"
       FROM sermon s
       LEFT JOIN speaker sp ON s.speaker_id = sp.id
       LEFT JOIN series se ON s.series_id = se.id
+      LEFT JOIN media_asset vid ON s.video_asset = vid.id
+      LEFT JOIN media_asset aud ON s.audio_asset = aud.id
+      LEFT JOIN media_asset thumb ON s.thumbnail_asset = thumb.id
       WHERE s.published_at IS NOT NULL
       ORDER BY s.published_at DESC
       LIMIT 6
@@ -136,11 +182,19 @@ homeRouter.get(
         d.body_md as content,
         d.date,
         d.lang,
-        d.view_count,
-        d.created_at,
-        d.updated_at,
-        d.audio_asset
+        d.view_count as "viewCount",
+        d.created_at as "createdAt",
+        d.updated_at as "updatedAt",
+        CASE WHEN aud.id IS NOT NULL THEN
+          json_build_object(
+            'id', aud.id,
+            'type', aud.kind,
+            'url', COALESCE(aud.download_url, aud.hls_url),
+            'duration', aud.duration_seconds
+          )
+        ELSE NULL END as "audioAsset"
       FROM devotional d
+      LEFT JOIN media_asset aud ON d.audio_asset = aud.id
       WHERE d.date = CURRENT_DATE
       AND d.lang = 'en'
       LIMIT 1
@@ -154,21 +208,29 @@ homeRouter.get(
         e.id,
         e.title,
         e.description,
-        e.event_date,
-        e.event_time,
+        e.event_date as "eventDate",
+        e.event_time as "eventTime",
         e.location,
-        e.thumbnail_asset,
-        e.is_featured,
-        e.created_at,
-        e.updated_at,
+        e.is_featured as "isFeatured",
+        e.is_published as "isPublished",
+        e.created_at as "createdAt",
+        e.updated_at as "updatedAt",
         CASE WHEN sp.id IS NOT NULL THEN
           json_build_object(
             'id', sp.id,
             'name', sp.name
           )
-        ELSE NULL END as speaker
+        ELSE NULL END as speaker,
+        CASE WHEN thumb.id IS NOT NULL THEN
+          json_build_object(
+            'id', thumb.id,
+            'type', thumb.kind,
+            'url', COALESCE(thumb.hls_url, thumb.download_url)
+          )
+        ELSE NULL END as "thumbnailAsset"
       FROM event e
       LEFT JOIN speaker sp ON e.speaker_id = sp.id
+      LEFT JOIN media_asset thumb ON e.thumbnail_asset = thumb.id
       WHERE e.is_published = true AND e.event_date >= NOW()
       ORDER BY e.event_date ASC
       LIMIT 1
@@ -179,22 +241,29 @@ homeRouter.get(
     const activeCausesResult = await pool.query(
       `
       SELECT
-        id,
-        title,
-        description,
-        goal_amount,
-        raised_amount,
-        thumbnail_asset,
-        start_date,
-        end_date,
-        is_active,
-        is_featured,
-        created_at,
-        updated_at
-      FROM cause
-      WHERE is_active = true
-        AND (end_date IS NULL OR end_date >= NOW())
-      ORDER BY is_featured DESC, created_at DESC
+        c.id,
+        c.title,
+        c.description,
+        c.goal_amount as "goalAmount",
+        c.raised_amount as "raisedAmount",
+        c.start_date as "startDate",
+        c.end_date as "endDate",
+        c.is_active as "isActive",
+        c.is_featured as "isFeatured",
+        c.created_at as "createdAt",
+        c.updated_at as "updatedAt",
+        CASE WHEN thumb.id IS NOT NULL THEN
+          json_build_object(
+            'id', thumb.id,
+            'type', thumb.kind,
+            'url', COALESCE(thumb.hls_url, thumb.download_url)
+          )
+        ELSE NULL END as "thumbnailAsset"
+      FROM cause c
+      LEFT JOIN media_asset thumb ON c.thumbnail_asset = thumb.id
+      WHERE c.is_active = true
+        AND (c.end_date IS NULL OR c.end_date >= NOW())
+      ORDER BY c.is_featured DESC, c.created_at DESC
       LIMIT 3
       `
     );

@@ -84,13 +84,16 @@ export interface Quarterly {
 export interface Lesson {
   id: number;
   quarterlyId: number;
-  lessonNumber: number;
+  indexInQuarter: number;
   title: string;
-  startDate: string;
-  endDate: string;
+  description?: string;
+  startDate?: string;
+  endDate?: string;
   memoryVerse?: string;
   createdAt: string;
   updatedAt: string;
+  quarterly?: Quarterly;
+  days?: LessonDay[];
 }
 
 export interface LessonDay {
@@ -100,7 +103,10 @@ export interface LessonDay {
   title: string;
   date?: string;
   memoryVerse?: string;
-  content: string;
+  bodyMd: string;
+  studyAim?: string;
+  studyHelp?: string;
+  introduction?: string;
   audioAsset?: MediaAsset;
   createdAt: string;
   updatedAt: string;
