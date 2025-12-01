@@ -262,5 +262,78 @@ adminRouter.delete(
   })
 );
 
+// ============================================================================
+// ANALYTICS
+// ============================================================================
+
+/**
+ * GET /admin/analytics
+ * Get analytics data
+ */
+adminRouter.get(
+  '/analytics',
+  requireAdminAuth,
+  asyncHandler(async (req: Request, res: Response) => {
+    const pool = getPool();
+
+    // Get total counts
+    const [sermonCount, devotionalCount, userCount] = await Promise.all([
+      pool.query('SELECT COUNT(*) as count FROM sermon'),
+      pool.query('SELECT COUNT(*) as count FROM devotional'),
+      pool.query('SELECT COUNT(*) as count FROM app_user'),
+    ]);
+
+    // Get total views (from sermon view_count)
+    const viewsResult = await pool.query(
+      'SELECT COALESCE(SUM(view_count), 0) as total FROM sermon'
+    );
+
+    // Get top content (sermons by view count)
+    const topContent = await pool.query(
+      `SELECT id, title, 'sermon' as type, view_count as views
+       FROM sermon
+       WHERE published_at IS NOT NULL
+       ORDER BY view_count DESC
+       LIMIT 10`
+    );
+
+    res.json({
+      analytics: {
+        totalViews: parseInt(viewsResult.rows[0].total),
+        totalUsers: parseInt(userCount.rows[0].count),
+        totalSermons: parseInt(sermonCount.rows[0].count),
+        totalDevotionals: parseInt(devotionalCount.rows[0].count),
+        avgWatchTime: 0, // TODO: Implement watch time tracking
+        topContent: topContent.rows,
+      },
+    });
+  })
+);
+
+// ============================================================================
+// AUDIT LOGS
+// ============================================================================
+
+/**
+ * GET /admin/audit
+ * Get audit logs
+ */
+adminRouter.get(
+  '/audit',
+  requireAdminAuth,
+  requireSuperAdmin,
+  asyncHandler(async (req: Request, res: Response) => {
+    const { filter = 'all' } = req.query;
+    const pool = getPool();
+
+    // For now, return empty array since we don't have audit logging implemented yet
+    // TODO: Implement audit logging system
+    res.json({
+      logs: [],
+      message: 'Audit logging system coming soon',
+    });
+  })
+);
+
 // Church management routes
 adminRouter.use('/churches', adminChurchesRouter);

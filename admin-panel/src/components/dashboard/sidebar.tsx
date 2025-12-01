@@ -18,6 +18,8 @@ import {
   Calendar,
   Heart,
   Church,
+  TrendingUp,
+  Shield,
 } from 'lucide-react';
 
 interface NavItem {
@@ -98,17 +100,17 @@ const navItems: NavItem[] = [
     action: 'read',
   },
   {
-    label: 'Audit Logs',
-    href: '/dashboard/audit',
-    icon: FileText,
-    resource: 'audit',
+    label: 'Analytics',
+    href: '/dashboard/analytics',
+    icon: TrendingUp,
+    resource: 'analytics',
     action: 'read',
   },
   {
-    label: 'Analytics',
-    href: '/dashboard/analytics',
-    icon: BarChart3,
-    resource: 'sermons',
+    label: 'Audit Logs',
+    href: '/dashboard/audit',
+    icon: Shield,
+    resource: 'audit',
     action: 'read',
   },
 ];

@@ -105,6 +105,7 @@ const permissions: Record<Role, Permission[]> = {
     { resource: 'users', action: 'read' },
     { resource: 'users', action: 'update' },
     { resource: 'users', action: 'delete' },
+    { resource: 'analytics', action: 'read' },
     { resource: 'audit', action: 'read' },
   ],
 };
