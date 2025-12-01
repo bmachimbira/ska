@@ -10,7 +10,7 @@
 }
 
 # API Server
-{$API_DOMAIN:api.yourdomain.com} {
+{$API_DOMAIN:api.ska.aureliaonline.co.za} {
 	# Enable compression
 	encode gzip zstd
 	
@@ -83,7 +83,7 @@
 }
 
 # Admin Panel
-{$ADMIN_DOMAIN:admin.yourdomain.com} {
+{$ADMIN_DOMAIN:admin.ska.aureliaonline.co.za} {
 	encode gzip zstd
 	
 	log {
@@ -117,7 +117,7 @@
 }
 
 # Main Website
-{$WEBSITE_DOMAIN:www.yourdomain.com} {
+{$WEBSITE_DOMAIN:ska.aureliaonline.co.za} {
 	encode gzip zstd
 	
 	log {
@@ -149,12 +149,12 @@
 }
 
 # Root domain redirect to www
-{$ROOT_DOMAIN:yourdomain.com} {
-	redir https://www.{$ROOT_DOMAIN:yourdomain.com}{uri} permanent
+{$ROOT_DOMAIN:ska.aureliaonline.co.za} {
+	redir https://www.{$ROOT_DOMAIN:ska.aureliaonline.co.za}{uri} permanent
 }
 
 # MinIO Console (optional - for admin access)
-{$MINIO_CONSOLE_DOMAIN:minio.yourdomain.com} {
+{$MINIO_CONSOLE_DOMAIN:minio.ska.aureliaonline.co.za} {
 	encode gzip zstd
 	
 	log {
@@ -176,7 +176,7 @@
 }
 
 # Media/Storage domain (for MinIO API)
-{$STORAGE_DOMAIN:storage.yourdomain.com} {
+{$STORAGE_DOMAIN:storage.ska.aureliaonline.co.za} {
 	encode gzip zstd
 	
 	log {
