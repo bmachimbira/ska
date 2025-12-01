@@ -54,68 +54,70 @@ export default function LessonDayScreen() {
   return (
     <>
       <Stack.Screen options={{ title: day.lesson?.title || 'Lesson' }} />
-      <ScrollView style={styles.container}>
-        {/* Lesson Context */}
-        <View style={styles.header}>
-          <View style={styles.lessonNumber}>
-            <Text style={styles.lessonNumberText}>
-              Lesson {day.lesson?.indexInQuarter}
-            </Text>
-          </View>
-          <Text style={styles.lessonTitle}>{day.lesson?.title}</Text>
-        </View>
-
-        {/* Day Card */}
-        <View style={styles.dayCard}>
-          <View style={styles.dayHeader}>
-            <Text style={styles.dayName}>
-              {LESSON_DAYS[day.dayIndex] || `Day ${day.dayIndex}`}
-            </Text>
-            {day.date && (
-              <Text style={styles.dayDate}>
-                {new Date(day.date).toLocaleDateString()}
+      <View style={styles.container}>
+        <ScrollView style={styles.scrollView} contentContainerStyle={styles.scrollContent}>
+          {/* Lesson Context */}
+          <View style={styles.header}>
+            <View style={styles.lessonNumber}>
+              <Text style={styles.lessonNumberText}>
+                Lesson {day.lesson?.indexInQuarter}
               </Text>
+            </View>
+            <Text style={styles.lessonTitle}>{day.lesson?.title}</Text>
+          </View>
+
+          {/* Day Card */}
+          <View style={styles.dayCard}>
+            <View style={styles.dayHeader}>
+              <Text style={styles.dayName}>
+                {LESSON_DAYS[day.dayIndex] || `Day ${day.dayIndex}`}
+              </Text>
+              {day.date && (
+                <Text style={styles.dayDate}>
+                  {new Date(day.date).toLocaleDateString()}
+                </Text>
+              )}
+            </View>
+
+            <Text style={styles.dayTitle}>{day.title}</Text>
+
+            {day.memoryVerse && (
+              <View style={styles.verseContainer}>
+                <Text style={styles.verseLabel}>Memory Verse</Text>
+                <Text style={styles.verse}>{day.memoryVerse}</Text>
+              </View>
+            )}
+
+            {day.studyAim && (
+              <View style={styles.section}>
+                <Text style={styles.sectionLabel}>Study Aim</Text>
+                <Text style={styles.sectionText}>{day.studyAim}</Text>
+              </View>
+            )}
+
+            {day.introduction && (
+              <View style={styles.section}>
+                <Text style={styles.sectionLabel}>Introduction</Text>
+                <Text style={styles.sectionText}>{day.introduction}</Text>
+              </View>
+            )}
+
+            {day.bodyMd && (
+              <View style={styles.contentSection}>
+                <Text style={styles.content}>{day.bodyMd}</Text>
+              </View>
+            )}
+
+            {day.studyHelp && (
+              <View style={styles.helpSection}>
+                <Text style={styles.sectionLabel}>Study Help</Text>
+                <Text style={styles.sectionText}>{day.studyHelp}</Text>
+              </View>
             )}
           </View>
+        </ScrollView>
 
-          <Text style={styles.dayTitle}>{day.title}</Text>
-
-          {day.memoryVerse && (
-            <View style={styles.verseContainer}>
-              <Text style={styles.verseLabel}>Memory Verse</Text>
-              <Text style={styles.verse}>{day.memoryVerse}</Text>
-            </View>
-          )}
-
-          {day.studyAim && (
-            <View style={styles.section}>
-              <Text style={styles.sectionLabel}>Study Aim</Text>
-              <Text style={styles.sectionText}>{day.studyAim}</Text>
-            </View>
-          )}
-
-          {day.introduction && (
-            <View style={styles.section}>
-              <Text style={styles.sectionLabel}>Introduction</Text>
-              <Text style={styles.sectionText}>{day.introduction}</Text>
-            </View>
-          )}
-
-          {day.bodyMd && (
-            <View style={styles.contentSection}>
-              <Text style={styles.content}>{day.bodyMd}</Text>
-            </View>
-          )}
-
-          {day.studyHelp && (
-            <View style={styles.helpSection}>
-              <Text style={styles.sectionLabel}>Study Help</Text>
-              <Text style={styles.sectionText}>{day.studyHelp}</Text>
-            </View>
-          )}
-        </View>
-
-        {/* Navigation */}
+        {/* Fixed Navigation at Bottom */}
         <View style={styles.navigation}>
           <TouchableOpacity
             style={[styles.navButton, !canGoPrevious && styles.navButtonDisabled]}
@@ -137,7 +139,7 @@ export default function LessonDayScreen() {
             <Ionicons name="chevron-forward" size={20} color={canGoNext ? '#007AFF' : '#ccc'} />
           </TouchableOpacity>
         </View>
-      </ScrollView>
+      </View>
     </>
   );
 }
@@ -145,6 +147,12 @@ export default function LessonDayScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+  },
+  scrollView: {
+    flex: 1,
+  },
+  scrollContent: {
+    paddingBottom: 20,
   },
   centerContainer: {
     flex: 1,
@@ -256,9 +264,16 @@ const styles = StyleSheet.create({
   navigation: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    padding: 20,
-    paddingTop: 10,
-    paddingBottom: 30,
+    padding: 15,
+    paddingBottom: 20,
+    backgroundColor: '#fff',
+    borderTopWidth: 1,
+    borderTopColor: '#e0e0e0',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: -2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 8,
   },
   navButton: {
     flexDirection: 'row',
