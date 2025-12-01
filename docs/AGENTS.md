@@ -1,10 +1,10 @@
-# SDA Content App - Agent Architecture
+# SKA App - Agent Architecture
 
 > Comprehensive documentation of system agents, services, and intelligent components
 
 ## Overview
 
-This document defines the agent-based architecture of the SDA Content App, describing autonomous components, services, and intelligent agents that power the application. Each agent has specific responsibilities, interfaces, and behaviors that contribute to the overall system functionality.
+This document defines the agent-based architecture of the SKA App, describing autonomous components, services, and intelligent agents that power the application. Each agent has specific responsibilities, interfaces, and behaviors that contribute to the overall system functionality.
 
 ---
 
@@ -1023,7 +1023,7 @@ All agents emit:
 
 ## Conclusion
 
-This agent architecture provides a modular, scalable foundation for the SDA Content App. Each agent is designed for:
+This agent architecture provides a modular, scalable foundation for the SKA App. Each agent is designed for:
 - **Autonomy**: Self-contained with clear boundaries
 - **Composability**: Can be combined to create complex workflows
 - **Testability**: Easy to test in isolation

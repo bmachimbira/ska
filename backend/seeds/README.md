@@ -1,6 +1,6 @@
 # Database Seed Data
 
-This directory contains seed data for the SDA App database.
+This directory contains seed data for the SKA App database.
 
 ## Files
 

@@ -74,7 +74,7 @@ The website will be available at `http://localhost:3200`
 
 ```bash
 NEXT_PUBLIC_API_URL=http://localhost:3000/v1
-NEXT_PUBLIC_APP_NAME="SDA Content"
+NEXT_PUBLIC_APP_NAME="SKA"
 NEXT_PUBLIC_SITE_URL=http://localhost:3200
 ```
 

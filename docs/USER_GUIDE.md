@@ -1,6 +1,6 @@
-# SDA Content App - User Guide
+# SKA App - User Guide
 
-Welcome to the SDA Content App! This guide will help you make the most of all features including sermons, devotionals, Sabbath School quarterlies, and AI-powered study chat.
+Welcome to the SKA App! This guide will help you make the most of all features including sermons, devotionals, Sabbath School quarterlies, and AI-powered study chat.
 
 ## Table of Contents
 
@@ -23,7 +23,7 @@ Welcome to the SDA Content App! This guide will help you make the most of all fe
 
 1. **Download the App**
    - Open Google Play Store
-   - Search for "SDA Content"
+   - Search for "SKA"
    - Tap "Install"
 
 2. **First Launch**
@@ -493,6 +493,6 @@ Check Settings → About → Version History to see latest features.
 
 ---
 
-*Thank you for using SDA Content App! May your study be blessed.*
+*Thank you for using SKA App! May your study be blessed.*
 
 **Version 1.0 - Last Updated: June 2024**

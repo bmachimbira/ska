@@ -12,7 +12,7 @@ interface OnboardingStep {
 
 const ONBOARDING_STEPS: OnboardingStep[] = [
   {
-    title: 'Welcome to SDA Content',
+    title: 'Welcome to SKA',
     description: 'Access sermons, devotionals, and Sabbath School lessons anytime, anywhere.',
     icon: '📖',
   },

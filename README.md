@@ -1,10 +1,10 @@
-# SDA Content App
+# SKA App
 
 > Android-first MVP for sermons, devotionals, Sabbath School quarterlies, and AI-powered study chat
 
 ## Project Overview
 
-The SDA Content App is a comprehensive platform designed to deliver spiritual content including:
+The SKA App is a comprehensive platform designed to deliver spiritual content including:
 - **Sermons**: Video/audio streaming with HLS support
 - **Devotionals**: Daily readings with optional audio
 - **Quarterlies**: Adult, Youth, and Kids Sabbath School lessons with offline support

@@ -2,7 +2,7 @@
 
 ## Overview
 
-Sermons in the SDA Content App can be either **standalone** or part of a **series**. The system is designed to be flexible and support both use cases.
+Sermons in the SKA App can be either **standalone** or part of a **series**. The system is designed to be flexible and support both use cases.
 
 ---
 

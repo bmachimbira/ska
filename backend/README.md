@@ -1,6 +1,6 @@
-# SDA Content App - Backend
+# SKA Content App - Backend
 
-> REST API and services for the SDA Content App
+> REST API and services for the SKA Content App
 
 ## Overview
 

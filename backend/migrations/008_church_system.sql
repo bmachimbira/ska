@@ -300,11 +300,11 @@ $$ LANGUAGE plpgsql;
 
 -- Insert sample church
 INSERT INTO church (name, slug, description, city, country, timezone) VALUES
-('Harare Central SDA Church', 'harare-central', 'Welcome to Harare Central Seventh-day Adventist Church', 'Harare', 'Zimbabwe', 'Africa/Harare'),
-('Bulawayo SDA Church', 'bulawayo', 'Bulawayo Seventh-day Adventist Church', 'Bulawayo', 'Zimbabwe', 'Africa/Harare'),
-('Mutare SDA Church', 'mutare', 'Mutare Seventh-day Adventist Church', 'Mutare', 'Zimbabwe', 'Africa/Harare');
+('Harare Central SKA Church', 'harare-central', 'Welcome to Harare Central Seventh-day Adventist Church', 'Harare', 'Zimbabwe', 'Africa/Harare'),
+('Bulawayo SKA Church', 'bulawayo', 'Bulawayo Seventh-day Adventist Church', 'Bulawayo', 'Zimbabwe', 'Africa/Harare'),
+('Mutare SKA Church', 'mutare', 'Mutare Seventh-day Adventist Church', 'Mutare', 'Zimbabwe', 'Africa/Harare');
 
-COMMENT ON TABLE church IS 'Local SDA churches';
+COMMENT ON TABLE church IS 'Local SKA churches';
 COMMENT ON TABLE church_member IS 'Church membership with roles';
 COMMENT ON TABLE church_devotional IS 'Devotionals from local church leadership';
 COMMENT ON TABLE church_event IS 'Local church events and programs';

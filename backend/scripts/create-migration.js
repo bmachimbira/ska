@@ -32,7 +32,7 @@ function createMigration() {
   const filename = `${version}_${name}.sql`;
   const filepath = path.join(MIGRATIONS_DIR, filename);
 
-  const template = `-- SDA Content App - Migration
+  const template = `-- SKA Content App - Migration
 -- Version: ${version}
 -- Description: ${name.replace(/_/g, ' ')}
 

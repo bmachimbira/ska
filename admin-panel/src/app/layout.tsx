@@ -7,7 +7,7 @@ const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
   title: "SDA Admin Panel",
-  description: "Content management system for SDA Content App",
+  description: "Content management system for SKA App",
 };
 
 export default function RootLayout({

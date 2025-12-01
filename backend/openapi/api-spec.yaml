@@ -1,9 +1,9 @@
 openapi: 3.0.3
 info:
-  title: SDA Content App API
+  title: SKA Content App API
   version: 0.1.0
   description: |
-    REST API for the SDA Content App, providing access to sermons, devotionals,
+    REST API for the SKA Content App, providing access to sermons, devotionals,
     Sabbath School quarterlies, and AI-powered study chat.
   contact:
     name: API Support

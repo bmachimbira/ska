@@ -1,4 +1,4 @@
-# SDA Content App — MVP Specification & Implementation Plan
+# SKA App — MVP Specification & Implementation Plan
 
 > Android-first MVP for sermons, devotionals, Sabbath School quarterlies, and an optional AI-powered study chat. This document is engineered for execution: concrete scope, architecture, schema, endpoints, and a phased plan with acceptance criteria.
 

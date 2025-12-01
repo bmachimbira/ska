@@ -44,7 +44,7 @@ export default function ChurchSelectScreen() {
       <View style={styles.header}>
         <Text style={styles.title}>Find Your Church</Text>
         <Text style={styles.subtitle}>
-          Connect with your local SDA congregation
+          Connect with your local Congregation
         </Text>
       </View>
 

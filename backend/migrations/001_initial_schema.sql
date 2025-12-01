@@ -1,4 +1,4 @@
--- SDA Content App - Initial Schema Migration
+-- SKA Content App - Initial Schema Migration
 -- Version: 001
 -- Description: Create core tables for content management
 

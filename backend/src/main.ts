@@ -1,5 +1,5 @@
 /**
- * SDA Content App - Backend API
+ * SKA App - Backend API
  * Main application entry point
  */
 
@@ -86,7 +86,7 @@ app.get('/health', (req: Request, res: Response) => {
 
 // API Documentation
 app.use('/api/docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument, {
-  customSiteTitle: 'SDA Content App API',
+  customSiteTitle: 'SKA App API',
   customCss: '.swagger-ui .topbar { display: none }',
 }));
 
@@ -96,7 +96,7 @@ app.use('/v1', createApiRouter());
 // Root endpoint
 app.get('/', (req: Request, res: Response) => {
   res.json({
-    name: 'SDA Content App API',
+    name: 'SKA App API',
     version: '0.1.0',
     documentation: '/api/docs',
     health: '/health',
@@ -132,7 +132,7 @@ async function startServer() {
     
     server.listen(PORT, () => {
       console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-      console.log('🚀 SDA Content App API');
+      console.log('🚀 SKA App API');
       console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
       console.log(`📡 Server:      http://localhost:${PORT}`);
       console.log(`🌍 Environment: ${NODE_ENV}`);

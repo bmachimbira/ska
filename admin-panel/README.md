@@ -1,6 +1,6 @@
 # SDA Admin Panel
 
-Content Management System for the SDA Content App built with Next.js 14, TypeScript, and Tailwind CSS.
+Content Management System for the SKA App built with Next.js 14, TypeScript, and Tailwind CSS.
 
 ## Features
 

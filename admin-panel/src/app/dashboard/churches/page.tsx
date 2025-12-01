@@ -65,7 +65,7 @@ export default function ChurchesPage() {
         <div>
           <h1 className="text-3xl font-bold text-gray-900">Churches</h1>
           <p className="mt-1 text-sm text-gray-500">
-            Manage local SDA churches and congregations
+            Manage local churches and congregations
           </p>
         </div>
         <Link

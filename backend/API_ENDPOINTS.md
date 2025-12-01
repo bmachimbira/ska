@@ -1,4 +1,4 @@
-# SDA Backend API - Quarterly & Lesson Endpoints
+# SKA Backend API - Quarterly & Lesson Endpoints
 
 This document describes the implemented API endpoints for accessing quarterly and lesson data.
 

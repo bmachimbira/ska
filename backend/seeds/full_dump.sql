@@ -678,7 +678,7 @@ CREATE TABLE public.church (
 -- Name: TABLE church; Type: COMMENT; Schema: public; Owner: -
 --
 
-COMMENT ON TABLE public.church IS 'SDA Churches in Zimbabwe with complete information from locations.txt';
+COMMENT ON TABLE public.church IS 'SKA Churches in Zimbabwe with complete information from locations.txt';
 
 
 --
@@ -704,7 +704,7 @@ CREATE TABLE public.church_announcement (
 -- Name: TABLE church_announcement; Type: COMMENT; Schema: public; Owner: -
 --
 
-COMMENT ON TABLE public.church_announcement IS 'Church announcements with sample data for Ebenezer SDA Church';
+COMMENT ON TABLE public.church_announcement IS 'Church announcements with sample data for Ebenezer Church';
 
 
 --
@@ -805,7 +805,7 @@ CREATE TABLE public.church_event (
 -- Name: TABLE church_event; Type: COMMENT; Schema: public; Owner: -
 --
 
-COMMENT ON TABLE public.church_event IS 'Church events with sample data for Ebenezer SDA Church';
+COMMENT ON TABLE public.church_event IS 'Church events with sample data for Ebenezer Church';
 
 
 --
@@ -961,7 +961,7 @@ CREATE TABLE public.church_project (
 -- Name: TABLE church_project; Type: COMMENT; Schema: public; Owner: -
 --
 
-COMMENT ON TABLE public.church_project IS 'Church projects with sample data for Ebenezer SDA Church';
+COMMENT ON TABLE public.church_project IS 'Church projects with sample data for Ebenezer Church';
 
 
 --
@@ -1907,14 +1907,14 @@ COPY public.cause (id, title, description, goal_amount, raised_amount, thumbnail
 --
 
 COPY public.church (id, name, slug, description, address, city, state, country, postal_code, latitude, longitude, phone, email, website, logo_asset, cover_asset, timezone, is_active, member_count, created_at, updated_at) FROM stdin;
-4	Ebenezer SDA Church	ebenezer-bulawayo	Ebenezer Seventh-day Adventist Church. Pastor: S Oliphant	25 Kirkland Rd, Greenhill	Bulawayo	\N	Zimbabwe	\N	\N	\N	\N	\N	\N	\N	\N	Africa/Harare	t	1	2025-12-01 16:52:31.360482+00	2025-12-01 16:52:31.360482+00
-5	Bethel SDA Church	bethel-zvishavane	Bethel Seventh-day Adventist Church. Pastor: D Hall	Stand 1431, Drinkwater Ave	Zvishavane	\N	Zimbabwe	\N	\N	\N	\N	\N	\N	\N	\N	Africa/Harare	t	1	2025-12-01 16:52:31.360482+00	2025-12-01 16:52:31.360482+00
-6	Maranatha SDA Church	maranatha-shurugwi	Maranatha Seventh-day Adventist Church. Pastor: S Jerias	399 Musgrave Rd	Shurugwi	\N	Zimbabwe	\N	\N	\N	\N	\N	\N	\N	\N	Africa/Harare	t	1	2025-12-01 16:52:31.360482+00	2025-12-01 16:52:31.360482+00
-7	Mount of Olives SDA Church	mount-of-olives-zvishavane	Mount of Olives Seventh-day Adventist Church. Pastor: E Z Mukubwa	Cheshire Ranch	Zvishavane	\N	Zimbabwe	\N	\N	\N	\N	\N	\N	\N	\N	Africa/Harare	t	1	2025-12-01 16:52:31.360482+00	2025-12-01 16:52:31.360482+00
-8	Mutare City Centre SDA Church	mutare-city-centre	Mutare City Centre Seventh-day Adventist Church	77 First St	Mutare	\N	Zimbabwe	\N	\N	\N	\N	\N	\N	\N	\N	Africa/Harare	t	0	2025-12-01 16:52:31.360482+00	2025-12-01 16:52:31.360482+00
-9	Ray of Light SDA Church	ray-of-light-harare	Ray of Light Seventh-day Adventist Church. Pastor: John Connick	3 Jessop Rd, Cranborne	Harare	\N	Zimbabwe	\N	\N	\N	\N	\N	\N	\N	\N	Africa/Harare	t	1	2025-12-01 16:52:31.360482+00	2025-12-01 16:52:31.360482+00
-10	Remnant SDA Church	remnant-gweru	Remnant Seventh-day Adventist Church. Pastor: S Jerias	8 Boundary Rd, Clonsilla	Gweru	\N	Zimbabwe	\N	\N	\N	\N	\N	\N	\N	\N	Africa/Harare	t	1	2025-12-01 16:52:31.360482+00	2025-12-01 16:52:31.360482+00
-11	Thorngrove SDA Church	thorngrove-bulawayo	Thorngrove Seventh-day Adventist Church. Pastor: S Oliphant	18 Woolwich Rd, Thorngrove	Bulawayo	\N	Zimbabwe	\N	\N	\N	\N	\N	\N	\N	\N	Africa/Harare	t	1	2025-12-01 16:52:31.360482+00	2025-12-01 16:52:31.360482+00
+4	Ebenezer Church	ebenezer-bulawayo	Ebenezer Seventh-day Adventist Church. Pastor: S Oliphant	25 Kirkland Rd, Greenhill	Bulawayo	\N	Zimbabwe	\N	\N	\N	\N	\N	\N	\N	\N	Africa/Harare	t	1	2025-12-01 16:52:31.360482+00	2025-12-01 16:52:31.360482+00
+5	Bethel Church	bethel-zvishavane	Bethel Seventh-day Adventist Church. Pastor: D Hall	Stand 1431, Drinkwater Ave	Zvishavane	\N	Zimbabwe	\N	\N	\N	\N	\N	\N	\N	\N	Africa/Harare	t	1	2025-12-01 16:52:31.360482+00	2025-12-01 16:52:31.360482+00
+6	Maranatha Church	maranatha-shurugwi	Maranatha Seventh-day Adventist Church. Pastor: S Jerias	399 Musgrave Rd	Shurugwi	\N	Zimbabwe	\N	\N	\N	\N	\N	\N	\N	\N	Africa/Harare	t	1	2025-12-01 16:52:31.360482+00	2025-12-01 16:52:31.360482+00
+7	Mount of Olives Church	mount-of-olives-zvishavane	Mount of Olives Seventh-day Adventist Church. Pastor: E Z Mukubwa	Cheshire Ranch	Zvishavane	\N	Zimbabwe	\N	\N	\N	\N	\N	\N	\N	\N	Africa/Harare	t	1	2025-12-01 16:52:31.360482+00	2025-12-01 16:52:31.360482+00
+8	Mutare City Centre Church	mutare-city-centre	Mutare City Centre Seventh-day Adventist Church	77 First St	Mutare	\N	Zimbabwe	\N	\N	\N	\N	\N	\N	\N	\N	Africa/Harare	t	0	2025-12-01 16:52:31.360482+00	2025-12-01 16:52:31.360482+00
+9	Ray of Light Church	ray-of-light-harare	Ray of Light Seventh-day Adventist Church. Pastor: John Connick	3 Jessop Rd, Cranborne	Harare	\N	Zimbabwe	\N	\N	\N	\N	\N	\N	\N	\N	Africa/Harare	t	1	2025-12-01 16:52:31.360482+00	2025-12-01 16:52:31.360482+00
+10	Remnant Church	remnant-gweru	Remnant Seventh-day Adventist Church. Pastor: S Jerias	8 Boundary Rd, Clonsilla	Gweru	\N	Zimbabwe	\N	\N	\N	\N	\N	\N	\N	\N	Africa/Harare	t	1	2025-12-01 16:52:31.360482+00	2025-12-01 16:52:31.360482+00
+11	Thorngrove Church	thorngrove-bulawayo	Thorngrove Seventh-day Adventist Church. Pastor: S Oliphant	18 Woolwich Rd, Thorngrove	Bulawayo	\N	Zimbabwe	\N	\N	\N	\N	\N	\N	\N	\N	Africa/Harare	t	1	2025-12-01 16:52:31.360482+00	2025-12-01 16:52:31.360482+00
 \.
 
 
@@ -2279,13 +2279,13 @@ COPY public.speaker (id, name, bio, photo_asset, created_at, updated_at, user_id
 5	Dr. Emily Chen	Professor of theology. Expert in New Testament studies and practical Christian living.	\N	2025-12-01 16:52:31.316006+00	2025-12-01 16:52:31.365528+00	8	f	\N	\N	\N	\N
 1	Pastor John Smith	Senior pastor with 20 years of ministry experience. Passionate about biblical teaching and community outreach.	\N	2025-12-01 16:52:31.316006+00	2025-12-01 16:52:31.365528+00	9	f	\N	\N	\N	\N
 2	Dr. Sarah Johnson	Bible scholar and theologian. Specializes in prophetic studies and Old Testament history.	\N	2025-12-01 16:52:31.316006+00	2025-12-01 16:52:31.365528+00	10	f	\N	\N	\N	\N
-6	Pastor S Oliphant	Church leader at Thorngrove SDA Church	\N	2025-12-01 16:52:31.365528+00	2025-12-01 16:52:31.365528+00	1	f	\N	\N	\N	\N
-7	Pastor S Oliphant	Church leader at Ebenezer SDA Church	\N	2025-12-01 16:52:31.365528+00	2025-12-01 16:52:31.365528+00	1	f	\N	\N	\N	\N
-8	Pastor D Hall	Church leader at Bethel SDA Church	\N	2025-12-01 16:52:31.365528+00	2025-12-01 16:52:31.365528+00	2	f	\N	\N	\N	\N
-9	Pastor S Jerias	Church leader at Remnant SDA Church	\N	2025-12-01 16:52:31.365528+00	2025-12-01 16:52:31.365528+00	3	f	\N	\N	\N	\N
-10	Pastor S Jerias	Church leader at Maranatha SDA Church	\N	2025-12-01 16:52:31.365528+00	2025-12-01 16:52:31.365528+00	3	f	\N	\N	\N	\N
-11	Pastor E Z Mukubwa	Church leader at Mount of Olives SDA Church	\N	2025-12-01 16:52:31.365528+00	2025-12-01 16:52:31.365528+00	4	f	\N	\N	\N	\N
-12	Pastor John Connick	Church leader at Ray of Light SDA Church	\N	2025-12-01 16:52:31.365528+00	2025-12-01 16:52:31.365528+00	5	f	\N	\N	\N	\N
+6	Pastor S Oliphant	Church leader at Thorngrove Church	\N	2025-12-01 16:52:31.365528+00	2025-12-01 16:52:31.365528+00	1	f	\N	\N	\N	\N
+7	Pastor S Oliphant	Church leader at Ebenezer Church	\N	2025-12-01 16:52:31.365528+00	2025-12-01 16:52:31.365528+00	1	f	\N	\N	\N	\N
+8	Pastor D Hall	Church leader at Bethel Church	\N	2025-12-01 16:52:31.365528+00	2025-12-01 16:52:31.365528+00	2	f	\N	\N	\N	\N
+9	Pastor S Jerias	Church leader at Remnant Church	\N	2025-12-01 16:52:31.365528+00	2025-12-01 16:52:31.365528+00	3	f	\N	\N	\N	\N
+10	Pastor S Jerias	Church leader at Maranatha Church	\N	2025-12-01 16:52:31.365528+00	2025-12-01 16:52:31.365528+00	3	f	\N	\N	\N	\N
+11	Pastor E Z Mukubwa	Church leader at Mount of Olives Church	\N	2025-12-01 16:52:31.365528+00	2025-12-01 16:52:31.365528+00	4	f	\N	\N	\N	\N
+12	Pastor John Connick	Church leader at Ray of Light Church	\N	2025-12-01 16:52:31.365528+00	2025-12-01 16:52:31.365528+00	5	f	\N	\N	\N	\N
 \.
 
 

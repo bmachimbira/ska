@@ -1,6 +1,6 @@
 # Network Configuration Summary
 
-This document summarizes all network URLs and configurations across the entire SDA Content App stack.
+This document summarizes all network URLs and configurations across the entire SKA App stack.
 
 ---
 

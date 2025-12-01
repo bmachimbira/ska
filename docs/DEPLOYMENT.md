@@ -1,6 +1,6 @@
-# SDA Content App - Deployment Guide
+# SKA App - Deployment Guide
 
-Complete deployment guide for the SDA Content App across all platforms: Backend, Admin Panel, and Android App.
+Complete deployment guide for the SKA App across all platforms: Backend, Admin Panel, and Android App.
 
 ## Table of Contents
 

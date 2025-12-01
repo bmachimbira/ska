@@ -1,6 +1,6 @@
-# Contributing to SDA Content App
+# Contributing to SKA App
 
-Thank you for your interest in contributing to the SDA Content App! This document provides guidelines and instructions for contributing.
+Thank you for your interest in contributing to the SKA App! This document provides guidelines and instructions for contributing.
 
 ## Table of Contents
 
@@ -397,4 +397,4 @@ By contributing, you agree that your contributions will be licensed under the sa
 
 ---
 
-Thank you for contributing to the SDA Content App! 🙏
+Thank you for contributing to the SKA App! 🙏
