@@ -7,6 +7,18 @@ export interface Speaker {
   name: string;
   bio?: string;
   photoUrl?: string;
+  userId?: number; // Reference to app_user (church member)
+  isGuest: boolean; // True if guest speaker from another church
+  guestChurchName?: string; // Name of guest speaker's church
+  guestChurchLocation?: string; // Location of guest speaker's church
+  contactEmail?: string; // Contact email for guest speakers
+  contactPhone?: string; // Contact phone for guest speakers
+  primaryChurch?: {
+    id: number;
+    name: string;
+    slug: string;
+    city: string;
+  };
 }
 
 export interface Series {
