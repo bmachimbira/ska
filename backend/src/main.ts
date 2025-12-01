@@ -45,9 +45,10 @@ app.use(helmet({
 }));
 
 // CORS
+const corsOrigin = process.env.CORS_ORIGIN || '*';
 const corsOptions = {
-  origin: process.env.CORS_ORIGIN?.split(',') || '*',
-  credentials: true,
+  origin: corsOrigin === '*' ? '*' : corsOrigin.split(',').map(o => o.trim()),
+  credentials: corsOrigin !== '*', // Don't use credentials with wildcard origin
 };
 app.use(cors(corsOptions));
 
