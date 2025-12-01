@@ -8,6 +8,7 @@ import { asyncHandler } from '../middleware/async-handler';
 import { getPool } from '../config/database';
 import { AuthService } from '../services/auth.service';
 import { z } from 'zod';
+import { adminChurchesRouter } from './admin/churches';
 
 export const adminRouter = Router();
 
@@ -105,3 +106,6 @@ adminRouter.get(
     res.json({ sermons: [] });
   })
 );
+
+// Church management routes
+adminRouter.use('/churches', adminChurchesRouter);
