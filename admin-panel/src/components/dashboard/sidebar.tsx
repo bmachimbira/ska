@@ -17,6 +17,7 @@ import {
   Mic,
   Calendar,
   Heart,
+  Church,
 } from 'lucide-react';
 
 interface NavItem {
@@ -59,6 +60,13 @@ const navItems: NavItem[] = [
     href: '/dashboard/causes',
     icon: Heart,
     resource: 'causes',
+    action: 'read',
+  },
+  {
+    label: 'Churches',
+    href: '/dashboard/churches',
+    icon: Church,
+    resource: 'churches',
     action: 'read',
   },
   {
