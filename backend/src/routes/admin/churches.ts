@@ -466,6 +466,72 @@ adminChurchesRouter.delete(
 // ============================================================================
 
 /**
+ * GET /v1/admin/churches/:churchId/events
+ * List church events
+ */
+adminChurchesRouter.get(
+  '/:churchId/events',
+  asyncHandler(async (req: Request, res: Response) => {
+    const { churchId } = req.params;
+    const pool = getPool();
+
+    const result = await pool.query(
+      `SELECT
+        id,
+        title,
+        description,
+        event_date as "eventDate",
+        event_time as "eventTime",
+        end_date as "endDate",
+        end_time as "endTime",
+        location,
+        event_type as "eventType",
+        max_attendees as "maxAttendees",
+        registration_required as "registrationRequired",
+        registration_url as "registrationUrl",
+        is_published as "isPublished",
+        is_featured as "isFeatured",
+        created_at as "createdAt"
+      FROM church_event
+      WHERE church_id = $1
+      ORDER BY event_date DESC, event_time DESC`,
+      [churchId]
+    );
+
+    res.json({ events: result.rows });
+  })
+);
+
+/**
+ * GET /v1/admin/churches/:churchId/events/:eventId
+ * Get single event
+ */
+adminChurchesRouter.get(
+  '/:churchId/events/:eventId',
+  asyncHandler(async (req: Request, res: Response) => {
+    const { churchId, eventId } = req.params;
+    const pool = getPool();
+
+    const result = await pool.query(
+      `SELECT
+        id, title, description, event_date as "eventDate", event_time as "eventTime",
+        location, event_type as "eventType", max_attendees as "maxAttendees",
+        registration_required as "registrationRequired", is_published as "isPublished",
+        created_at as "createdAt"
+      FROM church_event
+      WHERE id = $1 AND church_id = $2`,
+      [eventId, churchId]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'Not Found', message: 'Event not found' });
+    }
+
+    res.json({ event: result.rows[0] });
+  })
+);
+
+/**
  * POST /v1/admin/churches/:churchId/events
  * Create church event
  */
@@ -608,6 +674,68 @@ adminChurchesRouter.delete(
 // ============================================================================
 
 /**
+ * GET /v1/admin/churches/:churchId/projects
+ * List church projects
+ */
+adminChurchesRouter.get(
+  '/:churchId/projects',
+  asyncHandler(async (req: Request, res: Response) => {
+    const { churchId } = req.params;
+    const pool = getPool();
+
+    const result = await pool.query(
+      `SELECT
+        id,
+        title,
+        description,
+        goal_amount as "goalAmount",
+        raised_amount as "currentAmount",
+        currency,
+        start_date as "startDate",
+        end_date as "endDate",
+        project_type as "projectType",
+        is_active as "isActive",
+        is_featured as "isFeatured",
+        created_at as "createdAt"
+      FROM church_project
+      WHERE church_id = $1
+      ORDER BY created_at DESC`,
+      [churchId]
+    );
+
+    res.json({ projects: result.rows });
+  })
+);
+
+/**
+ * GET /v1/admin/churches/:churchId/projects/:projectId
+ * Get single project
+ */
+adminChurchesRouter.get(
+  '/:churchId/projects/:projectId',
+  asyncHandler(async (req: Request, res: Response) => {
+    const { churchId, projectId } = req.params;
+    const pool = getPool();
+
+    const result = await pool.query(
+      `SELECT
+        id, title, description, goal_amount as "goalAmount", raised_amount as "currentAmount",
+        currency, start_date as "startDate", end_date as "endDate", project_type as "projectType",
+        is_active as "isActive", is_featured as "isFeatured", created_at as "createdAt"
+      FROM church_project
+      WHERE id = $1 AND church_id = $2`,
+      [projectId, churchId]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'Not Found', message: 'Project not found' });
+    }
+
+    res.json({ project: result.rows[0] });
+  })
+);
+
+/**
  * POST /v1/admin/churches/:churchId/projects
  * Create church project
  */
@@ -728,6 +856,62 @@ adminChurchesRouter.delete(
 // ============================================================================
 // ANNOUNCEMENT MANAGEMENT
 // ============================================================================
+
+/**
+ * GET /v1/admin/churches/:churchId/announcements
+ * List church announcements
+ */
+adminChurchesRouter.get(
+  '/:churchId/announcements',
+  asyncHandler(async (req: Request, res: Response) => {
+    const { churchId } = req.params;
+    const pool = getPool();
+
+    const result = await pool.query(
+      `SELECT
+        id,
+        title,
+        content,
+        priority,
+        expires_at as "expiresAt",
+        is_published as "isPublished",
+        created_at as "createdAt"
+      FROM church_announcement
+      WHERE church_id = $1
+      ORDER BY created_at DESC`,
+      [churchId]
+    );
+
+    res.json({ announcements: result.rows });
+  })
+);
+
+/**
+ * GET /v1/admin/churches/:churchId/announcements/:announcementId
+ * Get single announcement
+ */
+adminChurchesRouter.get(
+  '/:churchId/announcements/:announcementId',
+  asyncHandler(async (req: Request, res: Response) => {
+    const { churchId, announcementId } = req.params;
+    const pool = getPool();
+
+    const result = await pool.query(
+      `SELECT
+        id, title, content, priority, expires_at as "expiresAt",
+        is_published as "isPublished", created_at as "createdAt"
+      FROM church_announcement
+      WHERE id = $1 AND church_id = $2`,
+      [announcementId, churchId]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'Not Found', message: 'Announcement not found' });
+    }
+
+    res.json({ announcement: result.rows[0] });
+  })
+);
 
 /**
  * POST /v1/admin/churches/:churchId/announcements
