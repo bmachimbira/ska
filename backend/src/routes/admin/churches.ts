@@ -730,7 +730,6 @@ adminChurchesRouter.delete(
  */
 adminChurchesRouter.post(
   '/:churchId/invitations',
-  requireChurchAdmin,
   asyncHandler(async (req: Request, res: Response) => {
     const { churchId } = req.params;
     const { code, maxUses, expiresAt } = req.body;
@@ -775,7 +774,6 @@ adminChurchesRouter.post(
  */
 adminChurchesRouter.get(
   '/:churchId/invitations',
-  requireChurchAdmin,
   asyncHandler(async (req: Request, res: Response) => {
     const { churchId } = req.params;
     const pool = getPool();
@@ -805,7 +803,6 @@ adminChurchesRouter.get(
  */
 adminChurchesRouter.delete(
   '/:churchId/invitations/:invitationId',
-  requireChurchAdmin,
   asyncHandler(async (req: Request, res: Response) => {
     const { churchId, invitationId } = req.params;
     const pool = getPool();
