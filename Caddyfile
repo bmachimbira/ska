@@ -117,7 +117,7 @@
 }
 
 # Main Website
-{$WEBSITE_DOMAIN:ska.aureliaonline.co.za} {
+{$WEBSITE_DOMAIN:www.ska.aureliaonline.co.za} {
 	encode gzip zstd
 	
 	log {
@@ -138,7 +138,7 @@
 		Referrer-Policy "strict-origin-when-cross-origin"
 		
 		# CSP for website
-		Content-Security-Policy "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' data:; connect-src 'self' {$API_DOMAIN:api.ska.aureliaonline.co.za}; media-src 'self' https:; frame-src 'self' https:;"
+		Content-Security-Policy "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' data:; connect-src 'self' https://{$API_DOMAIN:api.ska.aureliaonline.co.za}; media-src 'self' https:; frame-src 'self' https:;"
 	}
 	
 	reverse_proxy website:3000 {
