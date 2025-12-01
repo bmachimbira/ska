@@ -7,13 +7,6 @@
 	
 	# Admin API endpoint
 	admin off
-	
-	# Enable HTTP/3
-	servers {
-		protocol {
-			experimental_http3
-		}
-	}
 }
 
 # API Server

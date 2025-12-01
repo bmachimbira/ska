@@ -1,0 +1,36 @@
+# Caddyfile - Development configuration
+
+# Global options
+{
+	# Disable admin API
+	admin off
+	# Use local CA for development
+	local_certs
+}
+
+# Simple reverse proxy without SSL for development
+:80 {
+	# Root path goes to website
+	handle / {
+		reverse_proxy website:3000
+	}
+	
+	# API routes
+	handle /v1/* {
+		reverse_proxy backend:3000
+	}
+	
+	handle /health {
+		reverse_proxy backend:3000
+	}
+	
+	# Admin routes
+	handle /admin* {
+		reverse_proxy admin-panel:3000
+	}
+	
+	# Everything else goes to website
+	handle {
+		reverse_proxy website:3000
+	}
+}

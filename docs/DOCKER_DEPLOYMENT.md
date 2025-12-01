@@ -241,9 +241,27 @@ docker compose logs -f
 # Run migrations
 docker compose exec backend npm run migrate
 
-# Optional: Seed with initial data
+# Load seed data (includes all current content and users)
 docker compose exec backend npm run seed
 ```
+
+**About Seed Data:**
+
+The seed script will automatically load data from `backend/seeds/initial_data.sql` if it exists. This file contains a dump of your current database and includes:
+- User accounts and authentication
+- Churches and locations
+- Sermons, devotionals, and quarterlies
+- Events and causes
+- All content and relationships
+
+To update the seed data from your development database:
+
+```bash
+# In your development environment
+./scripts/dump-seed-data.sh
+```
+
+This will create/update `backend/seeds/initial_data.sql` with your current database state.
 
 ### 6. Initialize MinIO
 

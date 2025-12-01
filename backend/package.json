@@ -17,7 +17,8 @@
     "migrate": "node -r dotenv/config scripts/migrate.js",
     "migrate:create": "node -r dotenv/config scripts/create-migration.js",
     "migrate:rollback": "node -r dotenv/config scripts/rollback.js",
-    "seed": "node -r dotenv/config scripts/seed.js"
+    "seed": "node -r dotenv/config scripts/seed.js",
+    "load-data": "node -r dotenv/config scripts/load-data.js"
   },
   "keywords": [
     "sda",

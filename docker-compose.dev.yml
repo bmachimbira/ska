@@ -14,7 +14,7 @@ services:
     ports:
       - "${POSTGRES_PORT:-5432}:5432"
     volumes:
-      - postgres_data:/var/lib/postgresql/data
+      - postgres_data:/var/lib/postgresql
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-user} -d ${POSTGRES_DB:-sda_app}"]
       interval: 10s
@@ -33,7 +33,7 @@ services:
       - "${REDIS_PORT:-6379}:6379"
     volumes:
       - redis_data:/data
-    command: redis-server --appendonly yes --requirepass ${REDIS_PASSWORD:-}
+    command: redis-server --appendonly yes
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
       interval: 10s
@@ -117,7 +117,7 @@ services:
       LLM_MODEL: ${LLM_MODEL:-gpt-4-turbo-preview}
       
       # Redis
-      REDIS_URL: redis://:${REDIS_PASSWORD:-}@redis:6379
+      REDIS_URL: redis://redis:6379
       
       # CORS
       CORS_ORIGIN: ${CORS_ORIGIN:-http://localhost:3100,http://localhost:3200}
@@ -214,7 +214,7 @@ services:
       - "${HTTPS_PORT:-443}:443"
       - "${CADDY_ADMIN_PORT:-2019}:2019"
     volumes:
-      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - ./Caddyfile.dev:/etc/caddy/Caddyfile:ro
       - caddy_data:/data
       - caddy_config:/config
       - caddy_logs:/var/log/caddy

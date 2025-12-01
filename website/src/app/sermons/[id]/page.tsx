@@ -3,7 +3,6 @@ import Link from 'next/link';
 import { Calendar, User, Eye, ChevronDown, ChevronUp } from 'lucide-react';
 import { apiClient } from '@/lib/api-client';
 import { Sermon } from '@/types/api';
-import { REVALIDATE_TIMES } from '@/lib/constants';
 import { formatDate, getRelativeTime } from '@/lib/utils';
 import { VideoPlayer } from '@/components/media/VideoPlayer';
 import { AudioPlayer } from '@/components/media/AudioPlayer';
@@ -12,7 +11,7 @@ import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { notFound } from 'next/navigation';
 
-export const revalidate = REVALIDATE_TIMES.sermonDetail;
+export const revalidate = 3600; // 1 hour
 
 interface SermonPageProps {
   params: Promise<{ id: string }>;

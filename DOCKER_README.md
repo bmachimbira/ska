@@ -137,8 +137,14 @@ docker compose ps
 # Run migrations
 docker compose exec backend npm run migrate
 
+# Load seed data (your current database content)
+docker compose exec backend npm run seed
+
 # Backup
 ./scripts/backup.sh
+
+# Update seed data from development
+./scripts/dump-seed-data.sh
 
 # Restore
 ./scripts/restore.sh backups/postgres_20240101.sql.gz

@@ -2,7 +2,6 @@ import Link from 'next/link';
 import { ArrowRight } from 'lucide-react';
 import { apiClient } from '@/lib/api-client';
 import { HomePageData } from '@/types/api';
-import { REVALIDATE_TIMES } from '@/lib/constants';
 import { SermonCard } from '@/components/content/SermonCard';
 import { DevotionalCard } from '@/components/content/DevotionalCard';
 import { QuarterlyCard } from '@/components/content/QuarterlyCard';
@@ -14,7 +13,7 @@ import { WelcomeSection } from '@/components/content/WelcomeSection';
 import { MinistriesSection } from '@/components/content/MinistriesSection';
 import { CausesSection } from '@/components/content/CausesSection';
 
-export const revalidate = REVALIDATE_TIMES.home;
+export const revalidate = 60; // 1 minute
 
 async function getHomeData(): Promise<HomePageData> {
   try {

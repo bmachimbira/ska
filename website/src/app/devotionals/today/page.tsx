@@ -3,13 +3,12 @@ import Link from 'next/link';
 import { Calendar, User, ChevronLeft, ChevronRight, Volume2, Share2 } from 'lucide-react';
 import { apiClient } from '@/lib/api-client';
 import { Devotional } from '@/types/api';
-import { REVALIDATE_TIMES } from '@/lib/constants';
 import { formatDate } from '@/lib/utils';
 import { AudioPlayer } from '@/components/media/AudioPlayer';
 import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
 
-export const revalidate = REVALIDATE_TIMES.devotionalToday;
+export const revalidate = 300; // 5 minutes
 
 export const metadata: Metadata = {
   title: "Today's Devotional - Daily Spiritual Inspiration",

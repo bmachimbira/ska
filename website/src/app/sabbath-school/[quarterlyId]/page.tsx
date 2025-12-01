@@ -3,14 +3,14 @@ import Link from 'next/link';
 import { Book, Calendar, ChevronRight } from 'lucide-react';
 import { apiClient } from '@/lib/api-client';
 import { Quarterly, Lesson } from '@/types/api';
-import { REVALIDATE_TIMES, QUARTERLY_KINDS } from '@/lib/constants';
 import { formatDate } from '@/lib/utils';
 import { Card } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
 import { notFound } from 'next/navigation';
 
-export const revalidate = REVALIDATE_TIMES.quarterlies;
+import { QUARTERLY_KINDS } from '@/lib/constants';
+export const revalidate = 3600; // 1 hour
 
 interface QuarterlyPageProps {
   params: Promise<{ quarterlyId: string }>;

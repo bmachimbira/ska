@@ -2,11 +2,11 @@ import Link from 'next/link';
 import { Filter } from 'lucide-react';
 import { apiClient } from '@/lib/api-client';
 import { QuarterliesResponse } from '@/types/api';
-import { REVALIDATE_TIMES, QUARTERLY_KINDS } from '@/lib/constants';
 import { QuarterlyCard } from '@/components/content/QuarterlyCard';
 import { Badge } from '@/components/ui/Badge';
 
-export const revalidate = REVALIDATE_TIMES.quarterlies;
+import { QUARTERLY_KINDS } from '@/lib/constants';
+export const revalidate = 3600; // 1 hour
 
 interface SabbathSchoolPageProps {
   searchParams: {

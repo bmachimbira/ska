@@ -3,14 +3,13 @@ import Link from 'next/link';
 import { Calendar, User, ChevronLeft, ChevronRight, Volume2, Share2 } from 'lucide-react';
 import { apiClient } from '@/lib/api-client';
 import { Devotional } from '@/types/api';
-import { REVALIDATE_TIMES } from '@/lib/constants';
 import { formatDate } from '@/lib/utils';
 import { AudioPlayer } from '@/components/media/AudioPlayer';
 import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
 import { notFound } from 'next/navigation';
 
-export const revalidate = REVALIDATE_TIMES.sermonDetail;
+export const revalidate = 3600; // 1 hour
 
 interface DevotionalPageProps {
   params: Promise<{ id: string }>;
