@@ -19,6 +19,7 @@
     "migrate:rollback": "node -r dotenv/config scripts/rollback.js",
     "seed": "node -r dotenv/config scripts/seed.js",
     "load-data": "node -r dotenv/config scripts/load-data.js",
+    "clear:quarterlies": "node -r dotenv/config scripts/clear-quarterlies.js",
     "import:lessons": "node -r dotenv/config scripts/import-adult-lessons.js"
   },
   "keywords": [
