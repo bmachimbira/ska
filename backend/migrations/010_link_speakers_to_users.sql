@@ -92,19 +92,19 @@ RETURNS TABLE (
 ) AS $$
 BEGIN
   RETURN QUERY
-  SELECT 
+  SELECT
     s.id,
     s.name,
     s.bio,
     s.photo_asset,
     u.email,
     cm.role
-  FROM speaker s
-  JOIN app_user u ON s.user_id = u.id
-  JOIN church_member cm ON u.id = cm.user_id
+  FROM public.speaker s
+  JOIN public.app_user u ON s.user_id = u.id
+  JOIN public.church_member cm ON u.id = cm.user_id
   WHERE cm.church_id = church_id_param
     AND cm.role IN ('pastor', 'elder', 'admin')
-  ORDER BY 
+  ORDER BY
     CASE cm.role
       WHEN 'pastor' THEN 1
       WHEN 'admin' THEN 2
@@ -125,14 +125,14 @@ RETURNS TRIGGER AS $$
 BEGIN
   -- If user is being promoted to pastor or elder, create speaker entry if it doesn't exist
   IF NEW.role IN ('pastor', 'elder') THEN
-    INSERT INTO speaker (name, user_id, is_guest)
+    INSERT INTO public.speaker (name, user_id, is_guest)
     SELECT u.name, u.id, false
-    FROM app_user u
+    FROM public.app_user u
     WHERE u.id = NEW.user_id
-      AND NOT EXISTS (SELECT 1 FROM speaker WHERE user_id = u.id)
+      AND NOT EXISTS (SELECT 1 FROM public.speaker WHERE user_id = u.id)
     ON CONFLICT DO NOTHING;
   END IF;
-  
+
   RETURN NEW;
 END;
 $$ LANGUAGE plpgsql;
