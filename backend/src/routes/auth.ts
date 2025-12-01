@@ -242,25 +242,50 @@ authRouter.put(
         [churchId]
       );
 
-      if (churchResult.rows.length > 0) {
-        // Check if already a member
-        const existingMember = await pool.query(
-          'SELECT id FROM church_member WHERE user_id = $1 AND church_id = $2',
-          [userId, churchId]
-        );
-
-        // If not already a member, add them
-        if (existingMember.rows.length === 0) {
-          await pool.query(
-            `INSERT INTO church_member (church_id, user_id, role, joined_at)
-             VALUES ($1, $2, 'member', NOW())`,
-            [churchId, userId]
-          );
-        }
+      if (churchResult.rows.length === 0) {
+        return res.status(404).json({
+          error: 'Not Found',
+          message: 'Church not found',
+        });
       }
+
+      // Remove all existing church memberships
+      await pool.query(
+        'DELETE FROM church_member WHERE user_id = $1',
+        [userId]
+      );
+
+      // Add new church membership
+      await pool.query(
+        `INSERT INTO church_member (church_id, user_id, role, joined_at)
+         VALUES ($1, $2, 'member', NOW())`,
+        [churchId, userId]
+      );
     }
 
-    res.json({ user: result.rows[0] });
+    // Fetch updated user profile with church info
+    const updatedUser = await pool.query(
+      `SELECT
+        u.id, u.email, u.first_name as "firstName", u.last_name as "lastName",
+        u.phone, u.created_at as "createdAt",
+        json_agg(
+          json_build_object(
+            'churchId', cm.church_id,
+            'churchName', c.name,
+            'churchCity', c.city,
+            'role', cm.role,
+            'joinedAt', cm.joined_at
+          )
+        ) FILTER (WHERE cm.id IS NOT NULL) as churches
+       FROM app_user u
+       LEFT JOIN church_member cm ON u.id = cm.user_id
+       LEFT JOIN church c ON cm.church_id = c.id
+       WHERE u.id = $1
+       GROUP BY u.id`,
+      [userId]
+    );
+
+    res.json({ user: updatedUser.rows[0] });
   })
 );
 

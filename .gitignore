@@ -72,4 +72,23 @@ temp/
 # OS
 Thumbs.db
 
+# Data
 data/
+
+# Docker
+docker-compose.override.yml
+.env.production
+
+# Backups
+backups/
+*.sql
+*.sql.gz
+*.tar.gz
+
+# Caddy
+caddy_data/
+caddy_config/
+
+# Logs
+logs/
+*.log
