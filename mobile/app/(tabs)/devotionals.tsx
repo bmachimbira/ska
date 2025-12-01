@@ -1,14 +1,65 @@
-import { StyleSheet, ScrollView } from 'react-native';
+import { StyleSheet, FlatList, ActivityIndicator, RefreshControl } from 'react-native';
 import { Text, View } from '@/components/Themed';
+import { useQuery } from '@tanstack/react-query';
+import { DevotionalsResponse } from '@ska/shared';
+import { apiClient } from '@/lib/api';
+import { DevotionalCard } from '@/components/DevotionalCard';
+import { useState } from 'react';
 
 export default function DevotionalsScreen() {
-  return (
-    <ScrollView style={styles.container}>
-      <View style={styles.content}>
-        <Text style={styles.title}>Daily Devotionals</Text>
-        <Text style={styles.subtitle}>Start your day with God's word</Text>
+  const [page, setPage] = useState(1);
+  const limit = 20;
+
+  const { data, isLoading, error, refetch, isRefetching } = useQuery<DevotionalsResponse>({
+    queryKey: ['devotionals', page],
+    queryFn: () => apiClient.get<DevotionalsResponse>(`/devotionals?page=${page}&limit=${limit}`),
+  });
+
+  if (isLoading && !data) {
+    return (
+      <View style={styles.centerContainer}>
+        <ActivityIndicator size="large" />
       </View>
-    </ScrollView>
+    );
+  }
+
+  if (error) {
+    return (
+      <View style={styles.centerContainer}>
+        <Text style={styles.error}>Error loading devotionals</Text>
+        <Text style={styles.errorDetail}>{String(error)}</Text>
+      </View>
+    );
+  }
+
+  return (
+    <View style={styles.container}>
+      <FlatList
+        data={data?.devotionals || []}
+        keyExtractor={(item) => item.id.toString()}
+        renderItem={({ item }) => <DevotionalCard devotional={item} />}
+        contentContainerStyle={styles.list}
+        refreshControl={
+          <RefreshControl refreshing={isRefetching} onRefresh={() => refetch()} />
+        }
+        ListHeaderComponent={
+          <View style={styles.header}>
+            <Text style={styles.title}>Daily Devotionals</Text>
+            <Text style={styles.subtitle}>Start your day with God's word</Text>
+            {data?.pagination && (
+              <Text style={styles.pageInfo}>
+                {data.pagination.total} devotionals • Page {data.pagination.page} of {data.pagination.pages}
+              </Text>
+            )}
+          </View>
+        }
+        ListEmptyComponent={
+          <View style={styles.emptyContainer}>
+            <Text style={styles.emptyText}>No devotionals available</Text>
+          </View>
+        }
+      />
+    </View>
   );
 }
 
@@ -16,16 +67,49 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
-  content: {
+  centerContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
     padding: 20,
   },
+  list: {
+    padding: 15,
+  },
+  header: {
+    marginBottom: 20,
+  },
   title: {
-    fontSize: 24,
+    fontSize: 28,
     fontWeight: 'bold',
-    marginBottom: 10,
+    marginBottom: 5,
   },
   subtitle: {
     fontSize: 16,
     opacity: 0.7,
+    marginBottom: 8,
+  },
+  pageInfo: {
+    fontSize: 14,
+    opacity: 0.6,
+  },
+  emptyContainer: {
+    padding: 40,
+    alignItems: 'center',
+  },
+  emptyText: {
+    fontSize: 16,
+    opacity: 0.5,
+  },
+  error: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: 'red',
+    marginBottom: 10,
+  },
+  errorDetail: {
+    fontSize: 14,
+    opacity: 0.7,
+    textAlign: 'center',
   },
 });
