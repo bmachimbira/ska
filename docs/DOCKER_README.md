@@ -61,9 +61,9 @@ docker compose logs -f
 
 ## Documentation
 
-- **[Full Deployment Guide](docs/DOCKER_DEPLOYMENT.md)** - Complete deployment instructions
+- **[Full Deployment Guide](DOCKER_DEPLOYMENT.md)** - Complete deployment instructions
 - **[Quick Reference](DOCKER_QUICK_REF.md)** - Common commands and troubleshooting
-- **[Environment Variables](.env.example)** - All configuration options
+- **[Environment Variables](../.env.example)** - All configuration options
 
 ## Architecture
 
@@ -288,7 +288,7 @@ docker compose restart caddy
 docker system prune -a
 ```
 
-See [Full Documentation](docs/DOCKER_DEPLOYMENT.md) for more.
+See [Full Documentation](DOCKER_DEPLOYMENT.md) for more.
 
 ## Scaling
 
@@ -328,6 +328,6 @@ services:
 ---
 
 **Quick Links:**
-- [Full Deployment Guide](docs/DOCKER_DEPLOYMENT.md)
+- [Full Deployment Guide](DOCKER_DEPLOYMENT.md)
 - [Quick Reference](DOCKER_QUICK_REF.md)
-- [Main README](README.md)
+- [Main README](../README.md)
