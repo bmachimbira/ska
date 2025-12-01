@@ -18,7 +18,8 @@
     "migrate:create": "node -r dotenv/config scripts/create-migration.js",
     "migrate:rollback": "node -r dotenv/config scripts/rollback.js",
     "seed": "node -r dotenv/config scripts/seed.js",
-    "load-data": "node -r dotenv/config scripts/load-data.js"
+    "load-data": "node -r dotenv/config scripts/load-data.js",
+    "import:lessons": "node -r dotenv/config scripts/import-adult-lessons.js"
   },
   "keywords": [
     "sda",

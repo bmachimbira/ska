@@ -49,6 +49,9 @@ COPY --chown=nodejs:nodejs ./openapi ./openapi
 COPY --chown=nodejs:nodejs ./seeds ./seeds
 COPY --chown=nodejs:nodejs ./docker-entrypoint.sh ./docker-entrypoint.sh
 
+# Copy data folder (if it exists) for import scripts
+COPY --chown=nodejs:nodejs ../data ../data 2>/dev/null || true
+
 # Switch to non-root user
 USER nodejs
 
