@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { X } from 'lucide-react';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface AuthModalProps {
   isOpen: boolean;
@@ -19,6 +20,7 @@ export default function AuthModal({ isOpen, onClose, onSuccess }: AuthModalProps
     firstName: '',
     lastName: '',
   });
+  const { login, register } = useAuth();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -26,26 +28,13 @@ export default function AuthModal({ isOpen, onClose, onSuccess }: AuthModalProps
     setError('');
 
     try {
-      const endpoint = mode === 'login' ? '/auth/login' : '/auth/register';
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000/v1';
-      const response = await fetch(`${apiUrl}${endpoint}`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData),
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.message || 'Authentication failed');
+      if (mode === 'login') {
+        await login(formData.email, formData.password);
+      } else {
+        await register(formData.email, formData.password, formData.firstName, formData.lastName);
       }
-
-      // Store token
-      localStorage.setItem('authToken', data.token);
-      localStorage.setItem('user', JSON.stringify(data.user));
-
-      onSuccess(data.user, data.token);
       onClose();
+      setFormData({ email: '', password: '', firstName: '', lastName: '' });
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Authentication failed');
     } finally {

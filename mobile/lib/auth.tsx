@@ -6,6 +6,11 @@ interface User {
   email: string;
   firstName?: string;
   lastName?: string;
+  primaryChurch?: {
+    id: number;
+    name: string;
+    city?: string;
+  };
 }
 
 interface AuthContextType {

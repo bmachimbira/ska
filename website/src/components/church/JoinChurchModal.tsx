@@ -1,7 +1,13 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { X, Church } from 'lucide-react';
+
+interface Church {
+  id: number;
+  name: string;
+  city?: string;
+}
 
 interface JoinChurchModalProps {
   isOpen: boolean;
@@ -12,10 +18,41 @@ interface JoinChurchModalProps {
 export default function JoinChurchModal({ isOpen, onClose, onSuccess }: JoinChurchModalProps) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  const [invitationCode, setInvitationCode] = useState('');
+  const [selectedChurchId, setSelectedChurchId] = useState('');
+  const [churches, setChurches] = useState<Church[]>([]);
+  const [fetchingChurches, setFetchingChurches] = useState(false);
+
+  useEffect(() => {
+    if (isOpen) {
+      fetchChurches();
+    }
+  }, [isOpen]);
+
+  const fetchChurches = async () => {
+    setFetchingChurches(true);
+    try {
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000/v1';
+      const response = await fetch(`${apiUrl}/churches`);
+      const data = await response.json();
+
+      if (response.ok) {
+        setChurches(data.churches || []);
+      }
+    } catch (err) {
+      console.error('Failed to fetch churches:', err);
+    } finally {
+      setFetchingChurches(false);
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    if (!selectedChurchId) {
+      setError('Please select a church');
+      return;
+    }
+
     setLoading(true);
     setError('');
 
@@ -32,7 +69,7 @@ export default function JoinChurchModal({ isOpen, onClose, onSuccess }: JoinChur
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${token}`,
         },
-        body: JSON.stringify({ invitationCode }),
+        body: JSON.stringify({ churchId: parseInt(selectedChurchId) }),
       });
 
       const data = await response.json();
@@ -43,6 +80,7 @@ export default function JoinChurchModal({ isOpen, onClose, onSuccess }: JoinChur
 
       onSuccess();
       onClose();
+      setSelectedChurchId('');
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to join church');
     } finally {
@@ -79,18 +117,27 @@ export default function JoinChurchModal({ isOpen, onClose, onSuccess }: JoinChur
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              Invitation Code
+              Select Church
             </label>
-            <input
-              type="text"
-              required
-              value={invitationCode}
-              onChange={(e) => setInvitationCode(e.target.value.toUpperCase())}
-              placeholder="Enter your church's invitation code"
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 uppercase"
-            />
+            {fetchingChurches ? (
+              <div className="text-center py-4 text-gray-500">Loading churches...</div>
+            ) : (
+              <select
+                required
+                value={selectedChurchId}
+                onChange={(e) => setSelectedChurchId(e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              >
+                <option value="">-- Select a church --</option>
+                {churches.map((church) => (
+                  <option key={church.id} value={church.id}>
+                    {church.name}{church.city ? ` - ${church.city}` : ''}
+                  </option>
+                ))}
+              </select>
+            )}
             <p className="mt-2 text-sm text-gray-500">
-              Ask your church administrator for the invitation code
+              Choose the church you would like to join
             </p>
           </div>
 

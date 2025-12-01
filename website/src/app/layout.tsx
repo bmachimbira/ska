@@ -4,6 +4,7 @@ import "./globals.css";
 import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
 import OnboardingModal from "@/components/onboarding/OnboardingModal";
+import { AuthProvider } from "@/contexts/AuthContext";
 
 const raleway = Raleway({
   subsets: ["latin"],
@@ -37,10 +38,12 @@ export default function RootLayout({
   return (
     <html lang="en" className={`${raleway.variable} ${oswald.variable} ${notoSerif.variable}`}>
       <body className="antialiased flex min-h-screen flex-col">
-        <Header />
-        <main className="flex-1">{children}</main>
-        <Footer />
-        <OnboardingModal />
+        <AuthProvider>
+          <Header />
+          <main className="flex-1">{children}</main>
+          <Footer />
+          <OnboardingModal />
+        </AuthProvider>
       </body>
     </html>
   );

@@ -1,34 +1,25 @@
 'use client';
 
 import Link from 'next/link';
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Menu, X, Search, Book, Heart, Video, Share2, ChevronDown, User, LogOut } from 'lucide-react';
 import { APP_NAME } from '@/lib/constants';
 import AuthModal from '@/components/auth/AuthModal';
+import { useAuth } from '@/contexts/AuthContext';
 
 export function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const [shareOpen, setShareOpen] = useState(false);
   const [authModalOpen, setAuthModalOpen] = useState(false);
-  const [user, setUser] = useState<any>(null);
-
-  useEffect(() => {
-    // Check if user is logged in
-    const storedUser = localStorage.getItem('user');
-    if (storedUser) {
-      setUser(JSON.parse(storedUser));
-    }
-  }, []);
+  const { user, logout } = useAuth();
 
   const handleAuthSuccess = (userData: any, token: string) => {
-    setUser(userData);
+    // Auth context will handle this automatically
   };
 
   const handleLogout = () => {
-    localStorage.removeItem('authToken');
-    localStorage.removeItem('user');
-    setUser(null);
+    logout();
   };
 
   return (
@@ -96,9 +87,9 @@ export function Header() {
             <div className="flex items-center gap-4">
               {user ? (
                 <div className="flex items-center gap-3">
-                  <span className="text-sm text-gray-700">
-                    Hello, {user.firstName || user.email}
-                  </span>
+                  <Link href="/profile" className="text-sm text-gray-700 hover:text-primary-600">
+                    Hello, {user.firstName || user.name || user.email}
+                  </Link>
                   <button
                     onClick={handleLogout}
                     className="flex items-center gap-2 px-4 py-2 text-sm font-semibold text-gray-700 hover:text-primary-600 transition-colors"
@@ -257,9 +248,14 @@ export function Header() {
             <div className="pt-4 border-t mt-4">
               {user ? (
                 <div className="space-y-2">
-                  <div className="px-3 py-2 text-sm text-gray-600">
-                    Hello, {user.firstName || user.email}
-                  </div>
+                  <Link
+                    href="/profile"
+                    className="flex items-center gap-3 rounded-lg px-3 py-2 text-base font-semibold text-gray-900 hover:bg-primary-50"
+                    onClick={() => setMobileMenuOpen(false)}
+                  >
+                    <User className="h-5 w-5" />
+                    Profile
+                  </Link>
                   <button
                     onClick={() => {
                       handleLogout();

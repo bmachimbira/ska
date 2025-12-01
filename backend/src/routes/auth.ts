@@ -180,13 +180,14 @@ authRouter.get(
     const pool = getPool();
 
     const result = await pool.query(
-      `SELECT 
+      `SELECT
         u.id, u.email, u.first_name as "firstName", u.last_name as "lastName",
         u.phone, u.created_at as "createdAt",
         json_agg(
           json_build_object(
             'churchId', cm.church_id,
             'churchName', c.name,
+            'churchCity', c.city,
             'role', cm.role,
             'joinedAt', cm.joined_at
           )
@@ -238,43 +239,61 @@ authRouter.put(
 
 /**
  * POST /auth/join-church
- * Join a church using invitation code
+ * Join a church using invitation code or church ID
  */
 authRouter.post(
   '/join-church',
   authenticateUser,
   asyncHandler(async (req: Request, res: Response) => {
     const userId = (req as any).user.userId;
-    const { invitationCode } = req.body;
+    const { invitationCode, churchId } = req.body;
 
-    if (!invitationCode) {
+    if (!invitationCode && !churchId) {
       return res.status(400).json({
         error: 'Bad Request',
-        message: 'Invitation code is required',
+        message: 'Either invitation code or church ID is required',
       });
     }
 
     const pool = getPool();
+    let church: { id: number; name: string };
 
-    // Find church by invitation code
-    const churchResult = await pool.query(
-      `SELECT ci.church_id, c.name
-       FROM church_invitation ci
-       JOIN church c ON ci.church_id = c.id
-       WHERE ci.code = $1 AND ci.is_active = true
-       AND (ci.expires_at IS NULL OR ci.expires_at > NOW())
-       AND (ci.max_uses IS NULL OR ci.uses_count < ci.max_uses)`,
-      [invitationCode.toUpperCase()]
-    );
+    if (churchId) {
+      // Join by church ID directly
+      const churchResult = await pool.query(
+        'SELECT id, name FROM church WHERE id = $1 AND is_active = true',
+        [churchId]
+      );
 
-    if (churchResult.rows.length === 0) {
-      return res.status(404).json({
-        error: 'Not Found',
-        message: 'Invalid or expired invitation code',
-      });
+      if (churchResult.rows.length === 0) {
+        return res.status(404).json({
+          error: 'Not Found',
+          message: 'Church not found',
+        });
+      }
+
+      church = { id: churchResult.rows[0].id, name: churchResult.rows[0].name };
+    } else {
+      // Join by invitation code
+      const churchResult = await pool.query(
+        `SELECT ci.church_id, c.name
+         FROM church_invitation ci
+         JOIN church c ON ci.church_id = c.id
+         WHERE ci.code = $1 AND ci.is_active = true
+         AND (ci.expires_at IS NULL OR ci.expires_at > NOW())
+         AND (ci.max_uses IS NULL OR ci.uses_count < ci.max_uses)`,
+        [invitationCode!.toUpperCase()]
+      );
+
+      if (churchResult.rows.length === 0) {
+        return res.status(404).json({
+          error: 'Not Found',
+          message: 'Invalid or expired invitation code',
+        });
+      }
+
+      church = { id: churchResult.rows[0].church_id, name: churchResult.rows[0].name };
     }
-
-    const church = { id: churchResult.rows[0].church_id, name: churchResult.rows[0].name };
 
     // Check if already a member
     const existingMember = await pool.query(
