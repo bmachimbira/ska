@@ -4,6 +4,8 @@ import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { Save, ArrowLeft, Users, Calendar, FolderOpen, Bell } from 'lucide-react';
 import Link from 'next/link';
+import { useSession } from 'next-auth/react';
+import { createApiClient } from '@/lib/api-client';
 
 interface Church {
   id: number;
@@ -23,6 +25,7 @@ interface Church {
 }
 
 export default function ChurchDetailPage() {
+  const { data: session } = useSession();
   const params = useParams();
   const router = useRouter();
   const churchId = params.id as string;
@@ -34,28 +37,27 @@ export default function ChurchDetailPage() {
   const [success, setSuccess] = useState('');
 
   useEffect(() => {
-    fetchChurch();
-  }, [churchId]);
+    if (session?.accessToken && churchId) {
+      fetchChurch();
+    }
+  }, [session, churchId]);
 
   const fetchChurch = async () => {
     try {
-      const token = localStorage.getItem('adminToken');
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/churches/${churchId}`,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
+      if (!session?.accessToken) {
+        setError('Not authenticated. Please log in.');
+        setLoading(false);
+        return;
+      }
 
-      if (!response.ok) throw new Error('Failed to fetch church');
-
-      const data = await response.json();
+      const apiClient = createApiClient(session.accessToken);
+      const data = await apiClient.get<{ church: Church }>(`/admin/churches/${churchId}`);
       setChurch(data.church);
+      setError('');
     } catch (err) {
-      setError('Failed to load church');
-      console.error(err);
+      const errorMessage = err instanceof Error ? err.message : 'Failed to load church';
+      setError(errorMessage);
+      console.error('Fetch church error:', err);
     } finally {
       setLoading(false);
     }
@@ -63,33 +65,22 @@ export default function ChurchDetailPage() {
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    if (!church) return;
+    if (!church || !session?.accessToken) return;
 
     setSaving(true);
     setError('');
     setSuccess('');
 
     try {
-      const token = localStorage.getItem('adminToken');
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/admin/churches/${churchId}`,
-        {
-          method: 'PUT',
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify(church),
-        }
-      );
-
-      if (!response.ok) throw new Error('Failed to update church');
+      const apiClient = createApiClient(session.accessToken);
+      await apiClient.put(`/admin/churches/${churchId}`, church);
 
       setSuccess('Church updated successfully!');
       setTimeout(() => setSuccess(''), 3000);
     } catch (err) {
-      setError('Failed to update church');
-      console.error(err);
+      const errorMessage = err instanceof Error ? err.message : 'Failed to update church';
+      setError(errorMessage);
+      console.error('Update church error:', err);
     } finally {
       setSaving(false);
     }
@@ -147,28 +138,28 @@ export default function ChurchDetailPage() {
               className="flex items-center justify-center px-4 py-3 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
             >
               <Users className="h-5 w-5 mr-2 text-blue-600" />
-              <span className="text-sm font-medium">Members</span>
+              <span className="text-sm font-medium text-gray-900">Members</span>
             </Link>
             <Link
               href={`/dashboard/churches/${churchId}/events`}
               className="flex items-center justify-center px-4 py-3 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
             >
               <Calendar className="h-5 w-5 mr-2 text-green-600" />
-              <span className="text-sm font-medium">Events</span>
+              <span className="text-sm font-medium text-gray-900">Events</span>
             </Link>
             <Link
               href={`/dashboard/churches/${churchId}/projects`}
               className="flex items-center justify-center px-4 py-3 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
             >
               <FolderOpen className="h-5 w-5 mr-2 text-purple-600" />
-              <span className="text-sm font-medium">Projects</span>
+              <span className="text-sm font-medium text-gray-900">Projects</span>
             </Link>
             <Link
               href={`/dashboard/churches/${churchId}/announcements`}
               className="flex items-center justify-center px-4 py-3 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
             >
               <Bell className="h-5 w-5 mr-2 text-orange-600" />
-              <span className="text-sm font-medium">Announcements</span>
+              <span className="text-sm font-medium text-gray-900">Announcements</span>
             </Link>
           </div>
         </div>
@@ -190,7 +181,7 @@ export default function ChurchDetailPage() {
           {/* Basic Info */}
           <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
             <div>
-              <label className="block text-sm font-medium text-gray-700">
+              <label className="block text-sm font-medium text-gray-900">
                 Church Name *
               </label>
               <input
@@ -198,12 +189,12 @@ export default function ChurchDetailPage() {
                 required
                 value={church.name}
                 onChange={(e) => handleChange('name', e.target.value)}
-                className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 bg-white text-gray-900 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700">
+              <label className="block text-sm font-medium text-gray-900">
                 Slug
               </label>
               <input
@@ -216,14 +207,14 @@ export default function ChurchDetailPage() {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700">
+            <label className="block text-sm font-medium text-gray-900">
               Description
             </label>
             <textarea
               rows={3}
               value={church.description || ''}
               onChange={(e) => handleChange('description', e.target.value)}
-              className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+              className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 bg-white text-gray-900 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
             />
           </div>
 
@@ -232,62 +223,62 @@ export default function ChurchDetailPage() {
             <h3 className="text-lg font-medium text-gray-900 mb-4">Address</h3>
             <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
               <div className="md:col-span-2">
-                <label className="block text-sm font-medium text-gray-700">
+                <label className="block text-sm font-medium text-gray-900">
                   Street Address
                 </label>
                 <input
                   type="text"
                   value={church.address || ''}
                   onChange={(e) => handleChange('address', e.target.value)}
-                  className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                  className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 bg-white text-gray-900 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700">
+                <label className="block text-sm font-medium text-gray-900">
                   City
                 </label>
                 <input
                   type="text"
                   value={church.city || ''}
                   onChange={(e) => handleChange('city', e.target.value)}
-                  className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                  className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 bg-white text-gray-900 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700">
+                <label className="block text-sm font-medium text-gray-900">
                   State/Province
                 </label>
                 <input
                   type="text"
                   value={church.state || ''}
                   onChange={(e) => handleChange('state', e.target.value)}
-                  className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                  className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 bg-white text-gray-900 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700">
+                <label className="block text-sm font-medium text-gray-900">
                   Country
                 </label>
                 <input
                   type="text"
                   value={church.country}
                   onChange={(e) => handleChange('country', e.target.value)}
-                  className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                  className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 bg-white text-gray-900 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700">
+                <label className="block text-sm font-medium text-gray-900">
                   Postal Code
                 </label>
                 <input
                   type="text"
                   value={church.postalCode || ''}
                   onChange={(e) => handleChange('postalCode', e.target.value)}
-                  className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                  className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 bg-white text-gray-900 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
                 />
               </div>
             </div>
@@ -298,31 +289,31 @@ export default function ChurchDetailPage() {
             <h3 className="text-lg font-medium text-gray-900 mb-4">Contact Information</h3>
             <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
               <div>
-                <label className="block text-sm font-medium text-gray-700">
+                <label className="block text-sm font-medium text-gray-900">
                   Phone
                 </label>
                 <input
                   type="tel"
                   value={church.phone || ''}
                   onChange={(e) => handleChange('phone', e.target.value)}
-                  className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                  className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 bg-white text-gray-900 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700">
+                <label className="block text-sm font-medium text-gray-900">
                   Email
                 </label>
                 <input
                   type="email"
                   value={church.email || ''}
                   onChange={(e) => handleChange('email', e.target.value)}
-                  className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                  className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 bg-white text-gray-900 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
                 />
               </div>
 
               <div className="md:col-span-2">
-                <label className="block text-sm font-medium text-gray-700">
+                <label className="block text-sm font-medium text-gray-900">
                   Website
                 </label>
                 <input
@@ -330,7 +321,7 @@ export default function ChurchDetailPage() {
                   value={church.website || ''}
                   onChange={(e) => handleChange('website', e.target.value)}
                   placeholder="https://"
-                  className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                  className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 bg-white text-gray-900 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
                 />
               </div>
             </div>

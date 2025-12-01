@@ -3,6 +3,8 @@
 import { useState, useEffect } from 'react';
 import { Plus, Search, MapPin, Users, Edit, Trash2 } from 'lucide-react';
 import Link from 'next/link';
+import { useSession } from 'next-auth/react';
+import { createApiClient } from '@/lib/api-client';
 
 interface Church {
   id: number;
@@ -15,34 +17,34 @@ interface Church {
 }
 
 export default function ChurchesPage() {
+  const { data: session } = useSession();
   const [churches, setChurches] = useState<Church[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [error, setError] = useState('');
 
   useEffect(() => {
-    fetchChurches();
-  }, [search]);
+    if (session?.accessToken) {
+      fetchChurches();
+    }
+  }, [session, search]);
 
   const fetchChurches = async () => {
     try {
-      const token = localStorage.getItem('adminToken');
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/admin/churches?search=${search}`,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
+      if (!session?.accessToken) {
+        setError('Not authenticated. Please log in.');
+        setLoading(false);
+        return;
+      }
 
-      if (!response.ok) throw new Error('Failed to fetch churches');
-
-      const data = await response.json();
+      const apiClient = createApiClient(session.accessToken as string);
+      const data = await apiClient.get<{ churches: Church[] }>(`/admin/churches?search=${search}`);
       setChurches(data.churches || []);
+      setError('');
     } catch (err) {
-      setError('Failed to load churches');
-      console.error(err);
+      const errorMessage = err instanceof Error ? err.message : 'Failed to load churches';
+      setError(errorMessage);
+      console.error('Fetch churches error:', err);
     } finally {
       setLoading(false);
     }

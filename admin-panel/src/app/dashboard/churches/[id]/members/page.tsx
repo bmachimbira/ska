@@ -4,6 +4,8 @@ import { useState, useEffect } from 'react';
 import { useParams } from 'next/navigation';
 import { ArrowLeft, UserPlus, Shield, Trash2, Search } from 'lucide-react';
 import Link from 'next/link';
+import { useSession } from 'next-auth/react';
+import { createApiClient } from '@/lib/api-client';
 
 interface Member {
   id: number;
@@ -26,6 +28,7 @@ const ROLES = [
 ];
 
 export default function ChurchMembersPage() {
+  const { data: session } = useSession();
   const params = useParams();
   const churchId = params.id as string;
 
@@ -35,28 +38,27 @@ export default function ChurchMembersPage() {
   const [error, setError] = useState('');
 
   useEffect(() => {
-    fetchMembers();
-  }, [churchId]);
+    if (session?.accessToken && churchId) {
+      fetchMembers();
+    }
+  }, [session, churchId]);
 
   const fetchMembers = async () => {
     try {
-      const token = localStorage.getItem('adminToken');
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/admin/churches/${churchId}/members`,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
+      if (!session?.accessToken) {
+        setError('Not authenticated. Please log in.');
+        setLoading(false);
+        return;
+      }
 
-      if (!response.ok) throw new Error('Failed to fetch members');
-
-      const data = await response.json();
+      const apiClient = createApiClient(session.accessToken);
+      const data = await apiClient.get<{ members: Member[] }>(`/admin/churches/${churchId}/members`);
       setMembers(data.members || []);
+      setError('');
     } catch (err) {
-      setError('Failed to load members');
-      console.error(err);
+      const errorMessage = err instanceof Error ? err.message : 'Failed to load members';
+      setError(errorMessage);
+      console.error('Fetch members error:', err);
     } finally {
       setLoading(false);
     }
@@ -64,21 +66,11 @@ export default function ChurchMembersPage() {
 
   const updateRole = async (memberId: number, newRole: string) => {
     try {
-      const token = localStorage.getItem('adminToken');
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/admin/churches/${churchId}/members/${memberId}/role`,
-        {
-          method: 'PUT',
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify({ role: newRole }),
-        }
-      );
+      if (!session?.accessToken) return;
 
-      if (!response.ok) throw new Error('Failed to update role');
-
+      const apiClient = createApiClient(session.accessToken);
+      await apiClient.put(`/admin/churches/${churchId}/members/${memberId}/role`, { role: newRole });
+      
       // Refresh members list
       fetchMembers();
     } catch (err) {
@@ -91,19 +83,11 @@ export default function ChurchMembersPage() {
     if (!confirm(`Remove ${memberName} from this church?`)) return;
 
     try {
-      const token = localStorage.getItem('adminToken');
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/admin/churches/${churchId}/members/${memberId}`,
-        {
-          method: 'DELETE',
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
+      if (!session?.accessToken) return;
 
-      if (!response.ok) throw new Error('Failed to remove member');
-
+      const apiClient = createApiClient(session.accessToken);
+      await apiClient.delete(`/admin/churches/${churchId}/members/${memberId}`);
+      
       // Refresh members list
       fetchMembers();
     } catch (err) {

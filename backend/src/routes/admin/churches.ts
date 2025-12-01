@@ -18,6 +18,114 @@ adminChurchesRouter.use(requireAdminAuth);
 // ============================================================================
 
 /**
+ * GET /v1/admin/churches
+ * List all churches (with optional search)
+ */
+adminChurchesRouter.get(
+  '/',
+  asyncHandler(async (req: Request, res: Response) => {
+    const { search = '', page = 1, limit = 100 } = req.query;
+    const pool = getPool();
+
+    const offset = (Number(page) - 1) * Number(limit);
+
+    let query = `
+      SELECT 
+        id,
+        name,
+        slug,
+        city,
+        country,
+        member_count as "memberCount",
+        is_active as "isActive",
+        created_at as "createdAt"
+      FROM church
+      WHERE 1=1
+    `;
+
+    const params: any[] = [];
+
+    if (search) {
+      query += ` AND (name ILIKE $${params.length + 1} OR city ILIKE $${params.length + 1})`;
+      params.push(`%${search}%`);
+    }
+
+    query += ` ORDER BY name ASC LIMIT $${params.length + 1} OFFSET $${params.length + 2}`;
+    params.push(limit, offset);
+
+    const result = await pool.query(query, params);
+
+    // Get total count
+    let countQuery = 'SELECT COUNT(*) as total FROM church WHERE 1=1';
+    const countParams: any[] = [];
+    
+    if (search) {
+      countQuery += ` AND (name ILIKE $1 OR city ILIKE $1)`;
+      countParams.push(`%${search}%`);
+    }
+
+    const countResult = await pool.query(countQuery, countParams);
+
+    res.json({
+      churches: result.rows,
+      pagination: {
+        page: Number(page),
+        limit: Number(limit),
+        total: parseInt(countResult.rows[0].total),
+        pages: Math.ceil(parseInt(countResult.rows[0].total) / Number(limit)),
+      },
+    });
+  })
+);
+
+/**
+ * GET /v1/admin/churches/:churchId
+ * Get a single church by ID
+ */
+adminChurchesRouter.get(
+  '/:churchId',
+  asyncHandler(async (req: Request, res: Response) => {
+    const { churchId } = req.params;
+    const pool = getPool();
+
+    const result = await pool.query(
+      `SELECT 
+        id,
+        name,
+        slug,
+        description,
+        address,
+        city,
+        state,
+        country,
+        postal_code as "postalCode",
+        latitude,
+        longitude,
+        phone,
+        email,
+        website,
+        timezone,
+        member_count as "memberCount",
+        is_active as "isActive",
+        created_at as "createdAt",
+        updated_at as "updatedAt"
+      FROM church
+      WHERE id = $1`,
+      [churchId]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({
+        error: 'Not Found',
+        message: 'Church not found',
+      });
+    }
+
+    res.json({ church: result.rows[0] });
+  })
+);
+
+/**
  * POST /v1/admin/churches
  * Create a new church (global admin only)
  */
