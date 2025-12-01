@@ -25,7 +25,8 @@ export default function JoinChurchModal({ isOpen, onClose, onSuccess }: JoinChur
         throw new Error('Please sign in first');
       }
 
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/v1/auth/join-church`, {
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000/v1';
+      const response = await fetch(`${apiUrl}/auth/join-church`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

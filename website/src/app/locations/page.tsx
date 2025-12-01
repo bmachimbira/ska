@@ -1,6 +1,10 @@
-import { MapPin, Phone, User } from 'lucide-react';
+'use client';
+
+import { useState } from 'react';
+import { MapPin, Phone, User, Church as ChurchIcon } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/Badge';
+import JoinChurchModal from '@/components/church/JoinChurchModal';
 
 const churches = [
   {
@@ -70,12 +74,8 @@ const churchesByCity = churches.reduce((acc, church) => {
   return acc;
 }, {} as Record<string, typeof churches>);
 
-export const metadata = {
-  title: 'Church Locations - Find a Church Near You',
-  description: 'Find a Zimbabwe Conference of Sabbath Keeping Adventists church near you. We have congregations across Zimbabwe.',
-};
-
 export default function LocationsPage() {
+  const [joinModalOpen, setJoinModalOpen] = useState(false);
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-950">
       {/* Hero Header */}
@@ -158,8 +158,8 @@ export default function LocationsPage() {
                         </div>
                       )}
 
-                      {/* Get Directions Link */}
-                      <div className="mt-6 pt-4 border-t border-gray-200 dark:border-gray-700">
+                      {/* Actions */}
+                      <div className="mt-6 pt-4 border-t border-gray-200 dark:border-gray-700 flex items-center justify-between gap-4">
                         <a
                           href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(church.address)}`}
                           target="_blank"
@@ -167,8 +167,15 @@ export default function LocationsPage() {
                           className="text-sm font-semibold text-primary-600 hover:text-primary-700 dark:text-primary-400 dark:hover:text-primary-300 flex items-center gap-2"
                         >
                           <MapPin className="h-4 w-4" />
-                          Get Directions
+                          Directions
                         </a>
+                        <button
+                          onClick={() => setJoinModalOpen(true)}
+                          className="text-sm font-semibold text-primary-600 hover:text-primary-700 dark:text-primary-400 dark:hover:text-primary-300 flex items-center gap-2"
+                        >
+                          <ChurchIcon className="h-4 w-4" />
+                          Join Church
+                        </button>
                       </div>
                     </CardContent>
                   </Card>
@@ -195,6 +202,16 @@ export default function LocationsPage() {
           </a>
         </div>
       </div>
+
+      {/* Join Church Modal */}
+      <JoinChurchModal
+        isOpen={joinModalOpen}
+        onClose={() => setJoinModalOpen(false)}
+        onSuccess={() => {
+          setJoinModalOpen(false);
+          alert('Successfully joined church!');
+        }}
+      />
     </div>
   );
 }

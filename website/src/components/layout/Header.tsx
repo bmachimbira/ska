@@ -1,14 +1,35 @@
 'use client';
 
 import Link from 'next/link';
-import { useState } from 'react';
-import { Menu, X, Search, Book, Heart, Video, Share2, ChevronDown } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { Menu, X, Search, Book, Heart, Video, Share2, ChevronDown, User, LogOut } from 'lucide-react';
 import { APP_NAME } from '@/lib/constants';
+import AuthModal from '@/components/auth/AuthModal';
 
 export function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const [shareOpen, setShareOpen] = useState(false);
+  const [authModalOpen, setAuthModalOpen] = useState(false);
+  const [user, setUser] = useState<any>(null);
+
+  useEffect(() => {
+    // Check if user is logged in
+    const storedUser = localStorage.getItem('user');
+    if (storedUser) {
+      setUser(JSON.parse(storedUser));
+    }
+  }, []);
+
+  const handleAuthSuccess = (userData: any, token: string) => {
+    setUser(userData);
+  };
+
+  const handleLogout = () => {
+    localStorage.removeItem('authToken');
+    localStorage.removeItem('user');
+    setUser(null);
+  };
 
   return (
     <header className="sticky top-0 z-50 w-full bg-white shadow-md">
@@ -73,12 +94,28 @@ export function Header() {
           {/* Right Section */}
           <div className="hidden lg:flex lg:w-1/4 lg:justify-end">
             <div className="flex items-center gap-4">
-              <Link
-                href="/locations"
-                className="px-6 py-2 bg-primary-600 text-white text-sm font-semibold rounded hover:bg-primary-700 transition-colors"
-              >
-                VISIT US
-              </Link>
+              {user ? (
+                <div className="flex items-center gap-3">
+                  <span className="text-sm text-gray-700">
+                    Hello, {user.firstName || user.email}
+                  </span>
+                  <button
+                    onClick={handleLogout}
+                    className="flex items-center gap-2 px-4 py-2 text-sm font-semibold text-gray-700 hover:text-primary-600 transition-colors"
+                  >
+                    <LogOut className="h-4 w-4" />
+                    Sign Out
+                  </button>
+                </div>
+              ) : (
+                <button
+                  onClick={() => setAuthModalOpen(true)}
+                  className="flex items-center gap-2 px-6 py-2 bg-primary-600 text-white text-sm font-semibold rounded hover:bg-primary-700 transition-colors"
+                >
+                  <User className="h-4 w-4" />
+                  Sign In
+                </button>
+              )}
 
               {/* Share Button */}
               <div className="relative">
@@ -215,9 +252,48 @@ export function Header() {
             >
               About
             </Link>
+            
+            {/* Auth Button */}
+            <div className="pt-4 border-t mt-4">
+              {user ? (
+                <div className="space-y-2">
+                  <div className="px-3 py-2 text-sm text-gray-600">
+                    Hello, {user.firstName || user.email}
+                  </div>
+                  <button
+                    onClick={() => {
+                      handleLogout();
+                      setMobileMenuOpen(false);
+                    }}
+                    className="flex items-center gap-3 rounded-lg px-3 py-2 text-base font-semibold text-red-600 hover:bg-red-50 w-full"
+                  >
+                    <LogOut className="h-5 w-5" />
+                    Sign Out
+                  </button>
+                </div>
+              ) : (
+                <button
+                  onClick={() => {
+                    setAuthModalOpen(true);
+                    setMobileMenuOpen(false);
+                  }}
+                  className="flex items-center gap-3 rounded-lg px-3 py-2 text-base font-semibold text-white bg-primary-600 hover:bg-primary-700 w-full"
+                >
+                  <User className="h-5 w-5" />
+                  Sign In
+                </button>
+              )}
+            </div>
           </div>
         </div>
       )}
+
+      {/* Auth Modal */}
+      <AuthModal
+        isOpen={authModalOpen}
+        onClose={() => setAuthModalOpen(false)}
+        onSuccess={handleAuthSuccess}
+      />
     </header>
   );
 }

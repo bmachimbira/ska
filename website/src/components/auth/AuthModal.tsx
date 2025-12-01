@@ -27,7 +27,8 @@ export default function AuthModal({ isOpen, onClose, onSuccess }: AuthModalProps
 
     try {
       const endpoint = mode === 'login' ? '/auth/login' : '/auth/register';
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/v1${endpoint}`, {
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000/v1';
+      const response = await fetch(`${apiUrl}${endpoint}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(formData),
