@@ -220,9 +220,10 @@ authRouter.put(
   authenticateUser,
   asyncHandler(async (req: Request, res: Response) => {
     const userId = (req as any).user.userId;
-    const { firstName, lastName, phone } = req.body;
+    const { firstName, lastName, phone, churchId } = req.body;
     const pool = getPool();
 
+    // Update basic profile information
     const result = await pool.query(
       `UPDATE app_user
        SET first_name = COALESCE($1, first_name),
@@ -232,6 +233,32 @@ authRouter.put(
        RETURNING id, email, first_name as "firstName", last_name as "lastName", phone`,
       [firstName, lastName, phone, userId]
     );
+
+    // Handle church update if churchId is provided
+    if (churchId) {
+      // Check if church exists
+      const churchResult = await pool.query(
+        'SELECT id, name FROM church WHERE id = $1 AND is_active = true',
+        [churchId]
+      );
+
+      if (churchResult.rows.length > 0) {
+        // Check if already a member
+        const existingMember = await pool.query(
+          'SELECT id FROM church_member WHERE user_id = $1 AND church_id = $2',
+          [userId, churchId]
+        );
+
+        // If not already a member, add them
+        if (existingMember.rows.length === 0) {
+          await pool.query(
+            `INSERT INTO church_member (church_id, user_id, role, joined_at)
+             VALUES ($1, $2, 'member', NOW())`,
+            [churchId, userId]
+          );
+        }
+      }
+    }
 
     res.json({ user: result.rows[0] });
   })

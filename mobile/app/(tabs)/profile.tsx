@@ -56,8 +56,8 @@ export default function ProfileScreen() {
     try {
       const apiUrl = process.env.EXPO_PUBLIC_API_URL || 'http://localhost:3000/v1';
 
-      // Update basic profile information
-      const response = await fetch(`${apiUrl}/users/me`, {
+      // Update profile information including church
+      const response = await fetch(`${apiUrl}/auth/profile`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -66,7 +66,7 @@ export default function ProfileScreen() {
         body: JSON.stringify({
           firstName: formData.firstName,
           lastName: formData.lastName,
-          email: formData.email,
+          churchId: formData.churchId || undefined,
         }),
       });
 
@@ -74,34 +74,6 @@ export default function ProfileScreen() {
 
       if (!response.ok) {
         throw new Error(data.message || 'Failed to update profile');
-      }
-
-      // Handle church change if needed
-      const currentChurchId = user?.primaryChurch?.id;
-      if (formData.churchId && formData.churchId !== currentChurchId) {
-        try {
-          const churchResponse = await fetch(`${apiUrl}/auth/join-church`, {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              'Authorization': `Bearer ${token}`,
-            },
-            body: JSON.stringify({ churchId: formData.churchId }),
-          });
-
-          const churchData = await churchResponse.json();
-
-          // If already a member (409), that's okay
-          if (!churchResponse.ok && churchResponse.status !== 409) {
-            throw new Error(churchData.message || 'Failed to update church');
-          }
-        } catch (churchErr) {
-          console.error('Failed to update church:', churchErr);
-          Alert.alert('Warning', 'Profile updated, but church change may have failed. Please try again.');
-          setIsEditing(false);
-          setLoading(false);
-          return;
-        }
       }
 
       Alert.alert('Success', 'Profile updated successfully!');

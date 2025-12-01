@@ -67,19 +67,18 @@ export default function ProfilePage() {
     try {
       const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000/v1';
 
-      // Update basic profile information
-      const response = await fetch(`${apiUrl}/users/me`, {
+      // Update profile information including church
+      const response = await fetch(`${apiUrl}/auth/profile`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${token}`,
         },
         body: JSON.stringify({
-          name: formData.name,
-          email: formData.email,
-          phone: formData.phone,
           firstName: formData.firstName,
           lastName: formData.lastName,
+          phone: formData.phone,
+          churchId: formData.churchId ? parseInt(formData.churchId) : undefined,
         }),
       });
 
@@ -91,37 +90,8 @@ export default function ProfilePage() {
 
       updateUser(data.user);
 
-      // Handle church change if needed
-      const currentChurchId = user?.primaryChurch?.id?.toString() || '';
-      if (formData.churchId && formData.churchId !== currentChurchId) {
-        try {
-          const churchResponse = await fetch(`${apiUrl}/auth/join-church`, {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              'Authorization': `Bearer ${token}`,
-            },
-            body: JSON.stringify({ churchId: parseInt(formData.churchId) }),
-          });
-
-          const churchData = await churchResponse.json();
-
-          // If already a member (409), that's okay - we just want to make sure they're connected
-          if (!churchResponse.ok && churchResponse.status !== 409) {
-            throw new Error(churchData.message || 'Failed to update church');
-          }
-
-          // Refresh user data to get updated church info
-          await refreshUser();
-        } catch (churchErr) {
-          console.error('Failed to update church:', churchErr);
-          // Don't fail the whole update if church change fails
-          setSuccess('Profile updated successfully, but church change may have failed. Please try again.');
-          setIsEditing(false);
-          setLoading(false);
-          return;
-        }
-      }
+      // Refresh user data to get updated church info
+      await refreshUser();
 
       setSuccess('Profile updated successfully!');
       setIsEditing(false);
