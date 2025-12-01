@@ -40,9 +40,9 @@ const config: Config = {
         quarterly: '#f59e0b',
       },
       fontFamily: {
-        sans: ['var(--font-raleway)', 'system-ui', 'sans-serif'],
-        heading: ['var(--font-oswald)', 'system-ui', 'sans-serif'],
-        serif: ['var(--font-noto-serif)', 'Georgia', 'serif'],
+        sans: ['Raleway', 'system-ui', 'sans-serif'],
+        heading: ['Oswald', 'system-ui', 'sans-serif'],
+        serif: ['Noto Serif', 'Georgia', 'serif'],
       },
     },
   },
