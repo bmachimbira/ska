@@ -9,11 +9,13 @@ export default function QuarterlyDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
 
-  const { data: lessons, isLoading, error } = useQuery<Lesson[]>({
+  const { data: lessonsResponse, isLoading, error } = useQuery<{ lessons: Lesson[] }>({
     queryKey: ['quarterly-lessons', id],
-    queryFn: () => apiClient.get<Lesson[]>(`/sabbath-school/quarterlies/${id}/lessons`),
+    queryFn: () => apiClient.get<{ lessons: Lesson[] }>(`/quarterlies/${id}/lessons`),
     enabled: !!id,
   });
+
+  const lessons = lessonsResponse?.lessons;
 
   if (isLoading) {
     return (
@@ -69,7 +71,7 @@ export default function QuarterlyDetailScreen() {
         renderItem={({ item }) => (
           <TouchableOpacity
             style={styles.lessonCard}
-            onPress={() => router.push(`/lesson/${item.id}`)}>
+            onPress={() => router.push(`/lesson/${item.id}/day/1`)}>
             <View style={styles.lessonNumber}>
               <Text style={styles.lessonNumberText}>{item.indexInQuarter}</Text>
             </View>

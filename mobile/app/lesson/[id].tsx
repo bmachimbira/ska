@@ -8,11 +8,13 @@ import { useLocalSearchParams, Stack } from 'expo-router';
 export default function LessonDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
 
-  const { data: lesson, isLoading, error } = useQuery<Lesson>({
+  const { data: lessonResponse, isLoading, error } = useQuery<{ lesson: Lesson }>({
     queryKey: ['lesson', id],
-    queryFn: () => apiClient.get<Lesson>(`/sabbath-school/lessons/${id}`),
+    queryFn: () => apiClient.get<{ lesson: Lesson }>(`/lessons/${id}`),
     enabled: !!id,
   });
+
+  const lesson = lessonResponse?.lesson;
 
   if (isLoading) {
     return (

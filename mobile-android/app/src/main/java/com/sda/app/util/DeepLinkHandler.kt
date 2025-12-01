@@ -36,9 +36,9 @@ object DeepLinkHandler {
             }
 
             // Quarterly deep links
-            // https://sda-content.app/quarterlies/{id}
-            // https://sda-content.app/quarterlies/{quarterlyId}/lessons/{lessonId}
-            data.pathSegments?.firstOrNull() == "quarterlies" -> {
+            // https://sda-content.app/sabbath-school/{id}
+            // https://sda-content.app/sabbath-school/lessons/{lessonId}
+            data.pathSegments?.firstOrNull() == "sabbath-school" -> {
                 handleQuarterlyDeepLink(data, navController)
             }
 
@@ -97,27 +97,27 @@ object DeepLinkHandler {
     private fun handleQuarterlyDeepLink(data: Uri, navController: NavController): Boolean {
         val segments = data.pathSegments
         return when {
-            // /quarterlies/{quarterlyId}/lessons/{lessonId}/days/{dayIndex}
-            segments?.size == 6 && segments[2] == "lessons" && segments[4] == "days" -> {
-                val lessonId = segments[3].toLongOrNull() ?: return false
-                val dayIndex = segments[5].toIntOrNull() ?: return false
+            // /sabbath-school/lessons/{lessonId}/days/{dayIndex}
+            segments?.size == 5 && segments[1] == "lessons" && segments[3] == "days" -> {
+                val lessonId = segments[2].toLongOrNull() ?: return false
+                val dayIndex = segments[4].toIntOrNull() ?: return false
                 navController.navigate(QuarterlyDestinations.lessonDayRoute(lessonId, dayIndex))
                 true
             }
-            // /quarterlies/{quarterlyId}/lessons/{lessonId}
-            segments?.size == 4 && segments[2] == "lessons" -> {
-                val lessonId = segments[3].toLongOrNull() ?: return false
+            // /sabbath-school/lessons/{lessonId}
+            segments?.size == 3 && segments[1] == "lessons" -> {
+                val lessonId = segments[2].toLongOrNull() ?: return false
                 // Navigate to first day of lesson
                 navController.navigate(QuarterlyDestinations.lessonDayRoute(lessonId, 1))
                 true
             }
-            // /quarterlies/{id}
+            // /sabbath-school/{id}
             segments?.size == 2 -> {
                 val quarterlyId = segments[1].toLongOrNull() ?: return false
                 navController.navigate(QuarterlyDestinations.lessonListRoute(quarterlyId))
                 true
             }
-            // /quarterlies (list)
+            // /sabbath-school (list)
             segments?.size == 1 -> {
                 navController.navigate(QuarterlyDestinations.QUARTERLY_LIST_ROUTE)
                 true
@@ -165,14 +165,14 @@ object DeepLinkHandler {
      * Generate shareable deep link for a quarterly
      */
     fun generateQuarterlyLink(quarterlyId: Long): String {
-        return "https://sda-content.app/quarterlies/$quarterlyId"
+        return "https://sda-content.app/sabbath-school/$quarterlyId"
     }
 
     /**
      * Generate shareable deep link for a lesson day
      */
     fun generateLessonDayLink(quarterlyId: Long, lessonId: Long, dayIndex: Int): String {
-        return "https://sda-content.app/quarterlies/$quarterlyId/lessons/$lessonId/days/$dayIndex"
+        return "https://sda-content.app/sabbath-school/lessons/$lessonId/days/$dayIndex"
     }
 
     /**

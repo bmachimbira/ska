@@ -6,6 +6,7 @@ import { apiClient } from '@/lib/api';
 import { useRouter } from 'expo-router';
 import { formatDate } from '@ska/shared';
 import FontAwesome from '@expo/vector-icons/FontAwesome';
+import SermonVideoCarousel from '@/components/SermonVideoCarousel';
 
 export default function HomeScreen() {
   const router = useRouter();
@@ -13,6 +14,15 @@ export default function HomeScreen() {
     queryKey: ['home'],
     queryFn: () => apiClient.get<HomePageData>('/home'),
   });
+
+  // Sort sermons by publishedAt date (most recent first)
+  const sortedSermons = data?.recentSermons
+    ? [...data.recentSermons].sort((a, b) => {
+        const dateA = new Date(a.publishedAt || a.createdAt).getTime();
+        const dateB = new Date(b.publishedAt || b.createdAt).getTime();
+        return dateB - dateA;
+      })
+    : [];
 
   if (isLoading && !data) {
     return (
@@ -38,44 +48,12 @@ export default function HomeScreen() {
         <RefreshControl refreshing={isRefetching} onRefresh={() => refetch()} />
       }
     >
-      <View style={styles.hero}>
-        <Text style={styles.heroTitle}>Welcome to</Text>
-        <Text style={styles.heroSubtitle}>SKA Zimbabwe</Text>
-        <Text style={styles.heroText}>Zimbabwe Conference of Sabbath Keeping Adventists</Text>
-      </View>
+      {/* Reels-style Video Carousel */}
+      {sortedSermons.length > 0 && (
+        <SermonVideoCarousel sermons={sortedSermons.slice(0, 10)} />
+      )}
 
       <View style={styles.content}>
-        {data?.featuredSermon && (
-          <TouchableOpacity
-            style={styles.featuredCard}
-            onPress={() => router.push(`/sermon/${data.featuredSermon!.id}`)}
-          >
-            {data.featuredSermon.thumbnailAsset && (
-              <Image
-                source={{ uri: data.featuredSermon.thumbnailAsset.url }}
-                style={styles.featuredImage}
-                resizeMode="cover"
-              />
-            )}
-            <View style={styles.featuredOverlay}>
-              <View style={styles.featuredBadge}>
-                <FontAwesome name="star" size={12} color="#fff" />
-                <Text style={styles.featuredBadgeText}>Featured Sermon</Text>
-              </View>
-            </View>
-            <View style={styles.featuredContent}>
-              <Text style={styles.featuredTitle} numberOfLines={2}>
-                {data.featuredSermon.title}
-              </Text>
-              {data.featuredSermon.speaker && (
-                <Text style={styles.featuredSpeaker}>{data.featuredSermon.speaker.name}</Text>
-              )}
-              {data.featuredSermon.publishedAt && (
-                <Text style={styles.featuredDate}>{formatDate(data.featuredSermon.publishedAt)}</Text>
-              )}
-            </View>
-          </TouchableOpacity>
-        )}
 
         {data?.todayDevotional && (
           <TouchableOpacity
@@ -98,16 +76,16 @@ export default function HomeScreen() {
           </TouchableOpacity>
         )}
 
-        {data?.recentSermons && data.recentSermons.length > 0 && (
+        {sortedSermons && sortedSermons.length > 10 && (
           <View style={styles.section}>
             <View style={styles.sectionHeader}>
-              <Text style={styles.sectionTitle}>Recent Sermons</Text>
+              <Text style={styles.sectionTitle}>More Sermons</Text>
               <TouchableOpacity onPress={() => router.push('/(tabs)/sermons')}>
                 <Text style={styles.seeAll}>See All →</Text>
               </TouchableOpacity>
             </View>
             <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.horizontalScroll}>
-              {data.recentSermons.slice(0, 5).map((sermon) => (
+              {sortedSermons.slice(10, 15).map((sermon) => (
                 <TouchableOpacity
                   key={sermon.id}
                   style={styles.miniCard}
@@ -162,83 +140,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     padding: 20,
   },
-  hero: {
-    backgroundColor: '#007AFF',
-    padding: 30,
-    paddingTop: 40,
-    paddingBottom: 40,
-  },
-  heroTitle: {
-    fontSize: 18,
-    color: '#fff',
-    opacity: 0.9,
-  },
-  heroSubtitle: {
-    fontSize: 32,
-    fontWeight: 'bold',
-    color: '#fff',
-    marginTop: 5,
-    marginBottom: 10,
-  },
-  heroText: {
-    fontSize: 14,
-    color: '#fff',
-    opacity: 0.8,
-  },
   content: {
     padding: 15,
-  },
-  featuredCard: {
-    borderRadius: 16,
-    overflow: 'hidden',
-    backgroundColor: '#fff',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.15,
-    shadowRadius: 8,
-    elevation: 5,
-    marginBottom: 20,
-  },
-  featuredImage: {
-    width: '100%',
-    height: 220,
-    backgroundColor: '#e0e0e0',
-  },
-  featuredOverlay: {
-    position: 'absolute',
-    top: 15,
-    left: 15,
-  },
-  featuredBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: 'rgba(0,0,0,0.7)',
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 20,
-    gap: 6,
-  },
-  featuredBadgeText: {
-    color: '#fff',
-    fontSize: 12,
-    fontWeight: '600',
-  },
-  featuredContent: {
-    padding: 20,
-  },
-  featuredTitle: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    marginBottom: 8,
-  },
-  featuredSpeaker: {
-    fontSize: 15,
-    opacity: 0.7,
-    marginBottom: 4,
-  },
-  featuredDate: {
-    fontSize: 13,
-    opacity: 0.5,
   },
   devotionalCard: {
     backgroundColor: '#fff',

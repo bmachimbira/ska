@@ -9,7 +9,7 @@ interface QuarterlyCardProps {
 
 export function QuarterlyCard({ quarterly }: QuarterlyCardProps) {
   return (
-    <Link href={`/quarterly/${quarterly.id}`} asChild>
+    <Link href={`/sabbath-school/${quarterly.id}`} asChild>
       <TouchableOpacity style={styles.card}>
         {quarterly.coverUrl && (
           <Image

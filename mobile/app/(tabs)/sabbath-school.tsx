@@ -8,7 +8,7 @@ import { QuarterlyCard } from '@/components/QuarterlyCard';
 export default function SabbathSchoolScreen() {
   const { data, isLoading, error, refetch, isRefetching } = useQuery<QuarterliesResponse>({
     queryKey: ['quarterlies'],
-    queryFn: () => apiClient.get<QuarterliesResponse>('/sabbath-school/quarterlies'),
+    queryFn: () => apiClient.get<QuarterliesResponse>('/quarterlies'),
   });
 
   if (isLoading && !data) {
