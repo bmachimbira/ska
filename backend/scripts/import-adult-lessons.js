@@ -12,7 +12,7 @@ const path = require('path');
 const { Client } = require('pg');
 require('dotenv').config();
 
-const JSON_FILE_PATH = path.join(__dirname, '../../data/Adult_English_Lessons_4Q2025.json');
+const JSON_FILE_PATH = path.join(__dirname, '../../data/lessons_cleaned.json');
 
 async function importLessons() {
   const client = new Client({
