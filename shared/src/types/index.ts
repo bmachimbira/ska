@@ -150,6 +150,8 @@ export interface HomePageData {
   currentQuarterlies: Quarterly[];
   nextEvent?: Event;
   activeCauses: Cause[];
+  // Church-specific content (if user is a member)
+  churchData?: ChurchHomeData;
 }
 
 // Backend pagination format
@@ -195,4 +197,218 @@ export interface ApiError {
   error: string;
   message: string;
   details?: any;
+}
+
+// ============================================================================
+// CHURCH SYSTEM TYPES
+// ============================================================================
+
+export interface Church {
+  id: number;
+  name: string;
+  slug: string;
+  description?: string;
+  address?: string;
+  city?: string;
+  state?: string;
+  country: string;
+  postalCode?: string;
+  latitude?: number;
+  longitude?: number;
+  phone?: string;
+  email?: string;
+  website?: string;
+  logoAsset?: MediaAsset;
+  coverAsset?: MediaAsset;
+  timezone: string;
+  isActive: boolean;
+  memberCount: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface User {
+  id: number;
+  email: string;
+  name: string;
+  phone?: string;
+  avatarAsset?: MediaAsset;
+  primaryChurchId?: number;
+  primaryChurch?: Church;
+  isActive: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export type ChurchRole = 'member' | 'elder' | 'deacon' | 'pastor' | 'admin';
+
+export interface ChurchMember {
+  id: number;
+  userId: number;
+  churchId: number;
+  user?: User;
+  church?: Church;
+  role: ChurchRole;
+  isPrimary: boolean;
+  joinedAt: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface ChurchDevotional {
+  id: number;
+  churchId: number;
+  authorId: number;
+  church?: Church;
+  author?: User;
+  title: string;
+  bodyMd: string;
+  scriptureRefs?: string[];
+  audioAsset?: MediaAsset;
+  date: string;
+  isPublished: boolean;
+  viewCount: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export type EventType = 'worship' | 'prayer' | 'study' | 'social' | 'outreach' | 'youth' | 'other';
+
+export interface ChurchEvent {
+  id: number;
+  churchId: number;
+  church?: Church;
+  title: string;
+  description?: string;
+  eventDate: string;
+  eventTime?: string;
+  endDate?: string;
+  endTime?: string;
+  location?: string;
+  speaker?: Speaker;
+  thumbnailAsset?: MediaAsset;
+  eventType: EventType;
+  maxAttendees?: number;
+  registrationRequired: boolean;
+  registrationUrl?: string;
+  isPublished: boolean;
+  isFeatured: boolean;
+  createdBy?: number;
+  createdAt: string;
+  updatedAt: string;
+  attendeeCount?: number;
+  isRegistered?: boolean;
+}
+
+export type ProjectType = 'fundraising' | 'volunteer' | 'mission' | 'building' | 'community' | 'other';
+
+export interface ChurchProject {
+  id: number;
+  churchId: number;
+  church?: Church;
+  title: string;
+  description: string;
+  goalAmount?: number;
+  raisedAmount: number;
+  currency: string;
+  thumbnailAsset?: MediaAsset;
+  startDate?: string;
+  endDate?: string;
+  projectType: ProjectType;
+  isActive: boolean;
+  isFeatured: boolean;
+  createdBy?: number;
+  createdAt: string;
+  updatedAt: string;
+  progressPercentage?: number;
+}
+
+export type AnnouncementPriority = 'low' | 'normal' | 'high' | 'urgent';
+
+export interface ChurchAnnouncement {
+  id: number;
+  churchId: number;
+  church?: Church;
+  title: string;
+  content: string;
+  priority: AnnouncementPriority;
+  expiresAt?: string;
+  isPublished: boolean;
+  createdBy?: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export type RegistrationStatus = 'registered' | 'confirmed' | 'cancelled';
+
+export interface EventRegistration {
+  id: number;
+  eventId: number;
+  userId: number;
+  event?: ChurchEvent;
+  user?: User;
+  status: RegistrationStatus;
+  guestsCount: number;
+  notes?: string;
+  registeredAt: string;
+}
+
+export type ContributionType = 'monetary' | 'volunteer' | 'material';
+
+export interface ProjectContribution {
+  id: number;
+  projectId: number;
+  userId?: number;
+  project?: ChurchProject;
+  user?: User;
+  contributionType: ContributionType;
+  amount?: number;
+  currency: string;
+  hours?: number;
+  description?: string;
+  isAnonymous: boolean;
+  contributedAt: string;
+}
+
+export interface ChurchInvitation {
+  id: number;
+  churchId: number;
+  church?: Church;
+  code: string;
+  createdBy?: number;
+  maxUses?: number;
+  usesCount: number;
+  expiresAt?: string;
+  isActive: boolean;
+  createdAt: string;
+}
+
+// Response types
+export interface ChurchHomeData {
+  church: Church;
+  membership: ChurchMember;
+  todayDevotional?: ChurchDevotional;
+  upcomingEvents: ChurchEvent[];
+  activeProjects: ChurchProject[];
+  announcements: ChurchAnnouncement[];
+}
+
+export interface ChurchesResponse {
+  churches: Church[];
+  pagination?: Pagination;
+}
+
+export interface ChurchEventsResponse {
+  events: ChurchEvent[];
+  pagination?: Pagination;
+}
+
+export interface ChurchProjectsResponse {
+  projects: ChurchProject[];
+  pagination?: Pagination;
+}
+
+export interface ChurchDevotionalsResponse {
+  devotionals: ChurchDevotional[];
+  pagination?: Pagination;
 }

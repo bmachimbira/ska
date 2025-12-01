@@ -17,6 +17,7 @@ import { adminRouter } from './admin';
 import { statsRouter } from './stats';
 import { eventsRouter } from './events';
 import { causesRouter } from './causes';
+import { churchesRouter } from './churches';
 
 export function createApiRouter(): Router {
   const router = Router();
@@ -34,6 +35,7 @@ export function createApiRouter(): Router {
   router.use('/stats', statsRouter);
   router.use('/events', eventsRouter);
   router.use('/causes', causesRouter);
+  router.use('/churches', churchesRouter);
 
   // Admin routes (protected)
   router.use('/admin', adminRouter);

@@ -70,11 +70,77 @@ export default function HomeScreen() {
             {data.todayDevotional.author && (
               <Text style={styles.devotionalAuthor}>by {data.todayDevotional.author}</Text>
             )}
-            <Text style={styles.devotionalVerse} numberOfLines={2}>
-              {data.todayDevotional.memoryVerse}
-            </Text>
+            {data.todayDevotional.content && (
+              <Text style={styles.devotionalVerse} numberOfLines={3}>
+                {data.todayDevotional.content.substring(0, 150)}...
+              </Text>
+            )}
           </TouchableOpacity>
         )}
+
+        {data?.nextEvent && (
+          <View style={styles.section}>
+            <View style={styles.sectionHeader}>
+              <Text style={styles.sectionTitle}>Upcoming Event</Text>
+            </View>
+            <TouchableOpacity
+              style={styles.eventCard}
+              onPress={() => {/* Navigate to event details */}}
+            >
+              {data.nextEvent.thumbnailAsset && (
+                <Image
+                  source={{ uri: data.nextEvent.thumbnailAsset.url }}
+                  style={styles.eventImage}
+                  resizeMode="cover"
+                />
+              )}
+              <View style={styles.eventContent}>
+                <View style={styles.eventDateBadge}>
+                  <FontAwesome name="calendar" size={14} color="#fff" />
+                  <Text style={styles.eventDateText}>
+                    {formatDate(data.nextEvent.eventDate)}
+                  </Text>
+                </View>
+                <Text style={styles.eventTitle} numberOfLines={2}>
+                  {data.nextEvent.title}
+                </Text>
+                {data.nextEvent.location && (
+                  <View style={styles.eventLocation}>
+                    <FontAwesome name="map-marker" size={14} color="#666" />
+                    <Text style={styles.eventLocationText} numberOfLines={1}>
+                      {data.nextEvent.location}
+                    </Text>
+                  </View>
+                )}
+                {data.nextEvent.speaker && (
+                  <Text style={styles.eventSpeaker}>
+                    Speaker: {data.nextEvent.speaker.name}
+                  </Text>
+                )}
+              </View>
+            </TouchableOpacity>
+          </View>
+        )}
+
+        <View style={styles.section}>
+          <View style={styles.sectionHeader}>
+            <Text style={styles.sectionTitle}>Recent Devotionals</Text>
+            <TouchableOpacity onPress={() => router.push('/(tabs)/devotionals')}>
+              <Text style={styles.seeAll}>See All →</Text>
+            </TouchableOpacity>
+          </View>
+          <TouchableOpacity
+            style={styles.devotionalListCard}
+            onPress={() => router.push('/(tabs)/devotionals')}
+          >
+            <FontAwesome name="book-open" size={24} color="#007AFF" />
+            <View style={styles.devotionalListContent}>
+              <Text style={styles.devotionalListTitle}>Daily Devotionals</Text>
+              <Text style={styles.devotionalListSubtitle}>Read today's message and past devotionals</Text>
+            </View>
+            <FontAwesome name="chevron-right" size={16} color="#999" />
+          </TouchableOpacity>
+        </View>
 
         {sortedSermons && sortedSermons.length > 10 && (
           <View style={styles.section}>
@@ -180,6 +246,85 @@ const styles = StyleSheet.create({
     fontSize: 14,
     opacity: 0.7,
     lineHeight: 20,
+  },
+  devotionalListCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#fff',
+    padding: 20,
+    borderRadius: 12,
+    gap: 15,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  devotionalListContent: {
+    flex: 1,
+  },
+  devotionalListTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    marginBottom: 4,
+  },
+  devotionalListSubtitle: {
+    fontSize: 13,
+    opacity: 0.6,
+  },
+  eventCard: {
+    backgroundColor: '#fff',
+    borderRadius: 16,
+    overflow: 'hidden',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  eventImage: {
+    width: '100%',
+    height: 180,
+    backgroundColor: '#e0e0e0',
+  },
+  eventContent: {
+    padding: 20,
+  },
+  eventDateBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#007AFF',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 20,
+    alignSelf: 'flex-start',
+    marginBottom: 12,
+    gap: 6,
+  },
+  eventDateText: {
+    color: '#fff',
+    fontSize: 12,
+    fontWeight: '600',
+  },
+  eventTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    marginBottom: 12,
+  },
+  eventLocation: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginBottom: 8,
+  },
+  eventLocationText: {
+    fontSize: 14,
+    color: '#666',
+  },
+  eventSpeaker: {
+    fontSize: 14,
+    opacity: 0.7,
+    fontStyle: 'italic',
   },
   section: {
     marginBottom: 20,
