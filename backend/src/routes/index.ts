@@ -18,11 +18,13 @@ import { statsRouter } from './stats';
 import { eventsRouter } from './events';
 import { causesRouter } from './causes';
 import { churchesRouter } from './churches';
+import authRouter from './auth';
 
 export function createApiRouter(): Router {
   const router = Router();
 
   // Public routes
+  router.use('/auth', authRouter);
   router.use('/home', homeRouter);
   router.use('/sermons', sermonsRouter);
   router.use('/speakers', speakersRouter);
