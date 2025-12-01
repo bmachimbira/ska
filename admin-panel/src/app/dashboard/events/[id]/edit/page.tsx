@@ -4,7 +4,8 @@ import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { ArrowLeft, Save } from 'lucide-react';
-import { apiClient } from '@/lib/api-client';
+import { useSession } from 'next-auth/react';
+import { createApiClient } from '@/lib/api-client';
 
 interface Speaker {
   id: number;
@@ -33,6 +34,8 @@ export default function EditEventPage() {
   const [saving, setSaving] = useState(false);
   const [event, setEvent] = useState<Event | null>(null);
   const [speakers, setSpeakers] = useState<Speaker[]>([]);
+  const { data: session } = useSession();
+  const [error, setError] = useState('');
   const [formData, setFormData] = useState({
     title: '',
     description: '',
@@ -52,6 +55,10 @@ export default function EditEventPage() {
 
   async function loadSpeakers() {
     try {
+      if (!session?.accessToken) { setError("Not authenticated."); return; }
+
+      const apiClient = createApiClient(session.accessToken as string);
+
       const data = await apiClient.get<{ speakers: Speaker[] }>('/speakers');
       setSpeakers(data.speakers);
     } catch (error) {
@@ -62,6 +69,10 @@ export default function EditEventPage() {
   async function loadEvent() {
     try {
       setLoading(true);
+      if (!session?.accessToken) { setError("Not authenticated."); return; }
+
+      const apiClient = createApiClient(session.accessToken as string);
+
       const response = await apiClient.get<Event>(`/events/${id}`);
       setEvent(response);
 
@@ -81,7 +92,7 @@ export default function EditEventPage() {
       });
     } catch (error) {
       console.error('Failed to load event:', error);
-      alert('Failed to load event');
+      setError('Failed to load event');
       router.push('/dashboard/events');
     } finally {
       setLoading(false);
@@ -93,6 +104,10 @@ export default function EditEventPage() {
     setSaving(true);
 
     try {
+      if (!session?.accessToken) { setError("Not authenticated."); return; }
+
+      const apiClient = createApiClient(session.accessToken as string);
+
       await apiClient.put(`/events/${id}`, {
         title: formData.title,
         description: formData.description || null,
@@ -140,6 +155,13 @@ export default function EditEventPage() {
 
   return (
     <div className="p-8">
+      {/* Error */}
+      {error && (
+        <div className="mb-6 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-400 px-4 py-3 rounded">
+          {error}
+        </div>
+      )}
+
       {/* Header */}
       <div className="flex items-center gap-4 mb-8">
         <Link

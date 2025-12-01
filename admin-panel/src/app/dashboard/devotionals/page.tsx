@@ -4,7 +4,8 @@ import Link from 'next/link';
 import { Plus, Search, Edit, Trash2, Eye } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { formatDate } from '@/lib/utils';
-import { apiClient } from '@/lib/api-client';
+import { useSession } from 'next-auth/react';
+import { createApiClient } from '@/lib/api-client';
 
 interface Devotional {
   id: number;
@@ -26,23 +27,35 @@ interface Devotional {
 }
 
 export default function DevotionalsPage() {
+  const { data: session } = useSession();
   const [searchQuery, setSearchQuery] = useState('');
   const [devotionals, setDevotionals] = useState<Devotional[]>([]);
   const [loading, setLoading] = useState(true);
   const [deleting, setDeleting] = useState<number | null>(null);
+  const [error, setError] = useState('');
 
   useEffect(() => {
-    loadDevotionals();
-  }, []);
+    if (session?.accessToken) {
+      loadDevotionals();
+    }
+  }, [session]);
 
   async function loadDevotionals() {
     try {
+      if (!session?.accessToken) {
+        setError('Not authenticated. Please log in.');
+        setLoading(false);
+        return;
+      }
+
       setLoading(true);
+      const apiClient = createApiClient(session.accessToken as string);
       const data = await apiClient.get<{ devotionals: Devotional[] }>('/devotionals');
       setDevotionals(data.devotionals);
+      setError('');
     } catch (error) {
       console.error('Failed to load devotionals:', error);
-      alert('Failed to load devotionals. Please check if the backend is running on http://localhost:3000');
+      setError('Failed to load devotionals. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -56,14 +69,21 @@ export default function DevotionalsPage() {
     if (!confirmed) return;
 
     try {
+      if (!session?.accessToken) {
+        setError('Not authenticated. Please log in.');
+        return;
+      }
+
       setDeleting(devotional.id);
+      const apiClient = createApiClient(session.accessToken as string);
       await apiClient.delete(`/devotionals/${devotional.id}`);
       
       // Remove from local state
       setDevotionals(prev => prev.filter(d => d.id !== devotional.id));
+      setError('');
     } catch (error: any) {
       console.error('Failed to delete devotional:', error);
-      alert('Failed to delete devotional: ' + (error.message || 'Unknown error'));
+      setError('Failed to delete devotional: ' + (error.message || 'Unknown error'));
     } finally {
       setDeleting(null);
     }
@@ -107,6 +127,13 @@ export default function DevotionalsPage() {
           />
         </div>
       </div>
+
+      {/* Error */}
+      {error && (
+        <div className="mb-6 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-400 px-4 py-3 rounded">
+          {error}
+        </div>
+      )}
 
       {/* Loading State */}
       {loading && (

@@ -2,13 +2,16 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { apiClient } from '@/lib/api-client';
+import { useSession } from 'next-auth/react';
+import { createApiClient } from '@/lib/api-client';
 import { ArrowLeft } from 'lucide-react';
 import Link from 'next/link';
 
 export default function NewQuarterlyPage() {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
+  const { data: session } = useSession();
+  const [error, setError] = useState('');
   const [formData, setFormData] = useState({
     kind: 'adult' as 'adult' | 'youth' | 'kids',
     year: new Date().getFullYear(),
@@ -23,6 +26,10 @@ export default function NewQuarterlyPage() {
     setLoading(true);
 
     try {
+      if (!session?.accessToken) { setError("Not authenticated."); return; }
+
+      const apiClient = createApiClient(session.accessToken as string);
+
       await apiClient.post('/quarterlies', formData);
       router.push('/dashboard/quarterlies');
     } catch (error: any) {
@@ -34,6 +41,13 @@ export default function NewQuarterlyPage() {
 
   return (
     <div className="p-8 max-w-3xl mx-auto">
+      {/* Error */}
+      {error && (
+        <div className="mb-6 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-400 px-4 py-3 rounded">
+          {error}
+        </div>
+      )}
+
       {/* Header */}
       <div className="mb-8">
         <Link

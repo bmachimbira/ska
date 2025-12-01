@@ -4,11 +4,14 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { ArrowLeft, Save } from 'lucide-react';
-import { apiClient } from '@/lib/api-client';
+import { useSession } from 'next-auth/react';
+import { createApiClient } from '@/lib/api-client';
 
 export default function NewSpeakerPage() {
+  const { data: session } = useSession();
   const router = useRouter();
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
   const [formData, setFormData] = useState({
     name: '',
     bio: '',
@@ -19,15 +22,23 @@ export default function NewSpeakerPage() {
     setLoading(true);
 
     try {
+      if (!session?.accessToken) {
+        setError('Not authenticated. Please log in.');
+        setLoading(false);
+        return;
+      }
+
+      const apiClient = createApiClient(session.accessToken as string);
       await apiClient.post('/speakers', {
         name: formData.name,
         bio: formData.bio || null,
       });
 
+      setError('');
       router.push('/dashboard/speakers');
     } catch (error: any) {
       console.error('Error creating speaker:', error);
-      alert('Failed to create speaker: ' + (error.message || 'Unknown error'));
+      setError('Failed to create speaker: ' + (error.message || 'Unknown error'));
     } finally {
       setLoading(false);
     }
@@ -62,6 +73,13 @@ export default function NewSpeakerPage() {
           </p>
         </div>
       </div>
+
+      {/* Error */}
+      {error && (
+        <div className="mb-6 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-400 px-4 py-3 rounded">
+          {error}
+        </div>
+      )}
 
       {/* Form */}
       <form onSubmit={handleSubmit} className="max-w-2xl">

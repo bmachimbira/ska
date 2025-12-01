@@ -4,7 +4,8 @@ import { useState, useCallback, useEffect } from 'react';
 import { Upload, Search, Trash2, Download, Eye, Play } from 'lucide-react';
 import { useDropzone } from 'react-dropzone';
 import { formatBytes } from '@/lib/utils';
-import { apiClient } from '@/lib/api-client';
+import { useSession } from 'next-auth/react';
+import { createApiClient } from '@/lib/api-client';
 import VideoUpload from '@/components/VideoUpload';
 
 interface MediaAsset {
@@ -29,23 +30,35 @@ interface MediaAsset {
 
 
 export default function MediaLibraryPage() {
+  const { data: session } = useSession();
   const [searchQuery, setSearchQuery] = useState('');
   const [media, setMedia] = useState<MediaAsset[]>([]);
   const [loading, setLoading] = useState(true);
   const [uploading, setUploading] = useState(false);
+  const [error, setError] = useState('');
 
   useEffect(() => {
-    loadMedia();
-  }, []);
+    if (session?.accessToken) {
+      loadMedia();
+    }
+  }, [session]);
 
   async function loadMedia() {
     try {
+      if (!session?.accessToken) {
+        setError('Not authenticated. Please log in.');
+        setLoading(false);
+        return;
+      }
+
       setLoading(true);
+      const apiClient = createApiClient(session.accessToken as string);
       const data = await apiClient.get<{ media: MediaAsset[] }>('/media?limit=100');
       setMedia(data.media);
+      setError('');
     } catch (error) {
       console.error('Failed to load media:', error);
-      alert('Failed to load media');
+      setError('Failed to load media. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -123,6 +136,13 @@ export default function MediaLibraryPage() {
           />
         </div>
       </div>
+
+      {/* Error */}
+      {error && (
+        <div className="mb-6 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-400 px-4 py-3 rounded">
+          {error}
+        </div>
+      )}
 
       {/* Loading State */}
       {loading && (

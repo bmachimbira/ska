@@ -4,7 +4,8 @@ import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { ArrowLeft, Save } from 'lucide-react';
-import { apiClient } from '@/lib/api-client';
+import { useSession } from 'next-auth/react';
+import { createApiClient } from '@/lib/api-client';
 
 interface Speaker {
   id: number;
@@ -16,6 +17,7 @@ interface Speaker {
 }
 
 export default function EditSpeakerPage() {
+  const { data: session } = useSession();
   const params = useParams();
   const router = useRouter();
   const id = params.id as string;
@@ -23,18 +25,28 @@ export default function EditSpeakerPage() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [speaker, setSpeaker] = useState<Speaker | null>(null);
+  const [error, setError] = useState('');
   const [formData, setFormData] = useState({
     name: '',
     bio: '',
   });
 
   useEffect(() => {
-    loadSpeaker();
-  }, [id]);
+    if (session?.accessToken) {
+      loadSpeaker();
+    }
+  }, [id, session]);
 
   async function loadSpeaker() {
     try {
+      if (!session?.accessToken) {
+        setError('Not authenticated. Please log in.');
+        setLoading(false);
+        return;
+      }
+
       setLoading(true);
+      const apiClient = createApiClient(session.accessToken as string);
       const response = await apiClient.get<Speaker>(`/speakers/${id}`);
       setSpeaker(response);
       
@@ -43,9 +55,10 @@ export default function EditSpeakerPage() {
         name: response.name,
         bio: response.bio || '',
       });
+      setError('');
     } catch (error) {
       console.error('Failed to load speaker:', error);
-      alert('Failed to load speaker');
+      setError('Failed to load speaker. Please try again.');
       router.push('/dashboard/speakers');
     } finally {
       setLoading(false);
@@ -57,15 +70,23 @@ export default function EditSpeakerPage() {
     setSaving(true);
 
     try {
+      if (!session?.accessToken) {
+        setError('Not authenticated. Please log in.');
+        setSaving(false);
+        return;
+      }
+
+      const apiClient = createApiClient(session.accessToken as string);
       await apiClient.put(`/speakers/${id}`, {
         name: formData.name,
         bio: formData.bio || null,
       });
 
+      setError('');
       router.push('/dashboard/speakers');
     } catch (error: any) {
       console.error('Error updating speaker:', error);
-      alert('Failed to update speaker: ' + (error.message || 'Unknown error'));
+      setError('Failed to update speaker: ' + (error.message || 'Unknown error'));
     } finally {
       setSaving(false);
     }
@@ -111,6 +132,13 @@ export default function EditSpeakerPage() {
           </p>
         </div>
       </div>
+
+      {/* Error */}
+      {error && (
+        <div className="mb-6 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-400 px-4 py-3 rounded">
+          {error}
+        </div>
+      )}
 
       {/* Form */}
       <form onSubmit={handleSubmit} className="max-w-2xl">

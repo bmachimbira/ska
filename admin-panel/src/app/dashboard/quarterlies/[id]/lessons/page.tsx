@@ -2,7 +2,8 @@
 
 import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import { apiClient } from '@/lib/api-client';
+import { useSession } from 'next-auth/react';
+import { createApiClient } from '@/lib/api-client';
 import { ArrowLeft, Plus, Edit, Trash2, BookOpen } from 'lucide-react';
 import Link from 'next/link';
 
@@ -30,23 +31,35 @@ export default function LessonsPage() {
   const [quarterly, setQuarterly] = useState<Quarterly | null>(null);
   const [lessons, setLessons] = useState<Lesson[]>([]);
   const [loading, setLoading] = useState(true);
+  const { data: session } = useSession();
+  const [error, setError] = useState('');
 
   useEffect(() => {
-    loadData();
-  }, [id]);
+    if (session?.accessToken) {
+      loadData();
+    }
+  }, [session, id]);
 
   async function loadData() {
     try {
+      if (!session?.accessToken) {
+        setError('Not authenticated. Please log in.');
+        setLoading(false);
+        return;
+      }
+
       setLoading(true);
+      const apiClient = createApiClient(session.accessToken as string);
       const [quarterlyData, lessonsData] = await Promise.all([
         apiClient.get<{ quarterly: Quarterly }>(`/quarterlies/${id}`),
         apiClient.get<{ lessons: Lesson[] }>(`/quarterlies/${id}/lessons`),
       ]);
       setQuarterly(quarterlyData.quarterly);
       setLessons(lessonsData.lessons);
+      setError('');
     } catch (error) {
       console.error('Failed to load data:', error);
-      alert('Failed to load lessons');
+      setError('Failed to load lessons');
       router.push('/dashboard/quarterlies');
     } finally {
       setLoading(false);
@@ -57,11 +70,15 @@ export default function LessonsPage() {
     if (!confirm(`Delete lesson "${title}"? All lesson days will be deleted.`)) return;
 
     try {
+      if (!session?.accessToken) { setError("Not authenticated."); return; }
+
+      const apiClient = createApiClient(session.accessToken as string);
+
       await apiClient.delete(`/lessons/${lessonId}`);
       loadData();
     } catch (error) {
       console.error('Failed to delete lesson:', error);
-      alert('Failed to delete lesson');
+      setError('Failed to delete lesson');
     }
   }
 
@@ -78,6 +95,13 @@ export default function LessonsPage() {
 
   return (
     <div className="p-8">
+      {/* Error */}
+      {error && (
+        <div className="mb-6 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-400 px-4 py-3 rounded">
+          {error}
+        </div>
+      )}
+
       {/* Header */}
       <div className="mb-8">
         <Link
@@ -97,18 +121,26 @@ export default function LessonsPage() {
             </p>
           </div>
           <button
-            onClick={() => {
+            onClick={async () => {
               const nextIndex = lessons.length + 1;
               const title = prompt('Enter lesson title:');
-              if (title) {
-                apiClient
-                  .post(`/quarterlies/${id}/lessons`, {
-                    indexInQuarter: nextIndex,
-                    title,
-                    description: '',
-                  })
-                  .then(() => loadData())
-                  .catch((error) => alert('Failed to create lesson: ' + error.message));
+              if (!title) return;
+              
+              try {
+                if (!session?.accessToken) {
+                  setError('Not authenticated. Please log in.');
+                  return;
+                }
+
+                const apiClient = createApiClient(session.accessToken as string);
+                await apiClient.post(`/quarterlies/${id}/lessons`, {
+                  indexInQuarter: nextIndex,
+                  title,
+                  description: '',
+                });
+                loadData();
+              } catch (error: any) {
+                setError('Failed to create lesson: ' + (error.message || 'Unknown error'));
               }
             }}
             className="flex items-center gap-2 px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors"
@@ -127,17 +159,25 @@ export default function LessonsPage() {
             No lessons yet. Create your first lesson to get started.
           </p>
           <button
-            onClick={() => {
+            onClick={async () => {
               const title = prompt('Enter lesson title:');
-              if (title) {
-                apiClient
-                  .post(`/quarterlies/${id}/lessons`, {
-                    indexInQuarter: 1,
-                    title,
-                    description: '',
-                  })
-                  .then(() => loadData())
-                  .catch((error) => alert('Failed to create lesson: ' + error.message));
+              if (!title) return;
+              
+              try {
+                if (!session?.accessToken) {
+                  setError('Not authenticated. Please log in.');
+                  return;
+                }
+
+                const apiClient = createApiClient(session.accessToken as string);
+                await apiClient.post(`/quarterlies/${id}/lessons`, {
+                  indexInQuarter: 1,
+                  title,
+                  description: '',
+                });
+                loadData();
+              } catch (error: any) {
+                setError('Failed to create lesson: ' + (error.message || 'Unknown error'));
               }
             }}
             className="inline-flex items-center gap-2 px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors"
@@ -180,14 +220,22 @@ export default function LessonsPage() {
                     Manage Days
                   </Link>
                   <button
-                    onClick={() => {
+                    onClick={async () => {
                       const title = prompt('Enter new title:', lesson.title);
                       const description = prompt('Enter new description:', lesson.description);
-                      if (title !== null) {
-                        apiClient
-                          .put(`/lessons/${lesson.id}`, { title, description })
-                          .then(() => loadData())
-                          .catch((error) => alert('Failed to update lesson: ' + error.message));
+                      if (title === null) return;
+                      
+                      try {
+                        if (!session?.accessToken) {
+                          setError('Not authenticated. Please log in.');
+                          return;
+                        }
+
+                        const apiClient = createApiClient(session.accessToken as string);
+                        await apiClient.put(`/lessons/${lesson.id}`, { title, description });
+                        loadData();
+                      } catch (error: any) {
+                        setError('Failed to update lesson: ' + (error.message || 'Unknown error'));
                       }
                     }}
                     className="p-2 text-gray-600 dark:text-gray-400 hover:text-primary-600 dark:hover:text-primary-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition-colors"

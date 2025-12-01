@@ -5,7 +5,8 @@ import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { ArrowLeft, Edit, Calendar, Eye } from 'lucide-react';
 import MuxPlayer from '@mux/mux-player-react';
-import { apiClient } from '@/lib/api-client';
+import { useSession } from 'next-auth/react';
+import { createApiClient } from '@/lib/api-client';
 
 interface Sermon {
   id: string;
@@ -49,6 +50,8 @@ export default function ViewSermonPage() {
   const [loading, setLoading] = useState(true);
   const [sermon, setSermon] = useState<Sermon | null>(null);
   const [mediaAsset, setMediaAsset] = useState<MediaAsset | null>(null);
+  const { data: session } = useSession();
+  const [error, setError] = useState('');
 
   useEffect(() => {
     loadSermon();
@@ -57,12 +60,20 @@ export default function ViewSermonPage() {
   async function loadSermon() {
     try {
       setLoading(true);
+      if (!session?.accessToken) { setError("Not authenticated."); return; }
+
+      const apiClient = createApiClient(session.accessToken as string);
+
       const response = await apiClient.get<Sermon>(`/sermons/${id}`);
       setSermon(response);
 
       // Load media asset if video_asset exists
       if (response.video_asset) {
         try {
+          if (!session?.accessToken) { setError("Not authenticated."); return; }
+
+          const apiClient = createApiClient(session.accessToken as string);
+
           const asset = await apiClient.get<MediaAsset>(`/media/${response.video_asset}`);
           setMediaAsset(asset);
         } catch (error) {
@@ -71,7 +82,7 @@ export default function ViewSermonPage() {
       }
     } catch (error) {
       console.error('Failed to load sermon:', error);
-      alert('Failed to load sermon');
+      setError('Failed to load sermon');
       router.push('/dashboard/sermons');
     } finally {
       setLoading(false);
@@ -95,6 +106,13 @@ export default function ViewSermonPage() {
 
   return (
     <div className="p-8">
+      {/* Error */}
+      {error && (
+        <div className="mb-6 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-400 px-4 py-3 rounded">
+          {error}
+        </div>
+      )}
+
       {/* Header */}
       <div className="flex items-center justify-between mb-8">
         <div className="flex items-center gap-4">

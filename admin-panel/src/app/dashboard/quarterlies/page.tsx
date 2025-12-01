@@ -3,7 +3,8 @@
 import Link from 'next/link';
 import { Plus, Search, Edit, Trash2, BookOpen } from 'lucide-react';
 import { useState, useEffect } from 'react';
-import { apiClient } from '@/lib/api-client';
+import { useSession } from 'next-auth/react';
+import { createApiClient } from '@/lib/api-client';
 
 interface Quarterly {
   id: string;
@@ -18,26 +19,38 @@ interface Quarterly {
 }
 
 export default function QuarterliesPage() {
+  const { data: session } = useSession();
   const [searchQuery, setSearchQuery] = useState('');
   const [quarterlies, setQuarterlies] = useState<Quarterly[]>([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<'all' | 'adult' | 'youth' | 'kids'>('all');
+  const [error, setError] = useState('');
 
   useEffect(() => {
-    loadQuarterlies();
-  }, [filter]);
+    if (session?.accessToken) {
+      loadQuarterlies();
+    }
+  }, [filter, session]);
 
   async function loadQuarterlies() {
     try {
+      if (!session?.accessToken) {
+        setError('Not authenticated. Please log in.');
+        setLoading(false);
+        return;
+      }
+
       setLoading(true);
       const endpoint = filter === 'all'
         ? '/quarterlies'
         : `/quarterlies?kind=${filter}`;
+      const apiClient = createApiClient(session.accessToken as string);
       const data = await apiClient.get<{ quarterlies: Quarterly[] }>(endpoint);
       setQuarterlies(data.quarterlies);
+      setError('');
     } catch (error) {
       console.error('Failed to load quarterlies:', error);
-      alert('Failed to load quarterlies. Please check if the backend is running on http://localhost:3000');
+      setError('Failed to load quarterlies. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -47,11 +60,18 @@ export default function QuarterliesPage() {
     if (!confirm(`Delete "${title}"? All lessons will be deleted.`)) return;
 
     try {
+      if (!session?.accessToken) {
+        setError('Not authenticated. Please log in.');
+        return;
+      }
+
+      const apiClient = createApiClient(session.accessToken as string);
       await apiClient.delete(`/quarterlies/${id}`);
       loadQuarterlies();
+      setError('');
     } catch (error) {
       console.error('Failed to delete quarterly:', error);
-      alert('Failed to delete quarterly');
+      setError('Failed to delete quarterly. Please try again.');
     }
   }
 
@@ -110,6 +130,13 @@ export default function QuarterliesPage() {
           />
         </div>
       </div>
+
+      {/* Error */}
+      {error && (
+        <div className="mb-6 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-400 px-4 py-3 rounded">
+          {error}
+        </div>
+      )}
 
       {/* Loading State */}
       {loading && (

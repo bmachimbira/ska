@@ -2,7 +2,8 @@
 
 import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import { apiClient } from '@/lib/api-client';
+import { useSession } from 'next-auth/react';
+import { createApiClient } from '@/lib/api-client';
 import { ArrowLeft, Save } from 'lucide-react';
 import Link from 'next/link';
 
@@ -35,6 +36,8 @@ export default function EditLessonDayPage() {
   const [introduction, setIntroduction] = useState('');
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const { data: session } = useSession();
+  const [error, setError] = useState('');
 
   useEffect(() => {
     loadDay();
@@ -43,6 +46,10 @@ export default function EditLessonDayPage() {
   async function loadDay() {
     try {
       setLoading(true);
+      if (!session?.accessToken) { setError("Not authenticated."); return; }
+
+      const apiClient = createApiClient(session.accessToken as string);
+
       const response = await apiClient.get<{ day: LessonDay }>(`/lessons/${lessonId}/days/${dayIndex}`);
       const dayData = response.day;
       setDay(dayData);
@@ -55,7 +62,7 @@ export default function EditLessonDayPage() {
       setIntroduction(dayData.introduction || '');
     } catch (error) {
       console.error('Failed to load day:', error);
-      alert('Failed to load lesson day');
+      setError('Failed to load lesson day');
       router.push(`/dashboard/lessons/${lessonId}`);
     } finally {
       setLoading(false);
@@ -65,6 +72,10 @@ export default function EditLessonDayPage() {
   async function handleSave() {
     try {
       setSaving(true);
+      if (!session?.accessToken) { setError("Not authenticated."); return; }
+
+      const apiClient = createApiClient(session.accessToken as string);
+
       await apiClient.put(`/lessons/${lessonId}/days/${dayIndex}`, {
         title,
         bodyMd,
@@ -96,6 +107,13 @@ export default function EditLessonDayPage() {
 
   return (
     <div className="p-8">
+      {/* Error */}
+      {error && (
+        <div className="mb-6 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-400 px-4 py-3 rounded">
+          {error}
+        </div>
+      )}
+
       {/* Header */}
       <div className="mb-8">
         <Link

@@ -4,7 +4,8 @@ import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { ArrowLeft, Save } from 'lucide-react';
-import { apiClient } from '@/lib/api-client';
+import { useSession } from 'next-auth/react';
+import { createApiClient } from '@/lib/api-client';
 
 interface Speaker {
   id: number;
@@ -35,6 +36,8 @@ export default function EditSermonPage() {
   const [saving, setSaving] = useState(false);
   const [sermon, setSermon] = useState<Sermon | null>(null);
   const [speakers, setSpeakers] = useState<Speaker[]>([]);
+  const { data: session } = useSession();
+  const [error, setError] = useState('');
   const [formData, setFormData] = useState({
     title: '',
     description: '',
@@ -54,6 +57,10 @@ export default function EditSermonPage() {
 
   async function loadSpeakers() {
     try {
+      if (!session?.accessToken) { setError("Not authenticated."); return; }
+
+      const apiClient = createApiClient(session.accessToken as string);
+
       const data = await apiClient.get<{ speakers: Speaker[] }>('/speakers');
       setSpeakers(data.speakers);
     } catch (error) {
@@ -64,6 +71,10 @@ export default function EditSermonPage() {
   async function loadSermon() {
     try {
       setLoading(true);
+      if (!session?.accessToken) { setError("Not authenticated."); return; }
+
+      const apiClient = createApiClient(session.accessToken as string);
+
       const response = await apiClient.get<Sermon>(`/sermons/${id}`);
       setSermon(response);
       
@@ -83,7 +94,7 @@ export default function EditSermonPage() {
       });
     } catch (error) {
       console.error('Failed to load sermon:', error);
-      alert('Failed to load sermon');
+      setError('Failed to load sermon');
       router.push('/dashboard/sermons');
     } finally {
       setLoading(false);
@@ -100,6 +111,12 @@ export default function EditSermonPage() {
         .split(',')
         .map(ref => ref.trim())
         .filter(ref => ref.length > 0);
+
+      if (!session?.accessToken) { setError("Not authenticated."); return; }
+
+
+      const apiClient = createApiClient(session.accessToken as string);
+
 
       await apiClient.put(`/sermons/${id}`, {
         title: formData.title,
@@ -148,6 +165,13 @@ export default function EditSermonPage() {
 
   return (
     <div className="p-8">
+      {/* Error */}
+      {error && (
+        <div className="mb-6 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-400 px-4 py-3 rounded">
+          {error}
+        </div>
+      )}
+
       {/* Header */}
       <div className="flex items-center gap-4 mb-8">
         <Link

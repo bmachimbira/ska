@@ -4,7 +4,8 @@ import Link from 'next/link';
 import { Plus, Search, Edit, Trash2, Eye } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { formatDate } from '@/lib/utils';
-import { apiClient } from '@/lib/api-client';
+import { useSession } from 'next-auth/react';
+import { createApiClient } from '@/lib/api-client';
 
 interface Sermon {
   id: number;
@@ -20,23 +21,35 @@ interface Sermon {
 }
 
 export default function SermonsPage() {
+  const { data: session } = useSession();
   const [searchQuery, setSearchQuery] = useState('');
   const [sermons, setSermons] = useState<Sermon[]>([]);
   const [loading, setLoading] = useState(true);
   const [deleting, setDeleting] = useState<number | null>(null);
+  const [error, setError] = useState('');
 
   useEffect(() => {
-    loadSermons();
-  }, []);
+    if (session?.accessToken) {
+      loadSermons();
+    }
+  }, [session]);
 
   async function loadSermons() {
     try {
+      if (!session?.accessToken) {
+        setError('Not authenticated. Please log in.');
+        setLoading(false);
+        return;
+      }
+
       setLoading(true);
+      const apiClient = createApiClient(session.accessToken as string);
       const data = await apiClient.get<{ sermons: Sermon[] }>('/sermons');
       setSermons(data.sermons);
+      setError('');
     } catch (error) {
       console.error('Failed to load sermons:', error);
-      alert('Failed to load sermons. Please check if the backend is running on http://localhost:3000');
+      setError('Failed to load sermons. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -50,17 +63,24 @@ export default function SermonsPage() {
     if (!confirmed) return;
 
     try {
+      if (!session?.accessToken) {
+        setError('Not authenticated. Please log in.');
+        return;
+      }
+
       setDeleting(sermon.id);
+      const apiClient = createApiClient(session.accessToken as string);
       await apiClient.delete(`/sermons/${sermon.id}`);
       
       // Remove from local state
       setSermons(prev => prev.filter(s => s.id !== sermon.id));
+      setError('');
       
       // Show success message (optional)
       // You could use a toast notification library here
     } catch (error: any) {
       console.error('Failed to delete sermon:', error);
-      alert('Failed to delete sermon: ' + (error.message || 'Unknown error'));
+      setError('Failed to delete sermon: ' + (error.message || 'Unknown error'));
     } finally {
       setDeleting(null);
     }
@@ -104,6 +124,13 @@ export default function SermonsPage() {
           />
         </div>
       </div>
+
+      {/* Error */}
+      {error && (
+        <div className="mb-6 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-400 px-4 py-3 rounded">
+          {error}
+        </div>
+      )}
 
       {/* Loading State */}
       {loading && (

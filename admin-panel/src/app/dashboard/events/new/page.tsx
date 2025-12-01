@@ -4,7 +4,8 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { ArrowLeft, Save } from 'lucide-react';
-import { apiClient } from '@/lib/api-client';
+import { useSession } from 'next-auth/react';
+import { createApiClient } from '@/lib/api-client';
 
 interface Speaker {
   id: number;
@@ -15,6 +16,8 @@ export default function NewEventPage() {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [speakers, setSpeakers] = useState<Speaker[]>([]);
+  const { data: session } = useSession();
+  const [error, setError] = useState('');
   const [formData, setFormData] = useState({
     title: '',
     description: '',
@@ -28,11 +31,17 @@ export default function NewEventPage() {
   });
 
   useEffect(() => {
-    loadSpeakers();
-  }, []);
+    if (session?.accessToken) {
+      loadSpeakers();
+    }
+  }, [session]);
 
   async function loadSpeakers() {
     try {
+      if (!session?.accessToken) { setError("Not authenticated."); return; }
+
+      const apiClient = createApiClient(session.accessToken as string);
+
       const data = await apiClient.get<{ speakers: Speaker[] }>('/speakers');
       setSpeakers(data.speakers);
     } catch (error) {
@@ -45,6 +54,10 @@ export default function NewEventPage() {
     setLoading(true);
 
     try {
+      if (!session?.accessToken) { setError("Not authenticated."); return; }
+
+      const apiClient = createApiClient(session.accessToken as string);
+
       await apiClient.post('/events', {
         title: formData.title,
         description: formData.description || null,
@@ -81,6 +94,13 @@ export default function NewEventPage() {
 
   return (
     <div className="p-8">
+      {/* Error */}
+      {error && (
+        <div className="mb-6 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-400 px-4 py-3 rounded">
+          {error}
+        </div>
+      )}
+
       {/* Header */}
       <div className="flex items-center gap-4 mb-8">
         <Link

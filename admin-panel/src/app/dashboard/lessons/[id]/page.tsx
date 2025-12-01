@@ -2,7 +2,8 @@
 
 import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import { apiClient } from '@/lib/api-client';
+import { useSession } from 'next-auth/react';
+import { createApiClient } from '@/lib/api-client';
 import { ArrowLeft, Plus, Trash2, Calendar } from 'lucide-react';
 import Link from 'next/link';
 import { formatDate } from '@/lib/utils';
@@ -36,6 +37,8 @@ export default function LessonDaysPage() {
   const [lesson, setLesson] = useState<Lesson | null>(null);
   const [days, setDays] = useState<LessonDay[]>([]);
   const [loading, setLoading] = useState(true);
+  const { data: session } = useSession();
+  const [error, setError] = useState('');
 
   useEffect(() => {
     loadData();
@@ -44,12 +47,16 @@ export default function LessonDaysPage() {
   async function loadData() {
     try {
       setLoading(true);
+      if (!session?.accessToken) { setError("Not authenticated."); return; }
+
+      const apiClient = createApiClient(session.accessToken as string);
+
       const response = await apiClient.get<{ lesson: Lesson & { days: LessonDay[] } }>(`/lessons/${id}`);
       setLesson(response.lesson);
       setDays(response.lesson.days || []);
     } catch (error) {
       console.error('Failed to load data:', error);
-      alert('Failed to load lesson days');
+      setError('Failed to load lesson days');
       router.push('/dashboard/quarterlies');
     } finally {
       setLoading(false);
@@ -60,11 +67,15 @@ export default function LessonDaysPage() {
     if (!confirm(`Delete "${title}"?`)) return;
 
     try {
+      if (!session?.accessToken) { setError("Not authenticated."); return; }
+
+      const apiClient = createApiClient(session.accessToken as string);
+
       await apiClient.delete(`/lessons/${id}/days/${dayIndex}`);
       loadData();
     } catch (error) {
       console.error('Failed to delete day:', error);
-      alert('Failed to delete lesson day');
+      setError('Failed to delete lesson day');
     }
   }
 
@@ -81,6 +92,13 @@ export default function LessonDaysPage() {
 
   return (
     <div className="p-8">
+      {/* Error */}
+      {error && (
+        <div className="mb-6 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-400 px-4 py-3 rounded">
+          {error}
+        </div>
+      )}
+
       {/* Header */}
       <div className="mb-8">
         <Link
@@ -103,7 +121,7 @@ export default function LessonDaysPage() {
             onClick={async () => {
               const dayIndex = days.length + 1;
               if (dayIndex > 7) {
-                alert('Maximum 7 days per lesson');
+                setError('Maximum 7 days per lesson');
                 return;
               }
               const title = prompt('Enter day title:');
@@ -112,6 +130,10 @@ export default function LessonDaysPage() {
               const date = prompt('Enter date (YYYY-MM-DD):');
               
               try {
+                if (!session?.accessToken) { setError("Not authenticated."); return; }
+
+                const apiClient = createApiClient(session.accessToken as string);
+
                 await apiClient.post(`/lessons/${id}/days`, {
                   dayIndex,
                   title,
@@ -147,6 +169,10 @@ export default function LessonDaysPage() {
               const date = prompt('Enter date (YYYY-MM-DD):');
               
               try {
+                if (!session?.accessToken) { setError("Not authenticated."); return; }
+
+                const apiClient = createApiClient(session.accessToken as string);
+
                 await apiClient.post(`/lessons/${id}/days`, {
                   dayIndex: 1,
                   title,

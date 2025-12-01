@@ -4,7 +4,8 @@ import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { ArrowLeft, Save } from 'lucide-react';
-import { apiClient } from '@/lib/api-client';
+import { useSession } from 'next-auth/react';
+import { createApiClient } from '@/lib/api-client';
 
 interface Cause {
   id: number;
@@ -27,6 +28,8 @@ export default function EditCausePage() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [cause, setCause] = useState<Cause | null>(null);
+  const { data: session } = useSession();
+  const [error, setError] = useState('');
   const [formData, setFormData] = useState({
     title: '',
     description: '',
@@ -46,6 +49,10 @@ export default function EditCausePage() {
   async function loadCause() {
     try {
       setLoading(true);
+      if (!session?.accessToken) { setError("Not authenticated."); return; }
+
+      const apiClient = createApiClient(session.accessToken as string);
+
       const response = await apiClient.get<Cause>(`/causes/${id}`);
       setCause(response);
 
@@ -67,7 +74,7 @@ export default function EditCausePage() {
       });
     } catch (error) {
       console.error('Failed to load cause:', error);
-      alert('Failed to load cause');
+      setError('Failed to load cause');
       router.push('/dashboard/causes');
     } finally {
       setLoading(false);
@@ -79,6 +86,10 @@ export default function EditCausePage() {
     setSaving(true);
 
     try {
+      if (!session?.accessToken) { setError("Not authenticated."); return; }
+
+      const apiClient = createApiClient(session.accessToken as string);
+
       await apiClient.put(`/causes/${id}`, {
         title: formData.title,
         description: formData.description,
@@ -126,6 +137,13 @@ export default function EditCausePage() {
 
   return (
     <div className="p-8">
+      {/* Error */}
+      {error && (
+        <div className="mb-6 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-400 px-4 py-3 rounded">
+          {error}
+        </div>
+      )}
+
       {/* Header */}
       <div className="flex items-center gap-4 mb-8">
         <Link

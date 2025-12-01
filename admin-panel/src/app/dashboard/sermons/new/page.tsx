@@ -5,7 +5,8 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { ArrowLeft, Save } from 'lucide-react';
 import VideoUpload from '@/components/VideoUpload';
-import { apiClient } from '@/lib/api-client';
+import { useSession } from 'next-auth/react';
+import { createApiClient } from '@/lib/api-client';
 
 interface Speaker {
   id: number;
@@ -13,9 +14,11 @@ interface Speaker {
 }
 
 export default function NewSermonPage() {
+  const { data: session } = useSession();
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [speakers, setSpeakers] = useState<Speaker[]>([]);
+  const [error, setError] = useState('');
   const [formData, setFormData] = useState({
     title: '',
     description: '',
@@ -32,15 +35,25 @@ export default function NewSermonPage() {
   });
 
   useEffect(() => {
-    loadSpeakers();
-  }, []);
+    if (session?.accessToken) {
+      loadSpeakers();
+    }
+  }, [session]);
 
   async function loadSpeakers() {
     try {
+      if (!session?.accessToken) {
+        setError('Not authenticated. Please log in.');
+        return;
+      }
+
+      const apiClient = createApiClient(session.accessToken as string);
       const data = await apiClient.get<{ speakers: Speaker[] }>('/speakers');
       setSpeakers(data.speakers);
+      setError('');
     } catch (error) {
       console.error('Failed to load speakers:', error);
+      setError('Failed to load speakers. Please try again.');
     }
   }
 
@@ -49,12 +62,19 @@ export default function NewSermonPage() {
     setLoading(true);
 
     try {
+      if (!session?.accessToken) {
+        setError('Not authenticated. Please log in.');
+        setLoading(false);
+        return;
+      }
+
       // Parse scripture refs into array
       const scriptureRefsArray = formData.scriptureRefs
         .split(',')
         .map(ref => ref.trim())
         .filter(ref => ref.length > 0);
 
+      const apiClient = createApiClient(session.accessToken as string);
       await apiClient.post('/sermons', {
         title: formData.title,
         description: formData.description || null,
@@ -67,10 +87,11 @@ export default function NewSermonPage() {
         isFeatured: formData.isFeatured,
       });
 
+      setError('');
       router.push('/dashboard/sermons');
     } catch (error: any) {
       console.error('Error creating sermon:', error);
-      alert('Failed to create sermon: ' + (error.message || 'Unknown error'));
+      setError('Failed to create sermon: ' + (error.message || 'Unknown error'));
     } finally {
       setLoading(false);
     }
@@ -108,6 +129,13 @@ export default function NewSermonPage() {
           </p>
         </div>
       </div>
+
+      {/* Error */}
+      {error && (
+        <div className="mb-6 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-400 px-4 py-3 rounded">
+          {error}
+        </div>
+      )}
 
       {/* Form */}
       <form onSubmit={handleSubmit} className="max-w-4xl">

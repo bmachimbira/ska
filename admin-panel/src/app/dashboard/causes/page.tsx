@@ -4,7 +4,8 @@ import Link from 'next/link';
 import { Plus, Search, Edit, Trash2, TrendingUp } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { formatDate } from '@/lib/utils';
-import { apiClient } from '@/lib/api-client';
+import { useSession } from 'next-auth/react';
+import { createApiClient } from '@/lib/api-client';
 
 interface Cause {
   id: number;
@@ -19,23 +20,35 @@ interface Cause {
 }
 
 export default function CausesPage() {
+  const { data: session } = useSession();
   const [searchQuery, setSearchQuery] = useState('');
   const [causes, setCauses] = useState<Cause[]>([]);
   const [loading, setLoading] = useState(true);
   const [deleting, setDeleting] = useState<number | null>(null);
+  const [error, setError] = useState('');
 
   useEffect(() => {
-    loadCauses();
-  }, []);
+    if (session?.accessToken) {
+      loadCauses();
+    }
+  }, [session]);
 
   async function loadCauses() {
     try {
+      if (!session?.accessToken) {
+        setError('Not authenticated. Please log in.');
+        setLoading(false);
+        return;
+      }
+
       setLoading(true);
+      const apiClient = createApiClient(session.accessToken as string);
       const data = await apiClient.get<Cause[]>('/causes');
       setCauses(Array.isArray(data) ? data : []);
+      setError('');
     } catch (error) {
       console.error('Failed to load causes:', error);
-      alert('Failed to load causes. Please check if the backend is running on http://localhost:3000');
+      setError('Failed to load causes. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -49,15 +62,22 @@ export default function CausesPage() {
     if (!confirmed) return;
 
     try {
+      if (!session?.accessToken) {
+        setError('Not authenticated. Please log in.');
+        return;
+      }
+
       setDeleting(cause.id);
+      const apiClient = createApiClient(session.accessToken as string);
       await apiClient.delete(`/causes/${cause.id}`);
 
       // Remove from local state
       setCauses(prev => prev.filter(c => c.id !== cause.id));
+      setError('');
 
     } catch (error: any) {
       console.error('Failed to delete cause:', error);
-      alert('Failed to delete cause: ' + (error.message || 'Unknown error'));
+      setError('Failed to delete cause: ' + (error.message || 'Unknown error'));
     } finally {
       setDeleting(null);
     }
@@ -114,6 +134,13 @@ export default function CausesPage() {
           />
         </div>
       </div>
+
+      {/* Error */}
+      {error && (
+        <div className="mb-6 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-400 px-4 py-3 rounded">
+          {error}
+        </div>
+      )}
 
       {/* Loading State */}
       {loading && (

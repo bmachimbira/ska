@@ -7,7 +7,8 @@ import { ArrowLeft, Edit, Calendar, Eye } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import MuxPlayer from '@mux/mux-player-react';
-import { apiClient } from '@/lib/api-client';
+import { useSession } from 'next-auth/react';
+import { createApiClient } from '@/lib/api-client';
 
 interface Devotional {
   id: number;
@@ -50,6 +51,8 @@ export default function ViewDevotionalPage() {
   const [loading, setLoading] = useState(true);
   const [devotional, setDevotional] = useState<Devotional | null>(null);
   const [mediaAsset, setMediaAsset] = useState<MediaAsset | null>(null);
+  const { data: session } = useSession();
+  const [error, setError] = useState('');
 
   useEffect(() => {
     loadDevotional();
@@ -58,12 +61,20 @@ export default function ViewDevotionalPage() {
   async function loadDevotional() {
     try {
       setLoading(true);
+      if (!session?.accessToken) { setError("Not authenticated."); return; }
+
+      const apiClient = createApiClient(session.accessToken as string);
+
       const response = await apiClient.get<Devotional>(`/devotionals/${id}`);
       setDevotional(response);
 
       // Load media asset if video_asset exists
       if (response.video_asset) {
         try {
+          if (!session?.accessToken) { setError("Not authenticated."); return; }
+
+          const apiClient = createApiClient(session.accessToken as string);
+
           const asset = await apiClient.get<MediaAsset>(`/media/${response.video_asset}`);
           setMediaAsset(asset);
         } catch (error) {
@@ -72,7 +83,7 @@ export default function ViewDevotionalPage() {
       }
     } catch (error) {
       console.error('Failed to load devotional:', error);
-      alert('Failed to load devotional');
+      setError('Failed to load devotional');
       router.push('/dashboard/devotionals');
     } finally {
       setLoading(false);
@@ -96,6 +107,13 @@ export default function ViewDevotionalPage() {
 
   return (
     <div className="p-8">
+      {/* Error */}
+      {error && (
+        <div className="mb-6 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-400 px-4 py-3 rounded">
+          {error}
+        </div>
+      )}
+
       {/* Header */}
       <div className="flex items-center justify-between mb-8">
         <div className="flex items-center gap-4">

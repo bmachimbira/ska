@@ -4,7 +4,8 @@ import Link from 'next/link';
 import { Plus, Search, Edit, Trash2, Calendar } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { formatDate } from '@/lib/utils';
-import { apiClient } from '@/lib/api-client';
+import { useSession } from 'next-auth/react';
+import { createApiClient } from '@/lib/api-client';
 
 interface Event {
   id: number;
@@ -19,23 +20,35 @@ interface Event {
 }
 
 export default function EventsPage() {
+  const { data: session } = useSession();
   const [searchQuery, setSearchQuery] = useState('');
   const [events, setEvents] = useState<Event[]>([]);
   const [loading, setLoading] = useState(true);
   const [deleting, setDeleting] = useState<number | null>(null);
+  const [error, setError] = useState('');
 
   useEffect(() => {
-    loadEvents();
-  }, []);
+    if (session?.accessToken) {
+      loadEvents();
+    }
+  }, [session]);
 
   async function loadEvents() {
     try {
+      if (!session?.accessToken) {
+        setError('Not authenticated. Please log in.');
+        setLoading(false);
+        return;
+      }
+
       setLoading(true);
+      const apiClient = createApiClient(session.accessToken as string);
       const data = await apiClient.get<Event[]>('/events');
       setEvents(Array.isArray(data) ? data : []);
+      setError('');
     } catch (error) {
       console.error('Failed to load events:', error);
-      alert('Failed to load events. Please check if the backend is running on http://localhost:3000');
+      setError('Failed to load events. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -49,15 +62,22 @@ export default function EventsPage() {
     if (!confirmed) return;
 
     try {
+      if (!session?.accessToken) {
+        setError('Not authenticated. Please log in.');
+        return;
+      }
+
       setDeleting(event.id);
+      const apiClient = createApiClient(session.accessToken as string);
       await apiClient.delete(`/events/${event.id}`);
 
       // Remove from local state
       setEvents(prev => prev.filter(e => e.id !== event.id));
+      setError('');
 
     } catch (error: any) {
       console.error('Failed to delete event:', error);
-      alert('Failed to delete event: ' + (error.message || 'Unknown error'));
+      setError('Failed to delete event: ' + (error.message || 'Unknown error'));
     } finally {
       setDeleting(null);
     }
@@ -101,6 +121,13 @@ export default function EventsPage() {
           />
         </div>
       </div>
+
+      {/* Error */}
+      {error && (
+        <div className="mb-6 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-400 px-4 py-3 rounded">
+          {error}
+        </div>
+      )}
 
       {/* Loading State */}
       {loading && (

@@ -7,7 +7,8 @@ import { ArrowLeft, Save, Eye, Code } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import VideoUpload from '@/components/VideoUpload';
-import { apiClient } from '@/lib/api-client';
+import { useSession } from 'next-auth/react';
+import { createApiClient } from '@/lib/api-client';
 
 interface Speaker {
   id: number;
@@ -19,6 +20,8 @@ export default function NewDevotionalPage() {
   const [loading, setLoading] = useState(false);
   const [previewMode, setPreviewMode] = useState(false);
   const [speakers, setSpeakers] = useState<Speaker[]>([]);
+  const { data: session } = useSession();
+  const [error, setError] = useState('');
   const [formData, setFormData] = useState({
     date: '',
     title: '',
@@ -36,10 +39,14 @@ export default function NewDevotionalPage() {
     // Set default date to today
     const today = new Date().toISOString().split('T')[0];
     setFormData(prev => ({ ...prev, date: today }));
-  }, []);
+  }, [session]);
 
   async function loadSpeakers() {
     try {
+      if (!session?.accessToken) { setError("Not authenticated."); return; }
+
+      const apiClient = createApiClient(session.accessToken as string);
+
       const data = await apiClient.get<{ speakers: Speaker[] }>('/speakers');
       setSpeakers(data.speakers);
     } catch (error) {
@@ -63,6 +70,10 @@ export default function NewDevotionalPage() {
     setLoading(true);
 
     try {
+      if (!session?.accessToken) { setError("Not authenticated."); return; }
+
+      const apiClient = createApiClient(session.accessToken as string);
+
       await apiClient.post('/devotionals', {
         title: formData.title,
         slug: formData.slug,
@@ -97,6 +108,13 @@ export default function NewDevotionalPage() {
 
   return (
     <div className="p-8">
+      {/* Error */}
+      {error && (
+        <div className="mb-6 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-400 px-4 py-3 rounded">
+          {error}
+        </div>
+      )}
+
       {/* Header */}
       <div className="flex items-center gap-4 mb-8">
         <Link
