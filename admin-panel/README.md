@@ -240,7 +240,7 @@ const data = await apiClient.get('/sermons');
 
 ## Contributing
 
-See [CONTRIBUTING.md](../CONTRIBUTING.md) for development guidelines.
+See [CONTRIBUTING.md](../docs/CONTRIBUTING.md) for development guidelines.
 
 ## License
 

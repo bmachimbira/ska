@@ -48,7 +48,7 @@ Ensure you have the following installed:
 ### Set Up Development Environment
 
 Follow the setup instructions in the respective module READMEs:
-- [Backend Setup](./backend/README.md)
+- [Backend Setup](../backend/README.md)
 - [Admin Setup](./admin/README.md)
 - [Android Setup](./mobile-android/README.md)
 

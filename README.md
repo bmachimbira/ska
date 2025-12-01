@@ -37,9 +37,9 @@ The SDA Content App is a comprehensive platform designed to deliver spiritual co
 
 ## Documentation
 
-- **[sda_app_spec.md](./sda_app_spec.md)**: Complete technical specification
-- **[IMPLEMENTATION_PLAN.md](./IMPLEMENTATION_PLAN.md)**: Detailed implementation roadmap
-- **[AGENTS.md](./AGENTS.md)**: Agent architecture and system components
+- **[sda_app_spec.md](docs/sda_app_spec.md)**: Complete technical specification
+- **[IMPLEMENTATION_PLAN.md](docs/IMPLEMENTATION_PLAN.md)**: Detailed implementation roadmap
+- **[AGENTS.md](docs/AGENTS.md)**: Agent architecture and system components
 
 ## Quick Start
 
@@ -205,7 +205,7 @@ For issues and questions:
 
 ## Roadmap
 
-See [IMPLEMENTATION_PLAN.md](./IMPLEMENTATION_PLAN.md) for detailed roadmap.
+See [IMPLEMENTATION_PLAN.md](docs/IMPLEMENTATION_PLAN.md) for detailed roadmap.
 
 ---
 

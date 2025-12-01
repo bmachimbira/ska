@@ -203,7 +203,7 @@ COPY package*.json ./
 RUN npm ci --only=production
 
 # Copy source
-COPY . .
+COPY .. .
 
 # Build
 RUN npm run build
