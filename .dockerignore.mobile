@@ -1,0 +1,33 @@
+# Exclude everything except what we need
+*
+
+# Include shared package
+!shared/
+!shared/**
+
+# Include mobile app
+!mobile/
+!mobile/**
+
+# But exclude node_modules and build artifacts
+mobile/node_modules
+mobile/.expo
+mobile/.expo-shared
+mobile/dist
+shared/node_modules
+shared/dist
+
+# Exclude git and docs
+**/.git
+**/.gitignore
+**/README.md
+**/*.log
+**/.DS_Store
+
+# Exclude other project directories
+backend
+website
+admin-panel
+.env*
+docker-compose*.yml
+Caddyfile

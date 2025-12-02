@@ -1,16 +1,38 @@
 # Multi-stage build for Expo web app
 FROM node:20-alpine AS builder
 
+# Build arguments for environment variables
+ARG EXPO_PUBLIC_API_URL
+ARG EXPO_PUBLIC_APP_NAME
+
+# Copy shared package first
+COPY shared /shared
+
+# Build shared package
+WORKDIR /shared
+RUN npm ci && npm run build
+
+# Switch to mobile app directory
 WORKDIR /app
 
-# Copy package files
-COPY package*.json ./
+# Copy mobile package files and config
+COPY mobile/package*.json ./
+COPY mobile/tsconfig.json* ./
+COPY mobile/app.json ./app.json
 
-# Install dependencies
+# Install dependencies (this will link to /shared)
 RUN npm ci
 
-# Copy source code
-COPY . .
+# Copy mobile source code (excluding node_modules)
+COPY mobile/app ./app
+COPY mobile/assets ./assets
+COPY mobile/components ./components
+COPY mobile/constants ./constants
+COPY mobile/lib ./lib
+
+# Set environment variables for build
+ENV EXPO_PUBLIC_API_URL=$EXPO_PUBLIC_API_URL
+ENV EXPO_PUBLIC_APP_NAME=$EXPO_PUBLIC_APP_NAME
 
 # Build for web
 RUN npx expo export -p web
@@ -22,7 +44,7 @@ FROM nginx:alpine
 COPY --from=builder /app/dist /usr/share/nginx/html
 
 # Copy nginx configuration
-COPY nginx.conf /etc/nginx/conf.d/default.conf
+COPY mobile/nginx.conf /etc/nginx/conf.d/default.conf
 
 # Expose port 8081 (to match the Caddyfile config)
 EXPOSE 8081

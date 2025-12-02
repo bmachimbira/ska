@@ -201,13 +201,16 @@ services:
   # Mobile App (Expo Web)
   mobile-app:
     build:
-      context: ./mobile
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: ./mobile/Dockerfile
+      args:
+        EXPO_PUBLIC_API_URL: ${EXPO_PUBLIC_API_URL:-https://api.ska.aureliaonline.co.za/v1}
+        EXPO_PUBLIC_APP_NAME: ${EXPO_PUBLIC_APP_NAME:-SKA Zimbabwe}
     container_name: sda_mobile
     restart: unless-stopped
     environment:
-      EXPO_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-https://api.ska.aureliaonline.co.za/v1}
-      EXPO_PUBLIC_APP_NAME: ${NEXT_PUBLIC_APP_NAME:-SKA Zimbabwe}
+      EXPO_PUBLIC_API_URL: ${EXPO_PUBLIC_API_URL:-https://api.ska.aureliaonline.co.za/v1}
+      EXPO_PUBLIC_APP_NAME: ${EXPO_PUBLIC_APP_NAME:-SKA Zimbabwe}
     ports:
       - "8081:8081"
     healthcheck:
