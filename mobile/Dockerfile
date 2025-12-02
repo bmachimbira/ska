@@ -23,9 +23,12 @@ COPY mobile/app.json ./app.json
 # Install dependencies
 RUN npm ci
 
-# Manually link the shared package by copying it to node_modules
-RUN mkdir -p node_modules/@ska && \
-    cp -r /shared node_modules/@ska/shared
+# Fix the shared package link - remove symlink and copy actual built files
+RUN rm -rf node_modules/@ska/shared && \
+    mkdir -p node_modules/@ska/shared && \
+    cp /shared/package.json node_modules/@ska/shared/ && \
+    cp -r /shared/dist node_modules/@ska/shared/ && \
+    if [ -d /shared/node_modules ]; then cp -r /shared/node_modules node_modules/@ska/shared/; fi
 
 # Copy mobile source code (excluding node_modules)
 COPY mobile/app ./app
