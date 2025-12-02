@@ -51,15 +51,17 @@ export function SermonCard({ sermon }: SermonCardProps) {
 
 const styles = StyleSheet.create({
   card: {
-    marginBottom: 15,
-    borderRadius: 12,
+    marginBottom: 16,
+    borderRadius: 16,
     overflow: 'hidden',
     backgroundColor: '#fff',
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.08,
+    shadowRadius: 10,
     elevation: 3,
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
   },
   thumbnail: {
     width: '100%',
@@ -67,16 +69,19 @@ const styles = StyleSheet.create({
     backgroundColor: '#e0e0e0',
   },
   content: {
-    padding: 15,
+    padding: 16,
   },
   title: {
-    fontSize: 18,
-    fontWeight: '600',
+    fontSize: 19,
+    fontWeight: '700',
     marginBottom: 8,
+    color: '#1A1A1A',
+    lineHeight: 26,
   },
   speaker: {
-    fontSize: 14,
-    opacity: 0.8,
+    fontSize: 15,
+    fontWeight: '500',
+    color: '#6B7280',
     marginBottom: 4,
   },
   series: {
@@ -100,12 +105,12 @@ const styles = StyleSheet.create({
   },
   badge: {
     fontSize: 11,
-    fontWeight: '600',
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    backgroundColor: '#007AFF',
+    fontWeight: '700',
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    backgroundColor: '#0066CC',
     color: '#fff',
-    borderRadius: 4,
+    borderRadius: 12,
     overflow: 'hidden',
   },
 });

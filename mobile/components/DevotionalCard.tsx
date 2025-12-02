@@ -41,32 +41,37 @@ export function DevotionalCard({ devotional }: DevotionalCardProps) {
 
 const styles = StyleSheet.create({
   card: {
-    marginBottom: 15,
-    borderRadius: 12,
+    marginBottom: 16,
+    borderRadius: 16,
     overflow: 'hidden',
     backgroundColor: '#fff',
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.08,
+    shadowRadius: 10,
     elevation: 3,
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
   },
   dateContainer: {
-    backgroundColor: '#007AFF',
-    padding: 12,
+    backgroundColor: '#0066CC',
+    padding: 14,
   },
   dateText: {
     color: '#fff',
     fontSize: 14,
-    fontWeight: '600',
+    fontWeight: '700',
+    letterSpacing: 0.3,
   },
   content: {
-    padding: 15,
+    padding: 16,
   },
   title: {
-    fontSize: 18,
-    fontWeight: '600',
+    fontSize: 19,
+    fontWeight: '700',
     marginBottom: 8,
+    color: '#1A1A1A',
+    lineHeight: 26,
   },
   author: {
     fontSize: 13,
@@ -76,9 +81,9 @@ const styles = StyleSheet.create({
   },
   verse: {
     fontSize: 14,
-    opacity: 0.7,
+    color: '#6B7280',
     marginBottom: 12,
-    lineHeight: 20,
+    lineHeight: 21,
   },
   footer: {
     flexDirection: 'row',
