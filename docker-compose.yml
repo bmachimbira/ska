@@ -198,6 +198,27 @@ services:
     networks:
       - sda-network
 
+  # Mobile App (Expo Web)
+  mobile-app:
+    build:
+      context: ./mobile
+      dockerfile: Dockerfile
+    container_name: sda_mobile
+    restart: unless-stopped
+    environment:
+      EXPO_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-https://api.ska.aureliaonline.co.za/v1}
+      EXPO_PUBLIC_APP_NAME: ${NEXT_PUBLIC_APP_NAME:-SKA Zimbabwe}
+    ports:
+      - "8081:8081"
+    healthcheck:
+      test: ["CMD-SHELL", "wget --no-verbose --tries=1 --spider http://localhost:8081/health || exit 1"]
+      interval: 30s
+      timeout: 3s
+      retries: 3
+      start_period: 10s
+    networks:
+      - sda-network
+
   # Caddy Reverse Proxy
   caddy:
     image: caddy:2-alpine
@@ -207,6 +228,7 @@ services:
       - backend
       - website
       - admin-panel
+      - mobile-app
     ports:
       - "${HTTP_PORT:-80}:80"
       - "${HTTPS_PORT:-443}:443"
@@ -221,10 +243,11 @@ services:
       API_DOMAIN: ${API_DOMAIN:-api.localhost}
       ADMIN_DOMAIN: ${ADMIN_DOMAIN:-admin.localhost}
       WEBSITE_DOMAIN: ${WEBSITE_DOMAIN:-www.localhost}
+      MOBILE_DOMAIN: ${MOBILE_DOMAIN:-mobile.localhost}
       ROOT_DOMAIN: ${ROOT_DOMAIN:-localhost}
       MINIO_CONSOLE_DOMAIN: ${MINIO_CONSOLE_DOMAIN:-minio.localhost}
       STORAGE_DOMAIN: ${STORAGE_DOMAIN:-storage.localhost}
-      
+
       # Let's Encrypt email
       ACME_EMAIL: ${ACME_EMAIL:-admin@yourdomain.com}
     networks:
