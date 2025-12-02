@@ -1,4 +1,4 @@
-import { StyleSheet, ScrollView, ActivityIndicator, Image, TouchableOpacity, RefreshControl } from 'react-native';
+import { StyleSheet, ScrollView, ActivityIndicator, Image, TouchableOpacity, RefreshControl, useColorScheme as useNativeColorScheme } from 'react-native';
 import { Text, View } from '@/components/Themed';
 import { useQuery } from '@tanstack/react-query';
 import { HomePageData } from '@ska/shared';
@@ -7,9 +7,12 @@ import { useRouter } from 'expo-router';
 import { formatDate } from '@ska/shared';
 import FontAwesome from '@expo/vector-icons/FontAwesome';
 import SermonVideoCarousel from '@/components/SermonVideoCarousel';
+import Colors from '@/constants/Colors';
 
 export default function HomeScreen() {
   const router = useRouter();
+  const colorScheme = useNativeColorScheme();
+  const colors = Colors[colorScheme ?? 'light'];
   const { data, isLoading, error, refetch, isRefetching } = useQuery<HomePageData>({
     queryKey: ['home'],
     queryFn: () => apiClient.get<HomePageData>('/home'),
@@ -56,26 +59,42 @@ export default function HomeScreen() {
       <View style={styles.content}>
 
         {data?.todayDevotional && (
-          <TouchableOpacity
-            style={styles.devotionalCard}
-            onPress={() => router.push(`/devotional/${data.todayDevotional!.id}`)}
-          >
-            <View style={styles.devotionalHeader}>
-              <FontAwesome name="book" size={20} color="#007AFF" />
-              <Text style={styles.devotionalLabel}>Today's Devotional</Text>
+          <View style={[styles.feedCard, { backgroundColor: colors.cardBackground, borderColor: colors.border }]}>
+            <View style={[styles.feedCardHeader, { backgroundColor: 'transparent' }]}>
+              <View style={[styles.feedCardAvatar, { backgroundColor: colors.primary }]}>
+                <FontAwesome name="book" size={20} color="#FFF" />
+              </View>
+              <View style={{ backgroundColor: 'transparent', flex: 1 }}>
+                <Text style={[styles.feedCardTitle, { color: colors.text }]}>Today's Devotional</Text>
+                <Text style={[styles.feedCardTime, { color: colors.textSecondary }]}>Daily Inspiration</Text>
+              </View>
             </View>
-            <Text style={styles.devotionalTitle} numberOfLines={2}>
-              {data.todayDevotional.title}
-            </Text>
-            {data.todayDevotional.author && (
-              <Text style={styles.devotionalAuthor}>by {data.todayDevotional.author}</Text>
-            )}
-            {data.todayDevotional.content && (
-              <Text style={styles.devotionalVerse} numberOfLines={3}>
-                {data.todayDevotional.content.substring(0, 150)}...
+            <TouchableOpacity
+              onPress={() => router.push(`/devotional/${data.todayDevotional!.id}`)}
+            >
+              <Text style={[styles.devotionalTitle, { color: colors.text }]} numberOfLines={2}>
+                {data.todayDevotional.title}
               </Text>
-            )}
-          </TouchableOpacity>
+              {data.todayDevotional.author && (
+                <Text style={[styles.devotionalAuthor, { color: colors.textSecondary }]}>by {data.todayDevotional.author}</Text>
+              )}
+              {data.todayDevotional.content && (
+                <Text style={[styles.devotionalVerse, { color: colors.textSecondary }]} numberOfLines={3}>
+                  {data.todayDevotional.content.substring(0, 150)}...
+                </Text>
+              )}
+            </TouchableOpacity>
+            <View style={[styles.feedCardActions, { backgroundColor: 'transparent', borderTopColor: colors.border }]}>
+              <TouchableOpacity style={[styles.actionButton, { backgroundColor: 'transparent' }]}>
+                <FontAwesome name="heart-o" size={20} color={colors.primary} />
+                <Text style={[styles.actionText, { color: colors.primary }]}>Like</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={[styles.actionButton, { backgroundColor: 'transparent' }]}>
+                <FontAwesome name="share" size={18} color={colors.primary} />
+                <Text style={[styles.actionText, { color: colors.primary }]}>Share</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
         )}
 
         {data?.nextEvent && (
@@ -209,20 +228,62 @@ const styles = StyleSheet.create({
     backgroundColor: '#F8F9FA',
   },
   content: {
-    padding: 16,
+    padding: 12,
+    gap: 12,
+  },
+  // Facebook-style feed card
+  feedCard: {
+    backgroundColor: '#fff',
+    borderRadius: 12,
+    marginBottom: 8,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
+    elevation: 2,
+    borderWidth: 1,
+  },
+  feedCardHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 12,
+    gap: 10,
+  },
+  feedCardAvatar: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  feedCardTitle: {
+    fontSize: 15,
+    fontWeight: '700',
+  },
+  feedCardTime: {
+    fontSize: 12,
+    marginTop: 2,
+  },
+  feedCardActions: {
+    flexDirection: 'row',
+    borderTopWidth: 1,
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    gap: 16,
+  },
+  actionButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    paddingVertical: 4,
+  },
+  actionText: {
+    fontSize: 14,
+    fontWeight: '600',
   },
   devotionalCard: {
-    backgroundColor: '#fff',
-    padding: 24,
-    borderRadius: 20,
-    marginBottom: 20,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.08,
-    shadowRadius: 12,
-    elevation: 4,
-    borderWidth: 1,
-    borderColor: '#E5E7EB',
+    paddingHorizontal: 12,
+    paddingBottom: 12,
   },
   devotionalHeader: {
     flexDirection: 'row',
@@ -233,26 +294,22 @@ const styles = StyleSheet.create({
   devotionalLabel: {
     fontSize: 13,
     fontWeight: '700',
-    color: '#0066CC',
     textTransform: 'uppercase',
     letterSpacing: 0.5,
   },
   devotionalTitle: {
-    fontSize: 20,
+    fontSize: 18,
     fontWeight: '700',
     marginBottom: 8,
-    color: '#1A1A1A',
-    lineHeight: 28,
+    lineHeight: 24,
   },
   devotionalAuthor: {
-    fontSize: 14,
-    opacity: 0.6,
+    fontSize: 13,
     marginBottom: 10,
     fontStyle: 'italic',
   },
   devotionalVerse: {
     fontSize: 14,
-    opacity: 0.7,
     lineHeight: 20,
   },
   devotionalListCard: {

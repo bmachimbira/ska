@@ -1,17 +1,19 @@
-const tintColorLight = '#0066CC';
-const tintColorDark = '#4A90E2';
+// Brand colors from SKAC Zimbabwe logo
+const tintColorLight = '#5B3A9D'; // Purple from logo
+const tintColorDark = '#8B7AB8'; // Lighter purple for dark mode
+const brandGray = '#8B8B8B'; // Gray from logo
 
 export default {
   light: {
     text: '#1A1A1A',
     background: '#F8F9FA',
     tint: tintColorLight,
-    tabIconDefault: '#9CA3AF',
+    tabIconDefault: brandGray,
     tabIconSelected: tintColorLight,
     cardBackground: '#FFFFFF',
-    primary: '#0066CC',
-    secondary: '#4A90E2',
-    accent: '#6366F1',
+    primary: tintColorLight, // SKAC purple
+    secondary: '#7C5AB8', // Lighter purple
+    accent: brandGray, // SKAC gray
     success: '#10B981',
     danger: '#EF4444',
     warning: '#F59E0B',
@@ -20,18 +22,18 @@ export default {
   },
   dark: {
     text: '#F9FAFB',
-    background: '#111827',
+    background: '#18181B', // Darker for better contrast
     tint: tintColorDark,
     tabIconDefault: '#6B7280',
     tabIconSelected: tintColorDark,
-    cardBackground: '#1F2937',
-    primary: '#4A90E2',
-    secondary: '#60A5FA',
-    accent: '#818CF8',
+    cardBackground: '#27272A',
+    primary: tintColorDark,
+    secondary: '#9B8BC8',
+    accent: '#A3A3A3', // Lighter gray for dark mode
     success: '#34D399',
     danger: '#F87171',
     warning: '#FBBF24',
-    border: '#374151',
+    border: '#3F3F46',
     textSecondary: '#9CA3AF',
   },
 };
