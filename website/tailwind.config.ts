@@ -10,34 +10,35 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
+        // SKAC Zimbabwe Brand Colors
         primary: {
-          50: '#e6f0ff',
-          100: '#cce0ff',
-          200: '#99c2ff',
-          300: '#66a3ff',
-          400: '#3385ff',
-          500: '#0066cc',
-          600: '#00468c',
-          700: '#003d7a',
-          800: '#002f5c',
-          900: '#00213d',
-          950: '#001529',
+          50: '#f4f0f9',
+          100: '#e8e0f3',
+          200: '#d1c1e7',
+          300: '#b9a2db',
+          400: '#a283cf',
+          500: '#5B3A9D', // Main brand purple
+          600: '#4a2e7e',
+          700: '#38235e',
+          800: '#27173f',
+          900: '#150c1f',
+          950: '#0a0610',
         },
         secondary: {
-          50: '#fffbeb',
-          100: '#fef3c7',
-          200: '#fde68a',
-          300: '#fcd34d',
-          400: '#fbbf24',
-          500: '#f59e0b',
-          600: '#d97706',
-          700: '#b45309',
-          800: '#92400e',
-          900: '#78350f',
+          50: '#f9f9f9',
+          100: '#f3f3f3',
+          200: '#e7e7e7',
+          300: '#dbdbdb',
+          400: '#cfcfcf',
+          500: '#8B8B8B', // Brand gray
+          600: '#6f6f6f',
+          700: '#535353',
+          800: '#383838',
+          900: '#1c1c1c',
         },
-        sermon: '#00468c',
+        sermon: '#5B3A9D', // Updated to brand purple
         devotional: '#10b981',
-        quarterly: '#f59e0b',
+        quarterly: '#8B8B8B', // Updated to brand gray
       },
       fontFamily: {
         sans: ['Raleway', 'system-ui', 'sans-serif'],

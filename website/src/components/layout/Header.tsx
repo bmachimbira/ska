@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import Image from 'next/image';
 import { useState } from 'react';
 import { Menu, X, Search, Book, Heart, Video, Share2, ChevronDown, User, LogOut } from 'lucide-react';
 import { APP_NAME } from '@/lib/constants';
@@ -23,15 +24,29 @@ export function Header() {
   };
 
   return (
-    <header className="sticky top-0 z-50 w-full bg-white shadow-md">
+    <header className="sticky top-0 z-50 w-full bg-primary-500 shadow-lg">
       <div className="container mx-auto px-4">
-        <div className="flex items-center justify-between py-4">
+        <div className="flex items-center justify-between py-3">
           {/* Logo Section */}
           <div className="w-1/4 hidden lg:block">
-            <Link href="/" className="flex items-center">
-              <span className="text-3xl font-bold text-primary-600">
-                {APP_NAME}
-              </span>
+            <Link href="/" className="flex items-center gap-3 group">
+              <div className="relative w-14 h-14">
+                <Image
+                  src="/logo.png"
+                  alt="SKAC Zimbabwe Logo"
+                  fill
+                  className="object-contain"
+                  priority
+                />
+              </div>
+              <div className="flex flex-col">
+                <span className="text-xl font-bold text-white leading-tight">
+                  SKAC ZIMBABWE
+                </span>
+                <span className="text-xs text-white/90 leading-tight">
+                  Sabbath Keeping Adventist Church
+                </span>
+              </div>
             </Link>
           </div>
 
@@ -39,7 +54,7 @@ export function Header() {
           <div className="hidden lg:flex lg:flex-1 lg:justify-center">
             <nav className="flex items-center gap-8">
               <div className="relative group">
-                <button className="flex items-center gap-1 text-sm font-semibold uppercase tracking-wide text-gray-800 hover:text-primary-600 transition-colors">
+                <button className="flex items-center gap-1 text-sm font-semibold uppercase tracking-wide text-white hover:text-white/80 transition-colors">
                   Home
                   <ChevronDown className="h-4 w-4" />
                 </button>
@@ -51,7 +66,7 @@ export function Header() {
               </div>
 
               <div className="relative group">
-                <button className="flex items-center gap-1 text-sm font-semibold uppercase tracking-wide text-gray-800 hover:text-primary-600 transition-colors">
+                <button className="flex items-center gap-1 text-sm font-semibold uppercase tracking-wide text-white hover:text-white/80 transition-colors">
                   Resources
                   <ChevronDown className="h-4 w-4" />
                 </button>
@@ -68,15 +83,15 @@ export function Header() {
                 </div>
               </div>
 
-              <Link href="/sermons" className="text-sm font-semibold uppercase tracking-wide text-gray-800 hover:text-primary-600 transition-colors">
+              <Link href="/sermons" className="text-sm font-semibold uppercase tracking-wide text-white hover:text-white/80 transition-colors">
                 Sermons
               </Link>
 
-              <Link href="/locations" className="text-sm font-semibold uppercase tracking-wide text-gray-800 hover:text-primary-600 transition-colors">
+              <Link href="/locations" className="text-sm font-semibold uppercase tracking-wide text-white hover:text-white/80 transition-colors">
                 Locations
               </Link>
 
-              <Link href="/about" className="text-sm font-semibold uppercase tracking-wide text-gray-800 hover:text-primary-600 transition-colors">
+              <Link href="/about" className="text-sm font-semibold uppercase tracking-wide text-white hover:text-white/80 transition-colors">
                 About
               </Link>
             </nav>
@@ -87,12 +102,12 @@ export function Header() {
             <div className="flex items-center gap-4">
               {user ? (
                 <div className="flex items-center gap-3">
-                  <Link href="/profile" className="text-sm text-gray-700 hover:text-primary-600">
+                  <Link href="/profile" className="text-sm text-white hover:text-white/80">
                     Hello, {user.firstName || user.name || user.email}
                   </Link>
                   <button
                     onClick={handleLogout}
-                    className="flex items-center gap-2 px-4 py-2 text-sm font-semibold text-gray-700 hover:text-primary-600 transition-colors"
+                    className="flex items-center gap-2 px-4 py-2 text-sm font-semibold text-white hover:text-white/80 transition-colors"
                   >
                     <LogOut className="h-4 w-4" />
                     Sign Out
@@ -101,7 +116,7 @@ export function Header() {
               ) : (
                 <button
                   onClick={() => setAuthModalOpen(true)}
-                  className="flex items-center gap-2 px-6 py-2 bg-primary-600 text-white text-sm font-semibold rounded hover:bg-primary-700 transition-colors"
+                  className="flex items-center gap-2 px-6 py-2 bg-white text-primary-600 text-sm font-semibold rounded hover:bg-white/90 transition-colors"
                 >
                   <User className="h-4 w-4" />
                   Sign In
@@ -112,7 +127,7 @@ export function Header() {
               <div className="relative">
                 <button
                   onClick={() => setShareOpen(!shareOpen)}
-                  className="p-2 text-primary-600 hover:text-primary-700 transition-colors"
+                  className="p-2 text-white hover:text-white/80 transition-colors"
                   aria-label="Share"
                 >
                   <Share2 className="h-5 w-5" />
@@ -137,7 +152,7 @@ export function Header() {
               {/* Search Button */}
               <button
                 onClick={() => setSearchOpen(!searchOpen)}
-                className="p-2 text-primary-600 hover:text-primary-700 transition-colors"
+                className="p-2 text-white hover:text-white/80 transition-colors"
                 aria-label="Search"
               >
                 <Search className="h-5 w-5" />
@@ -146,7 +161,7 @@ export function Header() {
               {/* Mobile Menu Toggle */}
               <button
                 onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-                className="p-2 text-primary-600 hover:text-primary-700 transition-colors"
+                className="p-2 text-white hover:text-white/80 transition-colors"
                 aria-label="Menu"
               >
                 <Menu className="h-5 w-5" />
@@ -156,14 +171,25 @@ export function Header() {
 
           {/* Mobile Logo and Menu Button */}
           <div className="flex lg:hidden w-full justify-between items-center">
-            <Link href="/" className="flex items-center">
-              <span className="text-2xl font-bold text-primary-600">
-                {APP_NAME}
-              </span>
+            <Link href="/" className="flex items-center gap-2">
+              <div className="relative w-10 h-10">
+                <Image
+                  src="/logo.png"
+                  alt="SKAC Zimbabwe Logo"
+                  fill
+                  className="object-contain"
+                  priority
+                />
+              </div>
+              <div className="flex flex-col">
+                <span className="text-lg font-bold text-white leading-tight">
+                  SKAC ZIMBABWE
+                </span>
+              </div>
             </Link>
             <button
               type="button"
-              className="inline-flex items-center justify-center rounded-md p-2.5 text-gray-700"
+              className="inline-flex items-center justify-center rounded-md p-2.5 text-white"
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
             >
               <span className="sr-only">Toggle menu</span>
