@@ -20,8 +20,12 @@ COPY mobile/package*.json ./
 COPY mobile/tsconfig.json* ./
 COPY mobile/app.json ./app.json
 
-# Install dependencies (this will link to /shared)
+# Install dependencies
 RUN npm ci
+
+# Manually link the shared package by copying it to node_modules
+RUN mkdir -p node_modules/@ska && \
+    cp -r /shared node_modules/@ska/shared
 
 # Copy mobile source code (excluding node_modules)
 COPY mobile/app ./app
