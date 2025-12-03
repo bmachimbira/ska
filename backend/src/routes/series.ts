@@ -31,7 +31,7 @@ const UpdateSeriesSchema = z.object({
 seriesRouter.get(
   '/',
   asyncHandler(async (req: Request, res: Response) => {
-    const { page = '1', limit = '50', search } = req.query;
+    const { page = '1', limit = '50', search, speakerId } = req.query;
     const pool = getPool();
 
     const pageNum = parseInt(page as string);
@@ -46,6 +46,12 @@ seriesRouter.get(
     if (search) {
       conditions.push(`(s.title ILIKE $${paramIndex} OR s.description ILIKE $${paramIndex})`);
       params.push(`%${search}%`);
+      paramIndex++;
+    }
+
+    if (speakerId) {
+      conditions.push(`s.speaker_id = $${paramIndex}`);
+      params.push(parseInt(speakerId as string));
       paramIndex++;
     }
 
@@ -238,6 +244,11 @@ seriesRouter.put(
       params.push(validated.description || null);
     }
 
+    if (validated.speakerId !== undefined) {
+      updates.push(`speaker_id = $${paramIndex++}`);
+      params.push(validated.speakerId || null);
+    }
+
     if (validated.heroImage !== undefined) {
       updates.push(`hero_image = $${paramIndex++}`);
       params.push(validated.heroImage || null);
@@ -257,7 +268,7 @@ seriesRouter.put(
       UPDATE series
       SET ${updates.join(', ')}
       WHERE id = $${paramIndex}
-      RETURNING id, title, description, hero_image, created_at, updated_at
+      RETURNING id, title, description, speaker_id, hero_image, created_at, updated_at
     `;
 
     const result = await pool.query(updateQuery, params);

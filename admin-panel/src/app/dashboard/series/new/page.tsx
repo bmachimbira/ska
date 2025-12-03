@@ -1,21 +1,46 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { ArrowLeft, Save } from 'lucide-react';
 import { useRequireAuth } from '@/hooks/useRequireAuth';
 import { createApiClient } from '@/lib/api-client';
 
+interface Speaker {
+  id: number;
+  name: string;
+}
+
 export default function NewSeriesPage() {
   const router = useRouter();
   const { session, status } = useRequireAuth();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [speakers, setSpeakers] = useState<Speaker[]>([]);
   const [formData, setFormData] = useState({
     title: '',
     description: '',
+    speakerId: '',
   });
+
+  useEffect(() => {
+    if (status === 'authenticated' && session?.accessToken) {
+      fetchSpeakers();
+    }
+  }, [status, session]);
+
+  const fetchSpeakers = async () => {
+    if (!session?.accessToken) return;
+
+    try {
+      const apiClient = createApiClient(session.accessToken as string);
+      const response = await apiClient.get('/speakers');
+      setSpeakers(response.speakers || []);
+    } catch (error) {
+      console.error('Failed to fetch speakers:', error);
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -30,6 +55,7 @@ export default function NewSeriesPage() {
       await apiClient.post('/series', {
         title: formData.title,
         description: formData.description || null,
+        speakerId: formData.speakerId ? parseInt(formData.speakerId) : null,
       });
 
       router.push('/dashboard/series');
@@ -110,6 +136,33 @@ export default function NewSeriesPage() {
               className="w-full px-4 py-2 border border-gray-300 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-900 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-transparent"
               placeholder="e.g., The Gospel of John"
             />
+          </div>
+
+          {/* Speaker */}
+          <div>
+            <label
+              htmlFor="speakerId"
+              className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+            >
+              Primary Speaker *
+            </label>
+            <select
+              id="speakerId"
+              required
+              value={formData.speakerId}
+              onChange={(e) => setFormData({ ...formData, speakerId: e.target.value })}
+              className="w-full px-4 py-2 border border-gray-300 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-900 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+            >
+              <option value="">Select a speaker</option>
+              {speakers.map((speaker) => (
+                <option key={speaker.id} value={speaker.id}>
+                  {speaker.name}
+                </option>
+              ))}
+            </select>
+            <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+              The primary speaker for this sermon series
+            </p>
           </div>
 
           {/* Description */}

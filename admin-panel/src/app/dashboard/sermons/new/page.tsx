@@ -13,11 +13,19 @@ interface Speaker {
   name: string;
 }
 
+interface Series {
+  id: number;
+  title: string;
+  description?: string;
+}
+
 export default function NewSermonPage() {
   const { data: session } = useSession();
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [speakers, setSpeakers] = useState<Speaker[]>([]);
+  const [series, setSeries] = useState<Series[]>([]);
+  const [loadingSeries, setLoadingSeries] = useState(false);
   const [error, setError] = useState('');
   const [formData, setFormData] = useState({
     title: '',
@@ -40,6 +48,16 @@ export default function NewSermonPage() {
     }
   }, [session]);
 
+  // Load series when speaker changes
+  useEffect(() => {
+    if (formData.speakerId && session?.accessToken) {
+      loadSeriesForSpeaker(formData.speakerId);
+    } else {
+      setSeries([]);
+      setFormData(prev => ({ ...prev, seriesId: '' }));
+    }
+  }, [formData.speakerId, session]);
+
   async function loadSpeakers() {
     try {
       if (!session?.accessToken) {
@@ -54,6 +72,22 @@ export default function NewSermonPage() {
     } catch (error) {
       console.error('Failed to load speakers:', error);
       setError('Failed to load speakers. Please try again.');
+    }
+  }
+
+  async function loadSeriesForSpeaker(speakerId: string) {
+    try {
+      if (!session?.accessToken) return;
+
+      setLoadingSeries(true);
+      const apiClient = createApiClient(session.accessToken as string);
+      const data = await apiClient.get<{ series: Series[] }>(`/series?speakerId=${speakerId}`);
+      setSeries(data.series || []);
+    } catch (error) {
+      console.error('Failed to load series:', error);
+      setSeries([]);
+    } finally {
+      setLoadingSeries(false);
     }
   }
 
@@ -213,25 +247,58 @@ export default function NewSermonPage() {
               </select>
             </div>
 
-            <div>
-              <label
-                htmlFor="seriesId"
-                className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
-              >
-                Series
-              </label>
-              <select
-                id="seriesId"
-                name="seriesId"
-                value={formData.seriesId}
-                onChange={handleChange}
-                className="w-full px-4 py-2 border border-gray-300 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-900 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-              >
-                <option value="">Select series</option>
-                <option value="1">Living Faith</option>
-                <option value="2">Christian Living</option>
-              </select>
-            </div>
+            {/* Only show series dropdown when speaker is selected */}
+            {formData.speakerId && (
+              <div>
+                <div className="flex items-center justify-between mb-2">
+                  <label
+                    htmlFor="seriesId"
+                    className="block text-sm font-medium text-gray-700 dark:text-gray-300"
+                  >
+                    Series {loadingSeries && '(Loading...)'}
+                  </label>
+                  <Link
+                    href="/dashboard/series"
+                    className="text-xs text-primary-600 hover:text-primary-700 dark:text-primary-400 dark:hover:text-primary-300"
+                    target="_blank"
+                  >
+                    Manage Series
+                  </Link>
+                </div>
+                {series.length > 0 ? (
+                  <select
+                    id="seriesId"
+                    name="seriesId"
+                    value={formData.seriesId}
+                    onChange={handleChange}
+                    disabled={loadingSeries}
+                    className="w-full px-4 py-2 border border-gray-300 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-900 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-transparent disabled:opacity-50"
+                  >
+                    <option value="">Select series (optional)</option>
+                    {series.map(s => (
+                      <option key={s.id} value={s.id}>
+                        {s.title}
+                      </option>
+                    ))}
+                  </select>
+                ) : !loadingSeries ? (
+                  <div className="text-sm text-gray-500 dark:text-gray-400 py-2">
+                    No series available for this speaker.{' '}
+                    <Link
+                      href="/dashboard/series/new"
+                      className="text-primary-600 hover:text-primary-700 dark:text-primary-400 dark:hover:text-primary-300"
+                      target="_blank"
+                    >
+                      Create one
+                    </Link>
+                  </div>
+                ) : (
+                  <div className="text-sm text-gray-500 dark:text-gray-400 py-2">
+                    Loading series...
+                  </div>
+                )}
+              </div>
+            )}
           </div>
 
           {/* Scripture References */}
