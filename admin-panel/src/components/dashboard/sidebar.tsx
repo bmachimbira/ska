@@ -20,6 +20,7 @@ import {
   Church,
   TrendingUp,
   Shield,
+  Megaphone,
 } from 'lucide-react';
 
 interface NavItem {
@@ -69,6 +70,13 @@ const navItems: NavItem[] = [
     href: '/dashboard/churches',
     icon: Church,
     resource: 'churches',
+    action: 'read',
+  },
+  {
+    label: 'Announcements',
+    href: '/dashboard/announcements',
+    icon: Megaphone,
+    resource: 'announcements',
     action: 'read',
   },
   {

@@ -124,6 +124,33 @@ export interface AuditLog {
   createdAt: string;
 }
 
+export interface Church {
+  id: number;
+  name: string;
+  slug: string;
+  description?: string;
+  city?: string;
+  country?: string;
+}
+
+export interface Announcement {
+  id: number;
+  title: string;
+  content: string;
+  priority: 'low' | 'normal' | 'high' | 'urgent';
+  scope: 'church' | 'global';
+  church?: Church;
+  expiresAt?: string;
+  isPublished: boolean;
+  createdBy?: {
+    id: number;
+    name: string;
+    email: string;
+  };
+  createdAt: string;
+  updatedAt: string;
+}
+
 // Paginated list response
 export interface PaginatedResponse<T> {
   items: T[];
