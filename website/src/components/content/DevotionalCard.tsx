@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { Calendar, BookOpen, Volume2 } from 'lucide-react';
+import { Calendar, BookOpen, Volume2, Video } from 'lucide-react';
 import { Devotional } from '@/types/api';
 import { Card, CardContent } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/Badge';
@@ -23,12 +23,20 @@ export function DevotionalCard({ devotional, href }: DevotionalCardProps) {
               <BookOpen className="h-3 w-3" />
               Devotional
             </Badge>
-            {devotional.audioAsset && (
-              <div className="flex items-center gap-1 text-xs text-gray-500 dark:text-gray-400">
-                <Volume2 className="h-3.5 w-3.5" />
-                Audio
-              </div>
-            )}
+            <div className="flex items-center gap-2">
+              {devotional.video_asset_details && (
+                <div className="flex items-center gap-1 text-xs text-gray-500 dark:text-gray-400">
+                  <Video className="h-3.5 w-3.5" />
+                  Video
+                </div>
+              )}
+              {devotional.audio_asset_details && (
+                <div className="flex items-center gap-1 text-xs text-gray-500 dark:text-gray-400">
+                  <Volume2 className="h-3.5 w-3.5" />
+                  Audio
+                </div>
+              )}
+            </div>
           </div>
 
           {/* Date */}
@@ -49,17 +57,17 @@ export function DevotionalCard({ devotional, href }: DevotionalCardProps) {
             </p>
           )}
 
-          {/* Memory Verse */}
-          {devotional.memoryVerse && (
-            <blockquote className="border-l-4 border-primary-500 pl-4 italic text-sm text-gray-700 dark:text-gray-300 line-clamp-3">
-              {devotional.memoryVerse}
-            </blockquote>
+          {/* Speaker */}
+          {devotional.speaker && (
+            <p className="mb-3 text-sm font-medium text-gray-600 dark:text-gray-400">
+              Speaker: {devotional.speaker.name}
+            </p>
           )}
 
           {/* Content preview */}
-          {devotional.content && (
+          {devotional.body_md && (
             <p className="mt-3 line-clamp-3 text-sm text-gray-600 dark:text-gray-400">
-              {devotional.content.substring(0, 150)}...
+              {devotional.body_md.substring(0, 150)}...
             </p>
           )}
         </CardContent>

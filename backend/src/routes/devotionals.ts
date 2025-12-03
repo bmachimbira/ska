@@ -43,7 +43,7 @@ devotionalsRouter.get(
 
     // Get today's date in the specified timezone
     const query = `
-      SELECT 
+      SELECT
         d.id,
         d.slug,
         d.title,
@@ -61,9 +61,29 @@ devotionalsRouter.get(
         json_build_object(
           'id', s.id,
           'name', s.name
-        ) as speaker
+        ) as speaker,
+        CASE WHEN d.audio_asset IS NOT NULL THEN
+          json_build_object(
+            'id', ma_audio.id,
+            'kind', ma_audio.kind,
+            'hls_url', ma_audio.hls_url,
+            'duration_seconds', ma_audio.duration_seconds,
+            'metadata', ma_audio.metadata
+          )
+        END as audio_asset_details,
+        CASE WHEN d.video_asset IS NOT NULL THEN
+          json_build_object(
+            'id', ma_video.id,
+            'kind', ma_video.kind,
+            'hls_url', ma_video.hls_url,
+            'duration_seconds', ma_video.duration_seconds,
+            'metadata', ma_video.metadata
+          )
+        END as video_asset_details
       FROM devotional d
       LEFT JOIN speaker s ON d.speaker_id = s.id
+      LEFT JOIN media_asset ma_audio ON d.audio_asset = ma_audio.id
+      LEFT JOIN media_asset ma_video ON d.video_asset = ma_video.id
       WHERE d.date = CURRENT_DATE
       AND d.lang = 'en'
       ORDER BY d.date DESC
@@ -111,7 +131,7 @@ devotionalsRouter.get(
 
     // Get devotionals
     const query = `
-      SELECT 
+      SELECT
         d.id,
         d.slug,
         d.title,
@@ -129,9 +149,29 @@ devotionalsRouter.get(
         json_build_object(
           'id', s.id,
           'name', s.name
-        ) as speaker
+        ) as speaker,
+        CASE WHEN d.audio_asset IS NOT NULL THEN
+          json_build_object(
+            'id', ma_audio.id,
+            'kind', ma_audio.kind,
+            'hls_url', ma_audio.hls_url,
+            'duration_seconds', ma_audio.duration_seconds,
+            'metadata', ma_audio.metadata
+          )
+        END as audio_asset_details,
+        CASE WHEN d.video_asset IS NOT NULL THEN
+          json_build_object(
+            'id', ma_video.id,
+            'kind', ma_video.kind,
+            'hls_url', ma_video.hls_url,
+            'duration_seconds', ma_video.duration_seconds,
+            'metadata', ma_video.metadata
+          )
+        END as video_asset_details
       FROM devotional d
       LEFT JOIN speaker s ON d.speaker_id = s.id
+      LEFT JOIN media_asset ma_audio ON d.audio_asset = ma_audio.id
+      LEFT JOIN media_asset ma_video ON d.video_asset = ma_video.id
       ${whereClause.replace(/devotional/g, 'd')}
       ORDER BY d.date DESC
       LIMIT $${paramIndex} OFFSET $${paramIndex + 1}
@@ -162,7 +202,7 @@ devotionalsRouter.get(
     const pool = getPool();
 
     const query = `
-      SELECT 
+      SELECT
         d.id,
         d.slug,
         d.title,
@@ -180,9 +220,29 @@ devotionalsRouter.get(
         json_build_object(
           'id', s.id,
           'name', s.name
-        ) as speaker
+        ) as speaker,
+        CASE WHEN d.audio_asset IS NOT NULL THEN
+          json_build_object(
+            'id', ma_audio.id,
+            'kind', ma_audio.kind,
+            'hls_url', ma_audio.hls_url,
+            'duration_seconds', ma_audio.duration_seconds,
+            'metadata', ma_audio.metadata
+          )
+        END as audio_asset_details,
+        CASE WHEN d.video_asset IS NOT NULL THEN
+          json_build_object(
+            'id', ma_video.id,
+            'kind', ma_video.kind,
+            'hls_url', ma_video.hls_url,
+            'duration_seconds', ma_video.duration_seconds,
+            'metadata', ma_video.metadata
+          )
+        END as video_asset_details
       FROM devotional d
       LEFT JOIN speaker s ON d.speaker_id = s.id
+      LEFT JOIN media_asset ma_audio ON d.audio_asset = ma_audio.id
+      LEFT JOIN media_asset ma_video ON d.video_asset = ma_video.id
       WHERE d.id = $1
     `;
 
@@ -209,39 +269,53 @@ devotionalsRouter.post(
     const validated = CreateDevotionalSchema.parse(req.body);
     const pool = getPool();
 
-    const insertQuery = `
-      INSERT INTO devotional (
-        title,
-        slug,
-        author,
-        speaker_id,
-        body_md,
-        date,
-        content_type,
-        audio_asset,
-        video_asset,
-        lang,
-        created_at,
-        updated_at
-      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, NOW(), NOW())
-      RETURNING id, slug, title, author, speaker_id, body_md, date, content_type, 
-                audio_asset, video_asset, lang, view_count, created_at, updated_at
-    `;
+    try {
+      const insertQuery = `
+        INSERT INTO devotional (
+          title,
+          slug,
+          author,
+          speaker_id,
+          body_md,
+          date,
+          content_type,
+          audio_asset,
+          video_asset,
+          lang,
+          created_at,
+          updated_at
+        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, NOW(), NOW())
+        RETURNING id, slug, title, author, speaker_id, body_md, date, content_type,
+                  audio_asset, video_asset, lang, view_count, created_at, updated_at
+      `;
 
-    const result = await pool.query(insertQuery, [
-      validated.title,
-      validated.slug,
-      validated.author || null,
-      validated.speakerId || null,
-      validated.bodyMd,
-      validated.date,
-      validated.contentType,
-      validated.audioAsset || null,
-      validated.videoAsset || null,
-      validated.lang,
-    ]);
+      const result = await pool.query(insertQuery, [
+        validated.title,
+        validated.slug,
+        validated.author || null,
+        validated.speakerId || null,
+        validated.bodyMd,
+        validated.date,
+        validated.contentType,
+        validated.audioAsset || null,
+        validated.videoAsset || null,
+        validated.lang,
+      ]);
 
-    res.status(201).json(result.rows[0]);
+      res.status(201).json(result.rows[0]);
+    } catch (error: any) {
+      // Handle duplicate slug constraint
+      if (error.code === '23505' && error.constraint === 'devotional_slug_key') {
+        return res.status(409).json({
+          error: 'Conflict',
+          message: `A devotional with the slug "${validated.slug}" already exists. Please use a different slug.`,
+          field: 'slug',
+        });
+      }
+
+      // Re-throw other errors
+      throw error;
+    }
   })
 );
 

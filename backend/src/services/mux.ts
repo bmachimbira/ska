@@ -8,17 +8,10 @@ import * as dotenv from 'dotenv';
 
 dotenv.config();
 
-// Check if Mux credentials are configured
+// Get Mux credentials from environment
+// Note: These are validated at server startup in utils/startup-checks.ts
 const MUX_TOKEN_ID = process.env.MUX_TOKEN_ID;
 const MUX_TOKEN_SECRET = process.env.MUX_TOKEN_SECRET;
-
-if (!MUX_TOKEN_ID || !MUX_TOKEN_SECRET || 
-    MUX_TOKEN_ID === 'your-mux-token-id' || 
-    MUX_TOKEN_SECRET === 'your-mux-token-secret') {
-  console.warn('⚠️  Mux credentials not configured. Video processing will fail.');
-  console.warn('   Set MUX_TOKEN_ID and MUX_TOKEN_SECRET in your .env file');
-  console.warn('   Get credentials at: https://dashboard.mux.com/settings/access-tokens');
-}
 
 // Initialize Mux client
 const mux = new Mux({

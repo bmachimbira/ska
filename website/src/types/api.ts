@@ -58,12 +58,34 @@ export interface Devotional {
   slug: string;
   title: string;
   author?: string;
-  memoryVerse: string;
-  content: string;
+  speaker_id?: number;
+  speaker?: Speaker;
+  body_md: string;
+  content_type: 'text' | 'audio' | 'video';
+  audio_asset?: string;
+  video_asset?: string;
+  audio_asset_details?: {
+    id: string;
+    kind: string;
+    hls_url: string;
+    duration_seconds?: number;
+    metadata?: any;
+  };
+  video_asset_details?: {
+    id: string;
+    kind: string;
+    hls_url: string;
+    duration_seconds?: number;
+    metadata?: any;
+  };
   audioAsset?: MediaAsset;
+  videoAsset?: MediaAsset;
   viewCount: number;
+  view_count?: number;
   createdAt: string;
   updatedAt: string;
+  created_at?: string;
+  updated_at?: string;
 }
 
 export interface Quarterly {

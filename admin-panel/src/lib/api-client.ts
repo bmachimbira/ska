@@ -40,11 +40,20 @@ export class ApiClient {
     });
 
     if (!response.ok) {
-      const error: ApiError = await response.json().catch(() => ({
+      const errorData: ApiError = await response.json().catch(() => ({
         error: 'UnknownError',
         message: 'An unknown error occurred',
       }));
-      throw new Error(error.message || `HTTP ${response.status}`);
+
+      // Create error with response data attached
+      const error = new Error(errorData.message || `HTTP ${response.status}`) as Error & {
+        response?: { status: number; data: ApiError }
+      };
+      error.response = {
+        status: response.status,
+        data: errorData,
+      };
+      throw error;
     }
 
     // Handle 204 No Content responses (e.g., DELETE)
@@ -99,11 +108,20 @@ export class ApiClient {
     });
 
     if (!response.ok) {
-      const error: ApiError = await response.json().catch(() => ({
+      const errorData: ApiError = await response.json().catch(() => ({
         error: 'UploadError',
         message: 'Upload failed',
       }));
-      throw new Error(error.message);
+
+      // Create error with response data attached
+      const error = new Error(errorData.message || `HTTP ${response.status}`) as Error & {
+        response?: { status: number; data: ApiError }
+      };
+      error.response = {
+        status: response.status,
+        data: errorData,
+      };
+      throw error;
     }
 
     return response.json();

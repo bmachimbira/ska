@@ -20,6 +20,7 @@ dotenv.config();
 import { createApiRouter } from './routes';
 import { errorHandler } from './middleware/error-handler';
 import { requestLogger } from './middleware/logger';
+import { runStartupChecks } from './utils/startup-checks';
 
 // Load OpenAPI specification
 const swaggerDocument = YAML.load(path.join(__dirname, '../openapi/api-spec.yaml'));
@@ -126,10 +127,13 @@ const server = createServer(app);
 
 async function startServer() {
   try {
+    // Run startup validation checks
+    await runStartupChecks();
+
     // Initialize MinIO storage
     const { initializeStorage } = await import('./services/storage');
     await initializeStorage();
-    
+
     server.listen(PORT, () => {
       console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
       console.log('🚀 SKA App API');

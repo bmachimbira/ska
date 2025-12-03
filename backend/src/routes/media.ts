@@ -79,7 +79,7 @@ mediaRouter.get(
 
 /**
  * POST /v1/media/upload-url
- * Get a presigned URL for uploading a video to MinIO
+ * Get a presigned URL for uploading a video or audio to MinIO
  */
 mediaRouter.post(
   '/upload-url',
@@ -91,9 +91,17 @@ mediaRouter.post(
 
     const { filename, contentType } = schema.parse(req.body);
 
+    // Determine folder based on content type
+    let folder = 'media';
+    if (contentType?.startsWith('video/')) {
+      folder = 'videos';
+    } else if (contentType?.startsWith('audio/')) {
+      folder = 'audio';
+    }
+
     // Generate unique object name
     const timestamp = Date.now();
-    const objectName = `videos/${timestamp}-${filename}`;
+    const objectName = `${folder}/${timestamp}-${filename}`;
 
     // Get presigned upload URL (valid for 1 hour)
     const uploadUrl = await storageService.getUploadUrl(objectName, 3600);
@@ -108,7 +116,7 @@ mediaRouter.post(
 
 /**
  * POST /v1/media/process
- * Process a video from MinIO using Mux
+ * Process a video or audio from MinIO using Mux
  */
 mediaRouter.post(
   '/process',
@@ -120,11 +128,19 @@ mediaRouter.post(
 
     const { objectName, passthrough } = schema.parse(req.body);
 
+    // Determine media kind from object name
+    let kind: 'video' | 'audio' = 'video';
+    if (objectName.startsWith('audio/')) {
+      kind = 'audio';
+    } else if (objectName.startsWith('videos/')) {
+      kind = 'video';
+    }
+
     // Get presigned URL from MinIO (valid for 24 hours for Mux to fetch)
-    const videoUrl = await storageService.getDownloadUrl(objectName, 86400);
+    const mediaUrl = await storageService.getDownloadUrl(objectName, 86400);
 
     // Create Mux asset
-    const muxAsset = await muxService.createAssetFromUrl(videoUrl, {
+    const muxAsset = await muxService.createAssetFromUrl(mediaUrl, {
       passthrough,
       playbackPolicy: 'public',
     });
@@ -145,9 +161,9 @@ mediaRouter.post(
       RETURNING id, kind, hls_url, download_url, metadata
       `,
       [
-        'video',
+        kind,
         muxService.getHlsUrl(muxAsset.playbackId),
-        videoUrl,
+        mediaUrl,
         JSON.stringify({
           muxAssetId: muxAsset.assetId,
           muxPlaybackId: muxAsset.playbackId,
@@ -168,7 +184,8 @@ mediaRouter.post(
         assetId: muxAsset.assetId,
         playbackId: muxAsset.playbackId,
         status: muxAsset.status,
-        thumbnailUrl: muxService.getThumbnailUrl(muxAsset.playbackId),
+        duration: muxAsset.duration,
+        thumbnailUrl: kind === 'video' ? muxService.getThumbnailUrl(muxAsset.playbackId) : undefined,
       },
     });
   })

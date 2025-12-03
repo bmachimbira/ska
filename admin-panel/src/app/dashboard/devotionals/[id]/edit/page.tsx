@@ -7,8 +7,9 @@ import { ArrowLeft, Save, Eye, Code } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import VideoUpload from '@/components/VideoUpload';
-import { useSession } from 'next-auth/react';
+import AudioUpload from '@/components/AudioUpload';
 import { createApiClient } from '@/lib/api-client';
+import { useRequireAuth } from '@/hooks/useRequireAuth';
 
 interface Speaker {
   id: number;
@@ -33,14 +34,13 @@ export default function EditDevotionalPage() {
   const params = useParams();
   const router = useRouter();
   const id = params.id as string;
+  const { session, isLoading: authLoading } = useRequireAuth();
 
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [previewMode, setPreviewMode] = useState(false);
   const [speakers, setSpeakers] = useState<Speaker[]>([]);
   const [devotional, setDevotional] = useState<Devotional | null>(null);
-  const { data: session } = useSession();
-  const [error, setError] = useState('');
   const [formData, setFormData] = useState({
     date: '',
     title: '',
@@ -61,7 +61,7 @@ export default function EditDevotionalPage() {
 
   async function loadSpeakers() {
     try {
-      if (!session?.accessToken) { setError("Not authenticated."); return; }
+      if (!session?.accessToken) return; // Wait for auth to load
 
       const apiClient = createApiClient(session.accessToken as string);
 
@@ -75,13 +75,13 @@ export default function EditDevotionalPage() {
   async function loadDevotional() {
     try {
       setLoading(true);
-      if (!session?.accessToken) { setError("Not authenticated."); return; }
+      if (!session?.accessToken) return; // Wait for auth to load
 
       const apiClient = createApiClient(session.accessToken as string);
 
       const response = await apiClient.get<Devotional>(`/devotionals/${id}`);
       setDevotional(response);
-      
+
       // Populate form data
       setFormData({
         date: response.date.split('T')[0], // Format date for input
@@ -97,7 +97,7 @@ export default function EditDevotionalPage() {
       });
     } catch (error) {
       console.error('Failed to load devotional:', error);
-      setError('Failed to load devotional');
+      alert('Failed to load devotional');
       router.push('/dashboard/devotionals');
     } finally {
       setLoading(false);
@@ -106,11 +106,11 @@ export default function EditDevotionalPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!session?.accessToken) return; // Should never happen due to useRequireAuth
+
     setSaving(true);
 
     try {
-      if (!session?.accessToken) { setError("Not authenticated."); return; }
-
       const apiClient = createApiClient(session.accessToken as string);
 
       await apiClient.put(`/devotionals/${id}`, {
@@ -145,12 +145,12 @@ export default function EditDevotionalPage() {
     }));
   };
 
-  if (loading) {
+  if (authLoading || loading) {
     return (
       <div className="p-8">
         <div className="text-center py-12">
           <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600"></div>
-          <p className="mt-4 text-gray-600 dark:text-gray-400">Loading devotional...</p>
+          <p className="mt-4 text-gray-600 dark:text-gray-400">Loading...</p>
         </div>
       </div>
     );
@@ -158,13 +158,6 @@ export default function EditDevotionalPage() {
 
   return (
     <div className="p-8">
-      {/* Error */}
-      {error && (
-        <div className="mb-6 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-400 px-4 py-3 rounded">
-          {error}
-        </div>
-      )}
-
       {/* Header */}
       <div className="flex items-center gap-4 mb-8">
         <Link
@@ -369,23 +362,25 @@ export default function EditDevotionalPage() {
             </div>
           )}
 
-          {/* Audio Upload Placeholder (if content type is audio) */}
+          {/* Audio Upload (if content type is audio) */}
           {formData.contentType === 'audio' && (
             <div>
-              <label
-                htmlFor="audioAssetId"
-                className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
-              >
-                Audio Asset ID
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                Audio {formData.audioAssetId && '(Current audio will be replaced)'}
               </label>
-              <input
-                type="text"
-                id="audioAssetId"
-                name="audioAssetId"
-                value={formData.audioAssetId}
-                onChange={handleChange}
-                className="w-full px-4 py-2 border border-gray-300 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-900 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                placeholder="Audio upload coming soon"
+              {formData.audioAssetId && (
+                <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">
+                  Current Audio Asset: {formData.audioAssetId}
+                </p>
+              )}
+              <AudioUpload
+                onUploadComplete={(assetId, url) => {
+                  setFormData(prev => ({ ...prev, audioAssetId: assetId }));
+                }}
+                onError={(error) => {
+                  console.error('Audio upload error:', error);
+                  alert('Audio upload failed: ' + error);
+                }}
               />
             </div>
           )}

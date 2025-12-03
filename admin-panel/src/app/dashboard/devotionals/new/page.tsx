@@ -7,8 +7,9 @@ import { ArrowLeft, Save, Eye, Code } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import VideoUpload from '@/components/VideoUpload';
-import { useSession } from 'next-auth/react';
+import AudioUpload from '@/components/AudioUpload';
 import { createApiClient } from '@/lib/api-client';
+import { useRequireAuth } from '@/hooks/useRequireAuth';
 
 interface Speaker {
   id: number;
@@ -17,10 +18,11 @@ interface Speaker {
 
 export default function NewDevotionalPage() {
   const router = useRouter();
+  const { session, isLoading: authLoading } = useRequireAuth();
   const [loading, setLoading] = useState(false);
   const [previewMode, setPreviewMode] = useState(false);
   const [speakers, setSpeakers] = useState<Speaker[]>([]);
-  const { data: session } = useSession();
+  const [slugManuallyEdited, setSlugManuallyEdited] = useState(false);
   const [error, setError] = useState('');
   const [formData, setFormData] = useState({
     date: '',
@@ -43,7 +45,7 @@ export default function NewDevotionalPage() {
 
   async function loadSpeakers() {
     try {
-      if (!session?.accessToken) { setError("Not authenticated."); return; }
+      if (!session?.accessToken) return; // Wait for auth to load
 
       const apiClient = createApiClient(session.accessToken as string);
 
@@ -54,24 +56,25 @@ export default function NewDevotionalPage() {
     }
   }
 
-  // Auto-generate slug from title
+  // Auto-generate slug from title (only if not manually edited)
   useEffect(() => {
-    if (formData.title && !formData.slug) {
+    if (formData.title && !slugManuallyEdited) {
       const slug = formData.title
         .toLowerCase()
         .replace(/[^a-z0-9]+/g, '-')
         .replace(/^-|-$/g, '');
       setFormData(prev => ({ ...prev, slug }));
     }
-  }, [formData.title]);
+  }, [formData.title, slugManuallyEdited]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!session?.accessToken) return; // Should never happen due to useRequireAuth
+
     setLoading(true);
+    setError(''); // Clear previous errors
 
     try {
-      if (!session?.accessToken) { setError("Not authenticated."); return; }
-
       const apiClient = createApiClient(session.accessToken as string);
 
       await apiClient.post('/devotionals', {
@@ -90,7 +93,11 @@ export default function NewDevotionalPage() {
       router.push('/dashboard/devotionals');
     } catch (error: any) {
       console.error('Error creating devotional:', error);
-      alert('Failed to create devotional: ' + (error.message || 'Unknown error'));
+      // Extract error message from API response
+      const errorMessage = error.response?.data?.message || error.message || 'Failed to create devotional';
+      setError(errorMessage);
+      // Scroll to top to show error
+      window.scrollTo({ top: 0, behavior: 'smooth' });
     } finally {
       setLoading(false);
     }
@@ -100,18 +107,54 @@ export default function NewDevotionalPage() {
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
   ) => {
     const { name, value } = e.target;
+
+    // Track if user manually edits the slug
+    if (name === 'slug') {
+      setSlugManuallyEdited(true);
+    }
+
     setFormData((prev) => ({
       ...prev,
       [name]: value,
     }));
   };
 
+  // Show loading state while authenticating
+  if (authLoading) {
+    return (
+      <div className="p-8">
+        <div className="text-center py-12">
+          <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600"></div>
+          <p className="mt-4 text-gray-600 dark:text-gray-400">Loading...</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="p-8">
-      {/* Error */}
+      {/* Error Banner */}
       {error && (
-        <div className="mb-6 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-400 px-4 py-3 rounded">
-          {error}
+        <div className="mb-6 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4">
+          <div className="flex items-start gap-3">
+            <div className="flex-shrink-0">
+              <svg className="w-5 h-5 text-red-600 dark:text-red-400" fill="currentColor" viewBox="0 0 20 20">
+                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+              </svg>
+            </div>
+            <div className="flex-1">
+              <h3 className="text-sm font-medium text-red-800 dark:text-red-200">Error</h3>
+              <p className="mt-1 text-sm text-red-700 dark:text-red-300">{error}</p>
+            </div>
+            <button
+              onClick={() => setError('')}
+              className="flex-shrink-0 text-red-600 dark:text-red-400 hover:text-red-800 dark:hover:text-red-200"
+            >
+              <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
+              </svg>
+            </button>
+          </div>
         </div>
       )}
 
@@ -317,23 +360,20 @@ export default function NewDevotionalPage() {
             </div>
           )}
 
-          {/* Audio Upload Placeholder (if content type is audio) */}
+          {/* Audio Upload (if content type is audio) */}
           {formData.contentType === 'audio' && (
             <div>
-              <label
-                htmlFor="audioAssetId"
-                className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
-              >
-                Audio Asset ID
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                Audio
               </label>
-              <input
-                type="text"
-                id="audioAssetId"
-                name="audioAssetId"
-                value={formData.audioAssetId}
-                onChange={handleChange}
-                className="w-full px-4 py-2 border border-gray-300 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-900 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                placeholder="Audio upload coming soon"
+              <AudioUpload
+                onUploadComplete={(assetId, url) => {
+                  setFormData(prev => ({ ...prev, audioAssetId: assetId }));
+                }}
+                onError={(error) => {
+                  console.error('Audio upload error:', error);
+                  alert('Audio upload failed: ' + error);
+                }}
               />
             </div>
           )}

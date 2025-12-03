@@ -5,6 +5,7 @@ import { apiClient } from '@/lib/api-client';
 import { Devotional } from '@/types/api';
 import { formatDate } from '@/lib/utils';
 import { AudioPlayer } from '@/components/media/AudioPlayer';
+import { VideoPlayer } from '@/components/media/VideoPlayer';
 import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
 import { notFound } from 'next/navigation';
@@ -35,7 +36,7 @@ export async function generateMetadata({ params }: DevotionalPageProps): Promise
 
   return {
     title: `${devotional.title} - Daily Devotionals`,
-    description: devotional.memoryVerse || devotional.content.substring(0, 160),
+    description: devotional.body_md?.substring(0, 160) || devotional.title,
   };
 }
 
@@ -78,30 +79,66 @@ export default async function DevotionalPage({ params }: DevotionalPageProps) {
             </div>
           )}
 
-          {/* Memory Verse */}
-          {devotional.memoryVerse && (
-            <blockquote className="mb-8 border-l-4 border-primary-500 bg-primary-50 dark:bg-primary-950/30 pl-6 pr-4 py-4 italic">
-              <p className="text-lg text-gray-800 dark:text-gray-200 font-serif">
-                {devotional.memoryVerse}
-              </p>
-            </blockquote>
+          {/* Speaker */}
+          {devotional.speaker && (
+            <div className="mb-8 flex items-center justify-center gap-2 text-gray-600 dark:text-gray-400">
+              <User className="h-4 w-4" />
+              <span className="text-sm">Speaker: {devotional.speaker.name}</span>
+            </div>
+          )}
+
+          {/* Video Player */}
+          {devotional.video_asset_details?.hls_url && (
+            <div className="mb-8">
+              <div className="flex items-center gap-2 mb-3 text-sm font-medium text-gray-700 dark:text-gray-300">
+                <Volume2 className="h-4 w-4" />
+                <span>Watch this devotional</span>
+              </div>
+              {devotional.video_asset_details.metadata?.status === 'preparing' ? (
+                <div className="rounded-lg border border-blue-200 bg-blue-50 dark:border-blue-800 dark:bg-blue-900/20 p-6 text-center">
+                  <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mb-3"></div>
+                  <p className="text-blue-900 dark:text-blue-100 font-medium">Processing video...</p>
+                  <p className="text-sm text-blue-700 dark:text-blue-300 mt-2">
+                    Your video is being processed. Please check back in a few minutes.
+                  </p>
+                </div>
+              ) : (
+                <VideoPlayer
+                  url={devotional.video_asset_details.hls_url}
+                  title={devotional.title}
+                />
+              )}
+            </div>
           )}
 
           {/* Audio Player */}
-          {devotional.audioAsset && (
+          {devotional.audio_asset_details?.hls_url && (
             <div className="mb-8">
               <div className="flex items-center gap-2 mb-3 text-sm font-medium text-gray-700 dark:text-gray-300">
                 <Volume2 className="h-4 w-4" />
                 <span>Listen to this devotional</span>
               </div>
-              <AudioPlayer url={devotional.audioAsset.url} />
+              {devotional.audio_asset_details.metadata?.status === 'preparing' ? (
+                <div className="rounded-lg border border-blue-200 bg-blue-50 dark:border-blue-800 dark:bg-blue-900/20 p-6 text-center">
+                  <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mb-3"></div>
+                  <p className="text-blue-900 dark:text-blue-100 font-medium">Processing audio...</p>
+                  <p className="text-sm text-blue-700 dark:text-blue-300 mt-2">
+                    Your audio is being processed. Please check back in a few minutes.
+                  </p>
+                </div>
+              ) : (
+                <AudioPlayer
+                  url={devotional.audio_asset_details.hls_url}
+                  title={devotional.title}
+                />
+              )}
             </div>
           )}
 
           {/* Content */}
           <div className="prose prose-lg dark:prose-invert max-w-none font-serif">
             <div className="whitespace-pre-wrap text-gray-800 dark:text-gray-200 leading-relaxed">
-              {devotional.content}
+              {devotional.body_md}
             </div>
           </div>
 
