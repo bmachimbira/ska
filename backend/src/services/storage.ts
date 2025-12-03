@@ -161,3 +161,37 @@ export async function listFiles(prefix: string = ''): Promise<string[]> {
     });
   });
 }
+
+/**
+ * Download a file from a URL and save it to MinIO
+ */
+export async function downloadAndSave(
+  url: string,
+  objectName: string,
+  contentType?: string
+): Promise<string> {
+  try {
+    // Fetch the file
+    const response = await fetch(url);
+    if (!response.ok) {
+      throw new Error(`Failed to download file: ${response.statusText}`);
+    }
+
+    // Get the buffer
+    const buffer = Buffer.from(await response.arrayBuffer());
+
+    // Upload to MinIO
+    const metadata: Record<string, string> = {};
+    if (contentType) {
+      metadata['Content-Type'] = contentType;
+    }
+
+    await minioClient.putObject(BUCKET_NAME, objectName, buffer, buffer.length, metadata);
+
+    console.log(`✓ Saved file to MinIO: ${objectName}`);
+    return objectName;
+  } catch (error) {
+    console.error('Failed to download and save file to MinIO:', error);
+    throw error;
+  }
+}

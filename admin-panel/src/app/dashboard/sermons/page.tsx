@@ -11,10 +11,10 @@ interface Sermon {
   id: number;
   title: string;
   description: string;
-  scripture_refs: string[];
-  published_at: string | null;
-  is_featured: boolean;
-  view_count: number;
+  scriptureRefs: string[];
+  publishedAt: string | null;
+  isFeatured: boolean;
+  viewCount: number;
   speaker: { id: number; name: string } | null;
   series: { id: number; title: string } | null;
   tags: Array<{ id: number; name: string; slug: string }>;
@@ -189,7 +189,7 @@ export default function SermonsPage() {
                     <span className="text-sm font-medium text-gray-900 dark:text-white">
                       {sermon.title}
                     </span>
-                    {sermon.is_featured && (
+                    {sermon.isFeatured && (
                       <span className="px-2 py-1 text-xs font-medium bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-400 rounded">
                         Featured
                       </span>
@@ -203,10 +203,10 @@ export default function SermonsPage() {
                   {sermon.series?.title || 'N/A'}
                 </td>
                 <td className="px-6 py-4 text-sm text-gray-600 dark:text-gray-300">
-                  {sermon.published_at ? formatDate(sermon.published_at) : 'Draft'}
+                  {sermon.publishedAt ? formatDate(sermon.publishedAt) : 'Draft'}
                 </td>
                 <td className="px-6 py-4 text-sm text-gray-600 dark:text-gray-300">
-                  {sermon.view_count.toLocaleString()}
+                  {sermon.viewCount.toLocaleString()}
                 </td>
                 <td className="px-6 py-4">
                   <span className="px-2 py-1 text-xs font-medium bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-400 rounded">

@@ -139,15 +139,15 @@ export default function AudioUpload({
           status: 'complete',
           progress: 100,
           message: 'Audio uploaded successfully!',
-          assetId: result.assetId,
-          hlsUrl: result.hlsUrl,
+          assetId: result.asset.id,
+          hlsUrl: result.asset.hlsUrl,
           duration: result.mux?.duration,
         });
 
         // Notify parent component
         onUploadComplete(
-          result.assetId,
-          result.hlsUrl
+          result.asset.id,
+          result.asset.hlsUrl
         );
       } catch (error) {
         const errorMessage =

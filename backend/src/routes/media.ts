@@ -224,6 +224,93 @@ mediaRouter.post(
 );
 
 /**
+ * GET /v1/media/upload-status/:uploadId
+ * Check the status of a Mux direct upload
+ */
+mediaRouter.get(
+  '/upload-status/:uploadId',
+  asyncHandler(async (req: Request, res: Response) => {
+    const { uploadId } = req.params;
+
+    try {
+      const upload = await muxService.getDirectUpload(uploadId);
+
+      // If the upload is complete and has an asset, store it in our database
+      if (upload.status === 'asset_created' && upload.assetId) {
+        const pool = getPool();
+
+        // Check if asset already exists in database
+        const existing = await pool.query(
+          'SELECT id FROM media_asset WHERE metadata->>\'muxAssetId\' = $1',
+          [upload.assetId]
+        );
+
+        let assetDbId: string;
+
+        if (existing.rows.length === 0) {
+          // Get asset details from Mux
+          const muxAsset = await muxService.getAsset(upload.assetId);
+
+          // Check if playback ID is available yet
+          if (!muxAsset.playbackId) {
+            console.log(`Asset ${upload.assetId} created but playback ID not yet available`);
+            return res.json({
+              uploadStatus: 'processing',
+            });
+          }
+
+          // Determine kind (audio or video)
+          const kind = muxAsset.tracks?.some((t: any) => t.type === 'video') ? 'video' : 'audio';
+
+          // Store in database
+          const result = await pool.query(
+            `
+            INSERT INTO media_asset (
+              id,
+              kind,
+              hls_url,
+              metadata,
+              created_at,
+              updated_at
+            ) VALUES (gen_random_uuid(), $1, $2, $3, NOW(), NOW())
+            RETURNING id
+            `,
+            [
+              kind,
+              muxService.getHlsUrl(muxAsset.playbackId),
+              JSON.stringify({
+                muxAssetId: muxAsset.assetId,
+                muxPlaybackId: muxAsset.playbackId,
+                status: muxAsset.status,
+                duration: muxAsset.duration,
+              }),
+            ]
+          );
+          assetDbId = result.rows[0].id;
+        } else {
+          assetDbId = existing.rows[0].id;
+        }
+
+        res.json({
+          uploadStatus: upload.status,
+          assetId: assetDbId,
+        });
+      } else {
+        res.json({
+          uploadStatus: upload.status,
+        });
+      }
+    } catch (error) {
+      console.error('Failed to get upload status:', error);
+      res.status(500).json({
+        error: 'Internal Server Error',
+        message: 'Failed to get upload status',
+      });
+    }
+  })
+);
+
+/**
  * GET /v1/media/:assetId
  * Get media asset details
  */
@@ -384,6 +471,60 @@ mediaRouter.post(
             assetId,
           ]
         );
+
+        // Download the master file and save to MinIO for backup
+        // This runs asynchronously and doesn't block the webhook response
+        (async () => {
+          try {
+            console.log(`Starting MinIO backup for asset ${assetId}`);
+
+            const masterUrl = await muxService.getMasterAccessUrl(assetId);
+            if (!masterUrl) {
+              console.warn(`No master URL available for asset ${assetId}, skipping MinIO backup`);
+              return;
+            }
+
+            // Get asset details to determine file type and extension
+            const muxAsset = await muxService.getAsset(assetId);
+            const isVideo = muxAsset.tracks?.some((t: any) => t.type === 'video');
+            const folder = isVideo ? 'videos' : 'audio';
+
+            // Create object name with timestamp
+            const timestamp = Date.now();
+            const extension = isVideo ? 'mp4' : 'm4a'; // Default extensions
+            const objectName = `${folder}/mux-${assetId}-${timestamp}.${extension}`;
+
+            // Download and save to MinIO
+            await storageService.downloadAndSave(
+              masterUrl,
+              objectName,
+              isVideo ? 'video/mp4' : 'audio/mp4'
+            );
+
+            // Update database with MinIO object name
+            await pool.query(
+              `
+              UPDATE media_asset
+              SET
+                download_url = $1,
+                metadata = metadata || $2::jsonb,
+                updated_at = NOW()
+              WHERE metadata->>'muxAssetId' = $3
+              `,
+              [
+                await storageService.getDownloadUrl(objectName, 86400),
+                JSON.stringify({ minioObjectName: objectName }),
+                assetId,
+              ]
+            );
+
+            console.log(`✓ Backed up asset ${assetId} to MinIO: ${objectName}`);
+          } catch (error) {
+            console.error(`Failed to backup asset ${assetId} to MinIO:`, error);
+            // Don't throw - we don't want to fail the webhook response
+          }
+        })();
+
         break;
 
       case 'video.asset.errored':

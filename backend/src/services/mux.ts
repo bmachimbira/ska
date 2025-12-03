@@ -29,6 +29,7 @@ export interface MuxAssetData {
   aspectRatio?: string;
   maxStoredResolution?: string;
   maxStoredFrameRate?: number;
+  tracks?: Array<{ type: string; [key: string]: any }>;
 }
 
 /**
@@ -97,6 +98,7 @@ export async function getAsset(assetId: string): Promise<MuxAssetData> {
       aspectRatio: asset.aspect_ratio,
       maxStoredResolution: asset.max_stored_resolution,
       maxStoredFrameRate: asset.max_stored_frame_rate,
+      tracks: asset.tracks as Array<{ type: string; [key: string]: any }>,
     };
   } catch (error) {
     console.error('Failed to get Mux asset:', error);
@@ -218,6 +220,56 @@ export async function getUploadStatus(uploadId: string) {
     return await video.uploads.retrieve(uploadId);
   } catch (error) {
     console.error('Failed to get upload status:', error);
+    throw error;
+  }
+}
+
+/**
+ * Get direct upload details
+ */
+export async function getDirectUpload(uploadId: string): Promise<{
+  status: string;
+  assetId?: string;
+  error?: any;
+}> {
+  try {
+    const upload = await video.uploads.retrieve(uploadId);
+    return {
+      status: upload.status,
+      assetId: upload.asset_id,
+      error: upload.error,
+    };
+  } catch (error) {
+    console.error('Failed to get direct upload:', error);
+    throw error;
+  }
+}
+
+/**
+ * Get master access URL for downloading the original file
+ * This URL is authenticated and temporary
+ */
+export async function getMasterAccessUrl(assetId: string): Promise<string | null> {
+  try {
+    const asset = await video.assets.retrieve(assetId);
+
+    // Check if master access is available
+    if (asset.master_access === 'none') {
+      console.warn(`Asset ${assetId} does not have master access enabled`);
+      return null;
+    }
+
+    // Create a URL for the master file
+    // Note: Mux automatically provides the master file URL
+    // The master field contains the URL to download the original file
+    if (asset.master && typeof asset.master === 'object' && 'url' in asset.master) {
+      return (asset.master as any).url;
+    }
+
+    console.warn(`Asset ${assetId} master URL not available yet`);
+    return null;
+  } catch (error) {
+    console.error('Failed to get master access URL:', error);
     throw error;
   }
 }

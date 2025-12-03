@@ -3,6 +3,7 @@
 import { useRef, useState, useEffect } from 'react';
 import { Play, Pause, Volume2, VolumeX } from 'lucide-react';
 import { formatDuration } from '@/lib/utils';
+import Hls from 'hls.js';
 
 export interface AudioPlayerProps {
   url: string;
@@ -11,11 +12,70 @@ export interface AudioPlayerProps {
 
 export function AudioPlayer({ url, title }: AudioPlayerProps) {
   const audioRef = useRef<HTMLAudioElement>(null);
+  const hlsRef = useRef<Hls | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
   const [volume, setVolume] = useState(1);
   const [isMuted, setIsMuted] = useState(false);
+
+  // Setup HLS.js for HLS streams
+  useEffect(() => {
+    const audio = audioRef.current;
+    if (!audio || !url) return;
+
+    // Check if the URL is an HLS stream
+    if (url.includes('.m3u8')) {
+      if (Hls.isSupported()) {
+        const hls = new Hls({
+          enableWorker: true,
+          lowLatencyMode: false,
+        });
+
+        hls.loadSource(url);
+        hls.attachMedia(audio);
+
+        hls.on(Hls.Events.MANIFEST_PARSED, () => {
+          console.log('HLS manifest loaded');
+        });
+
+        hls.on(Hls.Events.ERROR, (event, data) => {
+          console.error('HLS error:', data);
+          if (data.fatal) {
+            switch (data.type) {
+              case Hls.ErrorTypes.NETWORK_ERROR:
+                console.error('Fatal network error, trying to recover');
+                hls.startLoad();
+                break;
+              case Hls.ErrorTypes.MEDIA_ERROR:
+                console.error('Fatal media error, trying to recover');
+                hls.recoverMediaError();
+                break;
+              default:
+                console.error('Fatal error, cannot recover');
+                hls.destroy();
+                break;
+            }
+          }
+        });
+
+        hlsRef.current = hls;
+
+        return () => {
+          if (hlsRef.current) {
+            hlsRef.current.destroy();
+            hlsRef.current = null;
+          }
+        };
+      } else if (audio.canPlayType('application/vnd.apple.mpegurl')) {
+        // Native HLS support (Safari)
+        audio.src = url;
+      }
+    } else {
+      // Regular audio file
+      audio.src = url;
+    }
+  }, [url]);
 
   useEffect(() => {
     const audio = audioRef.current;
@@ -78,7 +138,7 @@ export function AudioPlayer({ url, title }: AudioPlayerProps) {
 
   return (
     <div className="rounded-lg border border-gray-200 bg-white p-4 dark:border-gray-800 dark:bg-gray-900">
-      <audio ref={audioRef} src={url} preload="metadata" />
+      <audio ref={audioRef} preload="metadata" />
 
       {title && (
         <div className="mb-4">

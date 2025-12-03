@@ -99,20 +99,10 @@ export default async function TodayDevotionalPage() {
                 <Volume2 className="h-4 w-4" />
                 <span>Watch today's devotional</span>
               </div>
-              {devotional.video_asset_details.metadata?.status === 'preparing' ? (
-                <div className="rounded-lg border border-blue-200 bg-blue-50 dark:border-blue-800 dark:bg-blue-900/20 p-6 text-center">
-                  <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mb-3"></div>
-                  <p className="text-blue-900 dark:text-blue-100 font-medium">Processing video...</p>
-                  <p className="text-sm text-blue-700 dark:text-blue-300 mt-2">
-                    Your video is being processed. Please check back in a few minutes.
-                  </p>
-                </div>
-              ) : (
-                <VideoPlayer
-                  url={devotional.video_asset_details.hls_url}
-                  title={devotional.title}
-                />
-              )}
+              <VideoPlayer
+                url={devotional.video_asset_details.hls_url}
+                title={devotional.title}
+              />
             </div>
           )}
 
@@ -123,20 +113,10 @@ export default async function TodayDevotionalPage() {
                 <Volume2 className="h-4 w-4" />
                 <span>Listen to today's devotional</span>
               </div>
-              {devotional.audio_asset_details.metadata?.status === 'preparing' ? (
-                <div className="rounded-lg border border-blue-200 bg-blue-50 dark:border-blue-800 dark:bg-blue-900/20 p-6 text-center">
-                  <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mb-3"></div>
-                  <p className="text-blue-900 dark:text-blue-100 font-medium">Processing audio...</p>
-                  <p className="text-sm text-blue-700 dark:text-blue-300 mt-2">
-                    Your audio is being processed. Please check back in a few minutes.
-                  </p>
-                </div>
-              ) : (
-                <AudioPlayer
-                  url={devotional.audio_asset_details.hls_url}
-                  title={devotional.title}
-                />
-              )}
+              <AudioPlayer
+                url={devotional.audio_asset_details.hls_url}
+                title={devotional.title}
+              />
             </div>
           )}
 
