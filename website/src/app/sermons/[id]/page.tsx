@@ -120,7 +120,7 @@ export default async function SermonPage({ params }: SermonPageProps) {
               {/* Action Buttons */}
               <div className="flex flex-wrap gap-3 mt-6">
                 {audioUrl && (
-                  <Button asChild variant="default">
+                  <Button asChild variant="primary">
                     <a href={audioUrl} download>
                       <Download className="h-4 w-4 mr-2" />
                       Download Audio
