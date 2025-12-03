@@ -55,18 +55,6 @@ export function Header() {
             <nav className="flex items-center gap-8">
               <div className="relative group">
                 <button className="flex items-center gap-1 text-sm font-semibold uppercase tracking-wide text-white hover:text-white/80 transition-colors">
-                  Home
-                  <ChevronDown className="h-4 w-4" />
-                </button>
-                <div className="absolute left-0 mt-2 w-48 bg-white shadow-lg rounded-md opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200">
-                  <Link href="/" className="block px-4 py-2 text-sm text-gray-700 hover:bg-primary-50 hover:text-primary-600">
-                    Home
-                  </Link>
-                </div>
-              </div>
-
-              <div className="relative group">
-                <button className="flex items-center gap-1 text-sm font-semibold uppercase tracking-wide text-white hover:text-white/80 transition-colors">
                   Resources
                   <ChevronDown className="h-4 w-4" />
                 </button>
@@ -223,13 +211,6 @@ export function Header() {
       {mobileMenuOpen && (
         <div className="lg:hidden border-t">
           <div className="space-y-1 px-4 pb-4 pt-2 bg-white">
-            <Link
-              href="/"
-              className="flex items-center gap-3 rounded-lg px-3 py-2 text-base font-semibold text-gray-900 hover:bg-primary-50"
-              onClick={() => setMobileMenuOpen(false)}
-            >
-              Home
-            </Link>
             <Link
               href="/sermons"
               className="flex items-center gap-3 rounded-lg px-3 py-2 text-base font-semibold text-gray-900 hover:bg-primary-50"

@@ -174,7 +174,9 @@ export interface HomePageData {
   todayDevotional?: Devotional;
   currentQuarterlies: Quarterly[];
   nextEvent?: Event;
+  upcomingEvents?: Event[]; // All upcoming events
   activeCauses: Cause[];
+  churchAnnouncements?: ChurchAnnouncement[]; // Only for authenticated church members
   // Church-specific content (if user is a member)
   churchData?: ChurchHomeData;
 }

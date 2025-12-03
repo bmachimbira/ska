@@ -164,6 +164,19 @@ export interface Cause {
   updatedAt: string;
 }
 
+export type AnnouncementPriority = 'low' | 'normal' | 'high' | 'urgent';
+
+export interface ChurchAnnouncement {
+  id: number;
+  title: string;
+  content: string;
+  priority: AnnouncementPriority;
+  expiresAt?: string;
+  createdAt: string;
+  churchId: number;
+  churchName: string;
+}
+
 // Home page response
 export interface HomePageData {
   featuredSermon?: Sermon;
@@ -171,7 +184,9 @@ export interface HomePageData {
   todayDevotional?: Devotional;
   currentQuarterlies: Quarterly[];
   nextEvent?: Event;
+  upcomingEvents?: Event[]; // All upcoming events
   activeCauses: Cause[];
+  churchAnnouncements?: ChurchAnnouncement[]; // Only for authenticated church members
 }
 
 // Backend pagination format

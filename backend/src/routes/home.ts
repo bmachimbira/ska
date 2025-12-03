@@ -6,17 +6,34 @@
 import { Router, Request, Response } from 'express';
 import { asyncHandler } from '../middleware/async-handler';
 import { getPool } from '../config/database';
+import { AuthService } from '../services/auth.service';
 
 export const homeRouter = Router();
 
 /**
  * GET /v1/home
- * Returns featured sermons, today's devotional, and current quarterlies
+ * Returns featured sermons, today's devotional, current quarterlies, all upcoming events
+ * If authenticated and user is a church member, also returns church announcements
  */
 homeRouter.get(
   '/',
   asyncHandler(async (req: Request, res: Response) => {
     const pool = getPool();
+    
+    // Check for optional authentication
+    let userId: number | null = null;
+    const authHeader = req.headers.authorization;
+    
+    if (authHeader && authHeader.startsWith('Bearer ')) {
+      try {
+        const token = authHeader.substring(7);
+        const payload = AuthService.verifyToken(token);
+        userId = payload.userId;
+      } catch (error) {
+        // Invalid token - continue as unauthenticated user
+        console.log('Invalid token in home request, continuing as guest');
+      }
+    }
 
     // Get current year and quarter
     const now = new Date();
@@ -201,8 +218,8 @@ homeRouter.get(
       `
     );
 
-    // Query next upcoming event
-    const nextEventResult = await pool.query(
+    // Query all upcoming events
+    const upcomingEventsResult = await pool.query(
       `
       SELECT
         e.id,
@@ -232,8 +249,8 @@ homeRouter.get(
       LEFT JOIN speaker sp ON e.speaker_id = sp.id
       LEFT JOIN media_asset thumb ON e.thumbnail_asset = thumb.id
       WHERE e.is_published = true AND e.event_date >= NOW()
-      ORDER BY e.event_date ASC
-      LIMIT 1
+      ORDER BY e.event_date ASC, e.event_time ASC
+      LIMIT 10
       `
     );
 
@@ -271,14 +288,70 @@ homeRouter.get(
     const featuredSermon = featuredSermonResult.rows[0] || null;
     const recentSermons = recentSermonsResult.rows || [];
     const todayDevotional = todayDevotionalResult.rows[0] || null;
-    const nextEvent = nextEventResult.rows[0] || null;
+    const upcomingEvents = upcomingEventsResult.rows || [];
+    const nextEvent = upcomingEvents[0] || null; // Keep for backward compatibility
     const activeCauses = activeCausesResult.rows || [];
+
+    // Fetch church announcements if user is authenticated and is a member
+    let churchAnnouncements: any[] = [];
+    if (userId) {
+      try {
+        // Get user's primary church membership
+        const membershipResult = await pool.query(
+          `SELECT church_id FROM church_member 
+           WHERE user_id = $1 AND is_primary = true
+           LIMIT 1`,
+          [userId]
+        );
+
+        if (membershipResult.rows.length > 0) {
+          const churchId = membershipResult.rows[0].church_id;
+          
+          // Fetch announcements for the user's church
+          const announcementsResult = await pool.query(
+            `
+            SELECT 
+              ca.id, 
+              ca.title, 
+              ca.content, 
+              ca.priority, 
+              ca.expires_at as "expiresAt",
+              ca.created_at as "createdAt",
+              c.id as "churchId",
+              c.name as "churchName"
+            FROM church_announcement ca
+            JOIN church c ON ca.church_id = c.id
+            WHERE ca.church_id = $1 
+              AND ca.is_published = true
+              AND (ca.expires_at IS NULL OR ca.expires_at > NOW())
+            ORDER BY 
+              CASE ca.priority
+                WHEN 'urgent' THEN 1
+                WHEN 'high' THEN 2
+                WHEN 'normal' THEN 3
+                WHEN 'low' THEN 4
+                ELSE 5
+              END,
+              ca.created_at DESC
+            LIMIT 5
+            `,
+            [churchId]
+          );
+          
+          churchAnnouncements = announcementsResult.rows;
+        }
+      } catch (error) {
+        console.error('Error fetching church announcements:', error);
+        // Continue without announcements on error
+      }
+    }
 
     const homeData = {
       featuredSermon,
       recentSermons,
       todayDevotional,
-      nextEvent,
+      nextEvent, // Keep for backward compatibility
+      upcomingEvents, // New: all upcoming events
       activeCauses,
       currentQuarterlies: quarterliesResult.rows.map(row => ({
         id: row.id,
@@ -287,6 +360,8 @@ homeRouter.get(
         year: row.year,
         quarter: row.quarter,
       })),
+      // Only include announcements if user is authenticated and has a church
+      ...(churchAnnouncements.length > 0 && { churchAnnouncements }),
     };
 
     res.json(homeData);

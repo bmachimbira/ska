@@ -15,14 +15,27 @@ export class ApiClient {
 
   private async request<T>(
     endpoint: string,
-    options: RequestInit = {}
+    options: RequestInit = {},
+    authToken?: string
   ): Promise<T> {
     const url = `${this.baseUrl}${endpoint}`;
 
-    const headers: HeadersInit = {
+    const headers: Record<string, string> = {
       'Content-Type': 'application/json',
-      ...options.headers,
     };
+
+    // Add existing headers from options
+    if (options.headers) {
+      const existingHeaders = new Headers(options.headers);
+      existingHeaders.forEach((value, key) => {
+        headers[key] = value;
+      });
+    }
+
+    // Add auth token if provided
+    if (authToken) {
+      headers['Authorization'] = `Bearer ${authToken}`;
+    }
 
     const response = await fetch(url, {
       ...options,
@@ -45,8 +58,8 @@ export class ApiClient {
     return response.json();
   }
 
-  async get<T>(endpoint: string, options?: RequestInit): Promise<T> {
-    return this.request<T>(endpoint, { ...options, method: 'GET' });
+  async get<T>(endpoint: string, options?: RequestInit, authToken?: string): Promise<T> {
+    return this.request<T>(endpoint, { ...options, method: 'GET' }, authToken);
   }
 
   async getMediaUrl(mediaId: string): Promise<string> {

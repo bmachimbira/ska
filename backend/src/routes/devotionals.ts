@@ -41,8 +41,8 @@ devotionalsRouter.get(
     const { tz = 'UTC' } = req.query;
     const pool = getPool();
 
-    // Get today's date in the specified timezone
-    const query = `
+    // First try to get today's devotional
+    const todayQuery = `
       SELECT
         d.id,
         d.slug,
@@ -90,10 +90,62 @@ devotionalsRouter.get(
       LIMIT 1
     `;
 
-    const result = await pool.query(query);
+    let result = await pool.query(todayQuery);
+
+    // If no devotional for today, get the most recent one
+    if (result.rows.length === 0) {
+      const recentQuery = `
+        SELECT
+          d.id,
+          d.slug,
+          d.title,
+          d.author,
+          d.speaker_id,
+          d.body_md,
+          d.date,
+          d.content_type,
+          d.audio_asset,
+          d.video_asset,
+          d.lang,
+          d.view_count,
+          d.created_at,
+          d.updated_at,
+          json_build_object(
+            'id', s.id,
+            'name', s.name
+          ) as speaker,
+          CASE WHEN d.audio_asset IS NOT NULL THEN
+            json_build_object(
+              'id', ma_audio.id,
+              'kind', ma_audio.kind,
+              'hls_url', ma_audio.hls_url,
+              'duration_seconds', ma_audio.duration_seconds,
+              'metadata', ma_audio.metadata
+            )
+          END as audio_asset_details,
+          CASE WHEN d.video_asset IS NOT NULL THEN
+            json_build_object(
+              'id', ma_video.id,
+              'kind', ma_video.kind,
+              'hls_url', ma_video.hls_url,
+              'duration_seconds', ma_video.duration_seconds,
+              'metadata', ma_video.metadata
+            )
+          END as video_asset_details
+        FROM devotional d
+        LEFT JOIN speaker s ON d.speaker_id = s.id
+        LEFT JOIN media_asset ma_audio ON d.audio_asset = ma_audio.id
+        LEFT JOIN media_asset ma_video ON d.video_asset = ma_video.id
+        WHERE d.lang = 'en'
+        ORDER BY d.date DESC
+        LIMIT 1
+      `;
+      
+      result = await pool.query(recentQuery);
+    }
 
     if (result.rows.length === 0) {
-      res.status(404).json({ error: 'No devotional found for today' });
+      res.status(404).json({ error: 'No devotional found' });
       return;
     }
 

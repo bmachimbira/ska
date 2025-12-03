@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { cookies } from 'next/headers';
 import { ArrowRight } from 'lucide-react';
 import { apiClient } from '@/lib/api-client';
 import { HomePageData } from '@/types/api';
@@ -8,6 +9,8 @@ import { QuarterlyCard } from '@/components/content/QuarterlyCard';
 import { Button } from '@/components/ui/Button';
 import { HeroSlider } from '@/components/layout/HeroSlider';
 import { EventSection } from '@/components/content/EventSection';
+import { EventsSection } from '@/components/content/EventsSection';
+import { AnnouncementsSection } from '@/components/content/AnnouncementsSection';
 import { FeaturedSermonSection } from '@/components/content/FeaturedSermonSection';
 import { WelcomeSection } from '@/components/content/WelcomeSection';
 import { MinistriesSection } from '@/components/content/MinistriesSection';
@@ -17,7 +20,11 @@ export const revalidate = 60; // 1 minute
 
 async function getHomeData(): Promise<HomePageData> {
   try {
-    return await apiClient.get<HomePageData>('/home');
+    // Get auth token from cookies if available
+    const cookieStore = await cookies();
+    const authToken = cookieStore.get('authToken')?.value;
+    
+    return await apiClient.get<HomePageData>('/home', undefined, authToken);
   } catch (error) {
     console.error('Failed to fetch home data:', error);
     // Return empty data on error
@@ -37,8 +44,18 @@ export default async function HomePage() {
       {/* Hero Slider */}
       <HeroSlider />
 
-      {/* Event Section */}
+      {/* Next Event Section (Featured) */}
       {data.nextEvent && <EventSection event={data.nextEvent} />}
+
+      {/* Church Announcements - Only for logged-in church members */}
+      {data.churchAnnouncements && data.churchAnnouncements.length > 0 && (
+        <AnnouncementsSection announcements={data.churchAnnouncements} />
+      )}
+
+      {/* All Upcoming Events - Visible to everyone */}
+      {data.upcomingEvents && data.upcomingEvents.length > 0 && (
+        <EventsSection events={data.upcomingEvents} />
+      )}
 
       {/* Featured Sermon */}
       <FeaturedSermonSection sermon={data.featuredSermon} />
