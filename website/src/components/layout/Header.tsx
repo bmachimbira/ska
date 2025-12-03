@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import Image from 'next/image';
 import { useState } from 'react';
-import { Menu, X, Search, Book, Heart, Video, Share2, ChevronDown, User, LogOut } from 'lucide-react';
+import { Menu, X, Search, Book, Heart, Video, Share2, ChevronDown, User, LogOut, MapPin } from 'lucide-react';
 import { APP_NAME } from '@/lib/constants';
 import AuthModal from '@/components/auth/AuthModal';
 import { useAuth } from '@/contexts/AuthContext';
@@ -234,6 +234,14 @@ export function Header() {
             >
               <Book className="h-5 w-5" />
               Sabbath School
+            </Link>
+            <Link
+              href="/locations"
+              className="flex items-center gap-3 rounded-lg px-3 py-2 text-base font-semibold text-gray-900 hover:bg-primary-50"
+              onClick={() => setMobileMenuOpen(false)}
+            >
+              <MapPin className="h-5 w-5" />
+              Locations
             </Link>
             <Link
               href="/search"
