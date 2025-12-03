@@ -177,7 +177,7 @@ export default async function HomePage() {
       <section className="bg-primary-600 text-white py-16">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 text-center">
           <h2 className="text-3xl font-bold mb-4">
-            Ready to Deepen Your Faith?
+            Ready to grow Your Faith?
           </h2>
           <p className="mb-8 text-primary-100 max-w-2xl mx-auto">
             Explore our complete library of sermons, devotionals, and Bible study materials.

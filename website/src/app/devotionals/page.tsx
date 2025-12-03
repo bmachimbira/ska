@@ -65,7 +65,7 @@ export default async function DevotionalsPage({ searchParams }: DevotionalsPageP
               <span className="block text-green-200">Devotionals</span>
             </h1>
             <p className="text-xl text-green-100 leading-relaxed mb-8">
-              Deepen your faith with daily spiritual reflections and inspiration. Start each day with God's Word.
+              Grow your faith with daily spiritual reflections and inspiration. Start each day with God's Word.
             </p>
             <Button asChild size="lg" className="bg-white text-green-700 hover:bg-green-50 font-bold shadow-lg hover:shadow-xl transition-all transform hover:scale-105">
               <Link href="/devotionals/today">
