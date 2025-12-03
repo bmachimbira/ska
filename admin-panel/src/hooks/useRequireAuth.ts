@@ -22,6 +22,7 @@ export function useRequireAuth() {
 
   return {
     session,
+    status,
     isAuthenticated: !!session?.accessToken,
     isLoading: status === 'loading',
   };
