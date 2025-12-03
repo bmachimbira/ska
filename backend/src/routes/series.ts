@@ -78,7 +78,7 @@ seriesRouter.get(
             'id', sp.id,
             'name', sp.name,
             'bio', sp.bio,
-            'photo_url', sp.photo_url
+            'photoUrl', CASE WHEN sp_photo.id IS NOT NULL THEN sp_photo.hls_url ELSE NULL END
           )
         END as speaker,
         CASE WHEN s.hero_image IS NOT NULL THEN
@@ -92,10 +92,12 @@ seriesRouter.get(
       FROM series s
       LEFT JOIN sermon ser ON s.id = ser.series_id
       LEFT JOIN speaker sp ON s.speaker_id = sp.id
+      LEFT JOIN media_asset sp_photo ON sp.photo_asset = sp_photo.id
       LEFT JOIN media_asset ma ON s.hero_image = ma.id
       ${whereClause}
       GROUP BY s.id, s.title, s.description, s.speaker_id, s.hero_image, s.created_at, s.updated_at,
-               sp.id, sp.name, sp.bio, sp.photo_url,
+               sp.id, sp.name, sp.bio,
+               sp_photo.id, sp_photo.hls_url,
                ma.id, ma.kind, ma.hls_url, ma.download_url
       ORDER BY s.created_at DESC
       LIMIT $${paramIndex} OFFSET $${paramIndex + 1}
@@ -140,7 +142,7 @@ seriesRouter.get(
             'id', sp.id,
             'name', sp.name,
             'bio', sp.bio,
-            'photo_url', sp.photo_url
+            'photoUrl', CASE WHEN sp_photo.id IS NOT NULL THEN sp_photo.hls_url ELSE NULL END
           )
         END as speaker,
         CASE WHEN s.hero_image IS NOT NULL THEN
@@ -154,10 +156,12 @@ seriesRouter.get(
       FROM series s
       LEFT JOIN sermon ser ON s.id = ser.series_id
       LEFT JOIN speaker sp ON s.speaker_id = sp.id
+      LEFT JOIN media_asset sp_photo ON sp.photo_asset = sp_photo.id
       LEFT JOIN media_asset ma ON s.hero_image = ma.id
       WHERE s.id = $1
       GROUP BY s.id, s.title, s.description, s.speaker_id, s.hero_image, s.created_at, s.updated_at,
-               sp.id, sp.name, sp.bio, sp.photo_url,
+               sp.id, sp.name, sp.bio,
+               sp_photo.id, sp_photo.hls_url,
                ma.id, ma.kind, ma.hls_url, ma.download_url
     `;
 
