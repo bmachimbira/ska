@@ -6,22 +6,12 @@ import { useState, useEffect } from 'react';
 import { formatDate } from '@/lib/utils';
 import { useSession } from 'next-auth/react';
 import { createApiClient } from '@/lib/api-client';
-
-interface Event {
-  id: number;
-  title: string;
-  description: string | null;
-  event_date: string;
-  event_time: string | null;
-  location: string | null;
-  is_featured: boolean;
-  is_published: boolean;
-  speaker: { id: number; name: string } | null;
-}
+import { Event } from '@/types/api';
 
 export default function EventsPage() {
   const { data: session } = useSession();
   const [searchQuery, setSearchQuery] = useState('');
+  const [scopeFilter, setScopeFilter] = useState<'all' | 'global' | 'church'>('all');
   const [events, setEvents] = useState<Event[]>([]);
   const [loading, setLoading] = useState(true);
   const [deleting, setDeleting] = useState<number | null>(null);
@@ -31,7 +21,7 @@ export default function EventsPage() {
     if (session?.accessToken) {
       loadEvents();
     }
-  }, [session]);
+  }, [session, scopeFilter]);
 
   async function loadEvents() {
     try {
@@ -43,8 +33,17 @@ export default function EventsPage() {
 
       setLoading(true);
       const apiClient = createApiClient(session.accessToken as string);
-      const data = await apiClient.get<Event[]>('/events');
-      setEvents(Array.isArray(data) ? data : []);
+      
+      const params = new URLSearchParams();
+      if (scopeFilter !== 'all') {
+        params.append('scope', scopeFilter);
+      }
+      params.append('upcoming', 'false'); // Show all for admin panel
+      
+      const data = await apiClient.get<{ events: Event[] }>(
+        `/events?${params.toString()}`
+      );
+      setEvents(data.events || []);
       setError('');
     } catch (error) {
       console.error('Failed to load events:', error);
@@ -108,8 +107,8 @@ export default function EventsPage() {
         </Link>
       </div>
 
-      {/* Search and Filters */}
-      <div className="mb-6">
+      {/* Filters */}
+      <div className="mb-6 space-y-4">
         <div className="relative">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
           <input
@@ -119,6 +118,40 @@ export default function EventsPage() {
             onChange={(e) => setSearchQuery(e.target.value)}
             className="w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-transparent"
           />
+        </div>
+
+        {/* Scope Filter */}
+        <div className="flex gap-2">
+          <button
+            onClick={() => setScopeFilter('all')}
+            className={`px-4 py-2 rounded-lg transition-colors ${
+              scopeFilter === 'all'
+                ? 'bg-primary-600 text-white'
+                : 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700'
+            }`}
+          >
+            All
+          </button>
+          <button
+            onClick={() => setScopeFilter('global')}
+            className={`px-4 py-2 rounded-lg transition-colors ${
+              scopeFilter === 'global'
+                ? 'bg-primary-600 text-white'
+                : 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700'
+            }`}
+          >
+            All Churches
+          </button>
+          <button
+            onClick={() => setScopeFilter('church')}
+            className={`px-4 py-2 rounded-lg transition-colors ${
+              scopeFilter === 'church'
+                ? 'bg-primary-600 text-white'
+                : 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700'
+            }`}
+          >
+            Church-Specific
+          </button>
         </div>
       </div>
 
@@ -157,6 +190,9 @@ export default function EventsPage() {
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                   Date & Time
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                  Scope
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                   Speaker
@@ -200,6 +236,24 @@ export default function EventsPage() {
                       )}
                     </div>
                   </div>
+                </td>
+                <td className="px-6 py-4 text-sm text-gray-600 dark:text-gray-300">
+                  {event.scope === 'global' ? (
+                    <span className="px-2 py-1 text-xs font-medium bg-purple-100 dark:bg-purple-900/30 text-purple-800 dark:text-purple-400 rounded">
+                      All Churches
+                    </span>
+                  ) : (
+                    <div>
+                      <span className="px-2 py-1 text-xs font-medium bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-400 rounded">
+                        Church
+                      </span>
+                      {event.church && (
+                        <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                          {event.church.name}
+                        </p>
+                      )}
+                    </div>
+                  )}
                 </td>
                 <td className="px-6 py-4 text-sm text-gray-600 dark:text-gray-300">
                   {event.speaker?.name || 'N/A'}

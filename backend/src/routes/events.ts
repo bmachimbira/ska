@@ -16,6 +16,8 @@ const CreateEventSchema = z.object({
   location: z.string().nullish(),
   speakerId: z.number().int().positive().nullish(),
   thumbnailAsset: z.string().uuid().nullish(),
+  scope: z.enum(['church', 'global']),
+  churchId: z.number().int().positive().nullish(),
   isFeatured: z.boolean().optional(),
   isPublished: z.boolean().optional(),
 });
@@ -28,6 +30,8 @@ const UpdateEventSchema = z.object({
   location: z.string().nullish(),
   speakerId: z.number().int().positive().nullish(),
   thumbnailAsset: z.string().uuid().nullish(),
+  scope: z.enum(['church', 'global']).optional(),
+  churchId: z.number().int().positive().nullish(),
   isFeatured: z.boolean().optional(),
   isPublished: z.boolean().optional(),
 });
@@ -44,6 +48,8 @@ eventsRouter.get(
     const {
       upcoming = 'true',
       featured,
+      scope,
+      churchId,
       page = '1',
       limit = '20',
     } = req.query;
@@ -64,6 +70,18 @@ eventsRouter.get(
 
     if (featured === 'true') {
       conditions.push(`e.is_featured = true`);
+    }
+
+    if (scope) {
+      conditions.push(`e.scope = $${paramIndex}`);
+      params.push(scope);
+      paramIndex++;
+    }
+
+    if (churchId) {
+      conditions.push(`e.church_id = $${paramIndex}`);
+      params.push(churchId);
+      paramIndex++;
     }
 
     const whereClause = `WHERE ${conditions.join(' AND ')}`;
@@ -87,13 +105,20 @@ eventsRouter.get(
         e.event_time,
         e.location,
         e.thumbnail_asset,
+        e.scope,
         e.is_featured,
         e.is_published,
         e.created_at,
         e.updated_at,
-        json_build_object('id', sp.id, 'name', sp.name) as speaker
+        CASE WHEN sp.id IS NOT NULL THEN
+          json_build_object('id', sp.id, 'name', sp.name)
+        ELSE NULL END as speaker,
+        CASE WHEN c.id IS NOT NULL THEN
+          json_build_object('id', c.id, 'name', c.name, 'slug', c.slug)
+        ELSE NULL END as church
       FROM event e
       LEFT JOIN speaker sp ON e.speaker_id = sp.id
+      LEFT JOIN church c ON e.church_id = c.id
       ${whereClause}
       ORDER BY e.event_date ASC
       LIMIT $${paramIndex} OFFSET $${paramIndex + 1}
@@ -112,6 +137,8 @@ eventsRouter.get(
       filters: {
         upcoming,
         featured,
+        scope,
+        churchId,
       },
     });
   })
@@ -135,12 +162,19 @@ eventsRouter.get(
         e.event_time,
         e.location,
         e.thumbnail_asset,
+        e.scope,
         e.is_featured,
         e.created_at,
         e.updated_at,
-        json_build_object('id', sp.id, 'name', sp.name) as speaker
+        CASE WHEN sp.id IS NOT NULL THEN
+          json_build_object('id', sp.id, 'name', sp.name)
+        ELSE NULL END as speaker,
+        CASE WHEN c.id IS NOT NULL THEN
+          json_build_object('id', c.id, 'name', c.name, 'slug', c.slug)
+        ELSE NULL END as church
       FROM event e
       LEFT JOIN speaker sp ON e.speaker_id = sp.id
+      LEFT JOIN church c ON e.church_id = c.id
       WHERE e.is_published = true AND e.event_date >= NOW()
       ORDER BY e.event_date ASC
       LIMIT 1
@@ -176,14 +210,22 @@ eventsRouter.get(
         e.event_time,
         e.location,
         e.speaker_id,
+        e.church_id,
         e.thumbnail_asset,
+        e.scope,
         e.is_featured,
         e.is_published,
         e.created_at,
         e.updated_at,
-        json_build_object('id', sp.id, 'name', sp.name, 'bio', sp.bio) as speaker
+        CASE WHEN sp.id IS NOT NULL THEN
+          json_build_object('id', sp.id, 'name', sp.name, 'bio', sp.bio)
+        ELSE NULL END as speaker,
+        CASE WHEN c.id IS NOT NULL THEN
+          json_build_object('id', c.id, 'name', c.name, 'slug', c.slug, 'description', c.description)
+        ELSE NULL END as church
       FROM event e
       LEFT JOIN speaker sp ON e.speaker_id = sp.id
+      LEFT JOIN church c ON e.church_id = c.id
       WHERE e.id = $1
     `;
 
@@ -208,6 +250,23 @@ eventsRouter.post(
     const validated = CreateEventSchema.parse(req.body);
     const pool = getPool();
 
+    // Validate scope and churchId consistency
+    if (validated.scope === 'global' && validated.churchId) {
+      res.status(400).json({
+        error: 'Bad Request',
+        message: 'Global events cannot have a churchId',
+      });
+      return;
+    }
+
+    if (validated.scope === 'church' && !validated.churchId) {
+      res.status(400).json({
+        error: 'Bad Request',
+        message: 'Church events must have a churchId',
+      });
+      return;
+    }
+
     const insertQuery = `
       INSERT INTO event (
         title,
@@ -217,11 +276,13 @@ eventsRouter.post(
         location,
         speaker_id,
         thumbnail_asset,
+        scope,
+        church_id,
         is_featured,
         is_published,
         created_at,
         updated_at
-      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, NOW(), NOW())
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, NOW(), NOW())
       RETURNING *
     `;
 
@@ -233,6 +294,8 @@ eventsRouter.post(
       validated.location || null,
       validated.speakerId || null,
       validated.thumbnailAsset || null,
+      validated.scope,
+      validated.churchId || null,
       validated.isFeatured || false,
       validated.isPublished !== undefined ? validated.isPublished : true,
     ]);
@@ -251,6 +314,23 @@ eventsRouter.put(
     const { id } = req.params;
     const validated = UpdateEventSchema.parse(req.body);
     const pool = getPool();
+
+    // Validate scope and churchId consistency if being updated
+    if (validated.scope === 'global' && validated.churchId) {
+      res.status(400).json({
+        error: 'Bad Request',
+        message: 'Global events cannot have a churchId',
+      });
+      return;
+    }
+
+    if (validated.scope === 'church' && validated.churchId === null) {
+      res.status(400).json({
+        error: 'Bad Request',
+        message: 'Church events must have a churchId',
+      });
+      return;
+    }
 
     // Build dynamic update query
     const updates: string[] = [];
@@ -290,6 +370,16 @@ eventsRouter.put(
     if (validated.thumbnailAsset !== undefined) {
       updates.push(`thumbnail_asset = $${paramCount++}`);
       values.push(validated.thumbnailAsset);
+    }
+
+    if (validated.scope !== undefined) {
+      updates.push(`scope = $${paramCount++}`);
+      values.push(validated.scope);
+    }
+
+    if (validated.churchId !== undefined) {
+      updates.push(`church_id = $${paramCount++}`);
+      values.push(validated.churchId);
     }
 
     if (validated.isFeatured !== undefined) {

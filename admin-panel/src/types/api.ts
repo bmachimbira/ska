@@ -151,6 +151,23 @@ export interface Announcement {
   updatedAt: string;
 }
 
+export interface Event {
+  id: number;
+  title: string;
+  description?: string;
+  event_date: string;
+  event_time?: string;
+  location?: string;
+  scope: 'church' | 'global';
+  church?: Church;
+  speaker?: Speaker;
+  thumbnailAsset?: MediaAsset;
+  is_featured: boolean;
+  is_published: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
 // Paginated list response
 export interface PaginatedResponse<T> {
   items: T[];

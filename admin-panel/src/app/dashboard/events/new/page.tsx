@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { ArrowLeft, Save } from 'lucide-react';
 import { useSession } from 'next-auth/react';
 import { createApiClient } from '@/lib/api-client';
+import { Church } from '@/types/api';
 
 interface Speaker {
   id: number;
@@ -16,6 +17,8 @@ export default function NewEventPage() {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [speakers, setSpeakers] = useState<Speaker[]>([]);
+  const [churches, setChurches] = useState<Church[]>([]);
+  const [loadingChurches, setLoadingChurches] = useState(false);
   const { data: session } = useSession();
   const [error, setError] = useState('');
   const [formData, setFormData] = useState({
@@ -25,6 +28,8 @@ export default function NewEventPage() {
     eventTime: '',
     location: '',
     speakerId: '',
+    scope: 'global' as 'church' | 'global',
+    churchId: '',
     thumbnailAsset: '',
     isFeatured: false,
     isPublished: true,
@@ -33,6 +38,7 @@ export default function NewEventPage() {
   useEffect(() => {
     if (session?.accessToken) {
       loadSpeakers();
+      loadChurches();
     }
   }, [session]);
 
@@ -49,12 +55,34 @@ export default function NewEventPage() {
     }
   }
 
+  async function loadChurches() {
+    try {
+      if (!session?.accessToken) return;
+
+      setLoadingChurches(true);
+      const apiClient = createApiClient(session.accessToken as string);
+      const data = await apiClient.get<{ churches: Church[] }>('/churches');
+      setChurches(data.churches);
+    } catch (error) {
+      console.error('Failed to load churches:', error);
+    } finally {
+      setLoadingChurches(false);
+    }
+  }
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
 
     try {
       if (!session?.accessToken) { setError("Not authenticated."); return; }
+
+      // Validate scope and churchId
+      if (formData.scope === 'church' && !formData.churchId) {
+        setError('Please select a church for church-specific events');
+        setLoading(false);
+        return;
+      }
 
       const apiClient = createApiClient(session.accessToken as string);
 
@@ -65,15 +93,18 @@ export default function NewEventPage() {
         eventTime: formData.eventTime || null,
         location: formData.location || null,
         speakerId: formData.speakerId ? parseInt(formData.speakerId) : null,
+        scope: formData.scope,
+        churchId: formData.scope === 'church' ? parseInt(formData.churchId) : null,
         thumbnailAsset: formData.thumbnailAsset || null,
         isFeatured: formData.isFeatured,
         isPublished: formData.isPublished,
       });
 
+      setError('');
       router.push('/dashboard/events');
     } catch (error: any) {
       console.error('Error creating event:', error);
-      alert('Failed to create event: ' + (error.message || 'Unknown error'));
+      setError('Failed to create event: ' + (error.message || 'Unknown error'));
     } finally {
       setLoading(false);
     }
@@ -220,6 +251,58 @@ export default function NewEventPage() {
               className="w-full px-4 py-2 border border-gray-300 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-900 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-transparent"
               placeholder="Enter event location"
             />
+          </div>
+
+          {/* Scope and Church */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+              <label
+                htmlFor="scope"
+                className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+              >
+                Scope *
+              </label>
+              <select
+                id="scope"
+                name="scope"
+                value={formData.scope}
+                onChange={handleChange}
+                className="w-full px-4 py-2 border border-gray-300 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-900 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+              >
+                <option value="global">All Churches</option>
+                <option value="church">Church-specific</option>
+              </select>
+              <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                All Churches events are visible to everyone
+              </p>
+            </div>
+
+            {formData.scope === 'church' && (
+              <div>
+                <label
+                  htmlFor="churchId"
+                  className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+                >
+                  Church *
+                </label>
+                <select
+                  id="churchId"
+                  name="churchId"
+                  value={formData.churchId}
+                  onChange={handleChange}
+                  required={formData.scope === 'church'}
+                  disabled={loadingChurches}
+                  className="w-full px-4 py-2 border border-gray-300 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-900 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-transparent disabled:opacity-50"
+                >
+                  <option value="">Select church</option>
+                  {churches.map(church => (
+                    <option key={church.id} value={church.id}>
+                      {church.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )}
           </div>
 
           {/* Speaker */}

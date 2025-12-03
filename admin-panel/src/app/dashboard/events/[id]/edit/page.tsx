@@ -6,23 +6,11 @@ import Link from 'next/link';
 import { ArrowLeft, Save } from 'lucide-react';
 import { useSession } from 'next-auth/react';
 import { createApiClient } from '@/lib/api-client';
+import { Church, Event as EventType } from '@/types/api';
 
 interface Speaker {
   id: number;
   name: string;
-}
-
-interface Event {
-  id: number;
-  title: string;
-  description: string | null;
-  event_date: string;
-  event_time: string | null;
-  location: string | null;
-  speaker_id: number | null;
-  thumbnail_asset: string | null;
-  is_featured: boolean;
-  is_published: boolean;
 }
 
 export default function EditEventPage() {
@@ -32,8 +20,10 @@ export default function EditEventPage() {
 
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [event, setEvent] = useState<Event | null>(null);
+  const [event, setEvent] = useState<EventType | null>(null);
   const [speakers, setSpeakers] = useState<Speaker[]>([]);
+  const [churches, setChurches] = useState<Church[]>([]);
+  const [loadingChurches, setLoadingChurches] = useState(false);
   const { data: session } = useSession();
   const [error, setError] = useState('');
   const [formData, setFormData] = useState({
@@ -43,6 +33,8 @@ export default function EditEventPage() {
     eventTime: '',
     location: '',
     speakerId: '',
+    scope: 'global' as 'church' | 'global',
+    churchId: '',
     thumbnailAsset: '',
     isFeatured: false,
     isPublished: true,
@@ -51,6 +43,7 @@ export default function EditEventPage() {
   useEffect(() => {
     loadEvent();
     loadSpeakers();
+    loadChurches();
   }, [id]);
 
   async function loadSpeakers() {
@@ -66,6 +59,21 @@ export default function EditEventPage() {
     }
   }
 
+  async function loadChurches() {
+    try {
+      if (!session?.accessToken) return;
+
+      setLoadingChurches(true);
+      const apiClient = createApiClient(session.accessToken as string);
+      const data = await apiClient.get<{ churches: Church[] }>('/churches');
+      setChurches(data.churches);
+    } catch (error) {
+      console.error('Failed to load churches:', error);
+    } finally {
+      setLoadingChurches(false);
+    }
+  }
+
   async function loadEvent() {
     try {
       setLoading(true);
@@ -73,7 +81,7 @@ export default function EditEventPage() {
 
       const apiClient = createApiClient(session.accessToken as string);
 
-      const response = await apiClient.get<Event>(`/events/${id}`);
+      const response = await apiClient.get<EventType>(`/events/${id}`);
       setEvent(response);
 
       // Populate form data
@@ -85,8 +93,10 @@ export default function EditEventPage() {
           : '',
         eventTime: response.event_time || '',
         location: response.location || '',
-        speakerId: response.speaker_id?.toString() || '',
-        thumbnailAsset: response.thumbnail_asset || '',
+        speakerId: response.speaker?.id?.toString() || '',
+        scope: response.scope || 'global',
+        churchId: response.church?.id?.toString() || '',
+        thumbnailAsset: response.thumbnailAsset?.id || '',
         isFeatured: response.is_featured,
         isPublished: response.is_published,
       });
@@ -106,6 +116,13 @@ export default function EditEventPage() {
     try {
       if (!session?.accessToken) { setError("Not authenticated."); return; }
 
+      // Validate scope and churchId
+      if (formData.scope === 'church' && !formData.churchId) {
+        setError('Please select a church for church-specific events');
+        setSaving(false);
+        return;
+      }
+
       const apiClient = createApiClient(session.accessToken as string);
 
       await apiClient.put(`/events/${id}`, {
@@ -115,15 +132,18 @@ export default function EditEventPage() {
         eventTime: formData.eventTime || null,
         location: formData.location || null,
         speakerId: formData.speakerId ? parseInt(formData.speakerId) : null,
+        scope: formData.scope,
+        churchId: formData.scope === 'church' ? parseInt(formData.churchId) : null,
         thumbnailAsset: formData.thumbnailAsset || null,
         isFeatured: formData.isFeatured,
         isPublished: formData.isPublished,
       });
 
+      setError('');
       router.push('/dashboard/events');
     } catch (error: any) {
       console.error('Error updating event:', error);
-      alert('Failed to update event: ' + (error.message || 'Unknown error'));
+      setError('Failed to update event: ' + (error.message || 'Unknown error'));
     } finally {
       setSaving(false);
     }
@@ -282,6 +302,63 @@ export default function EditEventPage() {
               placeholder="Enter event location"
             />
           </div>
+
+          {/* Scope */}
+          <div>
+            <label
+              htmlFor="scope"
+              className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+            >
+              Event Scope *
+            </label>
+            <select
+              id="scope"
+              name="scope"
+              required
+              value={formData.scope}
+              onChange={handleChange}
+              className="w-full px-4 py-2 border border-gray-300 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-900 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+            >
+              <option value="global">All Churches</option>
+              <option value="church">Church-specific</option>
+            </select>
+            <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+              Select whether this event is for all churches or a specific church
+            </p>
+          </div>
+
+          {/* Church Selection (shown when scope is 'church') */}
+          {formData.scope === 'church' && (
+            <div>
+              <label
+                htmlFor="churchId"
+                className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+              >
+                Church *
+              </label>
+              <select
+                id="churchId"
+                name="churchId"
+                required
+                value={formData.churchId}
+                onChange={handleChange}
+                className="w-full px-4 py-2 border border-gray-300 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-900 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                disabled={loadingChurches}
+              >
+                <option value="">Select a church</option>
+                {churches.map(church => (
+                  <option key={church.id} value={church.id}>
+                    {church.name}
+                  </option>
+                ))}
+              </select>
+              {loadingChurches && (
+                <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                  Loading churches...
+                </p>
+              )}
+            </div>
+          )}
 
           {/* Speaker */}
           <div>
