@@ -6,6 +6,7 @@
 import { Router } from 'express';
 import { homeRouter } from './home';
 import { sermonsRouter } from './sermons';
+import { seriesRouter } from './series';
 import { speakersRouter } from './speakers';
 import { devotionalsRouter } from './devotionals';
 import { quarterliesRouter } from './quarterlies';
@@ -27,6 +28,7 @@ export function createApiRouter(): Router {
   router.use('/auth', authRouter);
   router.use('/home', homeRouter);
   router.use('/sermons', sermonsRouter);
+  router.use('/series', seriesRouter);
   router.use('/speakers', speakersRouter);
   router.use('/devotionals', devotionalsRouter);
   router.use('/quarterlies', quarterliesRouter);

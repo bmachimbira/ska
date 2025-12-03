@@ -56,12 +56,6 @@ export default function SermonsPage() {
   }
 
   async function handleDelete(sermon: Sermon) {
-    const confirmed = window.confirm(
-      `Are you sure you want to delete "${sermon.title}"?\n\nThis action cannot be undone.`
-    );
-
-    if (!confirmed) return;
-
     try {
       if (!session?.accessToken) {
         setError('Not authenticated. Please log in.');
@@ -75,9 +69,6 @@ export default function SermonsPage() {
       // Remove from local state
       setSermons(prev => prev.filter(s => s.id !== sermon.id));
       setError('');
-      
-      // Show success message (optional)
-      // You could use a toast notification library here
     } catch (error: any) {
       console.error('Failed to delete sermon:', error);
       setError('Failed to delete sermon: ' + (error.message || 'Unknown error'));
