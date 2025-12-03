@@ -139,6 +139,9 @@ mediaRouter.post(
     // Get presigned URL from MinIO (valid for 24 hours for Mux to fetch)
     const mediaUrl = await storageService.getDownloadUrl(objectName, 86400);
 
+    console.log('Generated presigned URL for Mux:', mediaUrl);
+    console.log('MinIO endpoint:', process.env.MINIO_ENDPOINT);
+
     // Create Mux asset
     const muxAsset = await muxService.createAssetFromUrl(mediaUrl, {
       passthrough,
