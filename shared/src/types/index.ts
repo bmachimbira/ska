@@ -25,6 +25,19 @@ export interface Series {
   id: number;
   title: string;
   description?: string;
+  speaker_id?: number;
+  speaker?: Pick<Speaker, 'id' | 'name' | 'bio' | 'photoUrl'>;
+  hero_image?: string;
+  hero_image_details?: {
+    id: string;
+    kind: string;
+    hls_url: string;
+    download_url: string;
+  };
+  sermon_count?: number;
+  created_at?: string;
+  updatedAt?: string;
+  // Legacy field for backwards compatibility
   thumbnailUrl?: string;
 }
 
@@ -422,5 +435,16 @@ export interface ChurchProjectsResponse {
 
 export interface ChurchDevotionalsResponse {
   devotionals: ChurchDevotional[];
+  pagination?: Pagination;
+}
+
+// Admin API Response Types
+export interface SpeakersResponse {
+  speakers: Speaker[];
+  pagination?: Pagination;
+}
+
+export interface SeriesResponse {
+  series: Series[];
   pagination?: Pagination;
 }

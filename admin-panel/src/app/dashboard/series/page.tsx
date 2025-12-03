@@ -5,22 +5,7 @@ import Link from 'next/link';
 import { Plus, Search, Edit, Trash2, Film } from 'lucide-react';
 import { useRequireAuth } from '@/hooks/useRequireAuth';
 import { createApiClient } from '@/lib/api-client';
-
-interface Series {
-  id: number;
-  title: string;
-  description?: string;
-  sermon_count: number;
-  hero_image?: string;
-  hero_image_details?: {
-    id: string;
-    kind: string;
-    hls_url: string;
-    download_url: string;
-  };
-  created_at: string;
-  updated_at: string;
-}
+import type { Series, SeriesResponse } from '@ska/shared/types';
 
 export default function SeriesPage() {
   const { session, status } = useRequireAuth();
@@ -41,7 +26,7 @@ export default function SeriesPage() {
     try {
       setLoading(true);
       const apiClient = createApiClient(session.accessToken as string);
-      const response = await apiClient.get('/series');
+      const response = await apiClient.get<SeriesResponse>('/series');
       setSeries(response.series || []);
     } catch (error) {
       console.error('Failed to fetch series:', error);

@@ -1,10 +1,14 @@
 # Multi-stage build for Next.js admin panel
 FROM node:20-alpine AS deps
 
-WORKDIR /app
+# Copy and build shared package first
+COPY shared /shared
+WORKDIR /shared
+RUN npm ci && npm run build
 
-# Install dependencies
-COPY package*.json ./
+# Install admin-panel dependencies
+WORKDIR /app
+COPY admin-panel/package*.json ./
 RUN npm ci
 
 # Build stage
@@ -13,7 +17,16 @@ FROM node:20-alpine AS builder
 WORKDIR /app
 
 COPY --from=deps /app/node_modules ./node_modules
-COPY . .
+COPY --from=deps /shared /shared
+
+# Fix the shared package link - remove symlink and copy actual built files
+RUN rm -rf node_modules/@ska/shared && \
+    mkdir -p node_modules/@ska/shared && \
+    cp /shared/package.json node_modules/@ska/shared/ && \
+    cp -r /shared/dist node_modules/@ska/shared/ && \
+    if [ -d /shared/node_modules ]; then cp -r /shared/node_modules node_modules/@ska/shared/; fi
+
+COPY admin-panel/ .
 
 # Set build-time environment variables
 ARG NEXT_PUBLIC_APP_NAME

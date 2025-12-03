@@ -6,11 +6,7 @@ import Link from 'next/link';
 import { ArrowLeft, Save } from 'lucide-react';
 import { useRequireAuth } from '@/hooks/useRequireAuth';
 import { createApiClient } from '@/lib/api-client';
-
-interface Speaker {
-  id: number;
-  name: string;
-}
+import type { Speaker, SpeakersResponse } from '@ska/shared/types';
 
 export default function NewSeriesPage() {
   const router = useRouter();
@@ -35,7 +31,7 @@ export default function NewSeriesPage() {
 
     try {
       const apiClient = createApiClient(session.accessToken as string);
-      const response = await apiClient.get('/speakers');
+      const response = await apiClient.get<SpeakersResponse>('/speakers');
       setSpeakers(response.speakers || []);
     } catch (error) {
       console.error('Failed to fetch speakers:', error);

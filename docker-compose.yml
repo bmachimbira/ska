@@ -168,8 +168,8 @@ services:
   # Admin Panel
   admin-panel:
     build:
-      context: ./admin-panel
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: ./admin-panel/Dockerfile
       args:
         NEXT_PUBLIC_APP_NAME: ${ADMIN_APP_NAME:-SDA Admin Panel}
         NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://backend:3000/v1}

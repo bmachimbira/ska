@@ -6,14 +6,10 @@ import Link from 'next/link';
 import { ArrowLeft, Save, Trash2 } from 'lucide-react';
 import { useRequireAuth } from '@/hooks/useRequireAuth';
 import { createApiClient } from '@/lib/api-client';
+import type { Speaker, Series, SpeakersResponse } from '@ska/shared/types';
 
 interface SeriesPageProps {
   params: Promise<{ id: string }>;
-}
-
-interface Speaker {
-  id: number;
-  name: string;
 }
 
 export default function EditSeriesPage({ params }: SeriesPageProps) {
@@ -49,7 +45,7 @@ export default function EditSeriesPage({ params }: SeriesPageProps) {
 
     try {
       const apiClient = createApiClient(session.accessToken as string);
-      const response = await apiClient.get('/speakers');
+      const response = await apiClient.get<SpeakersResponse>('/speakers');
       setSpeakers(response.speakers || []);
     } catch (error) {
       console.error('Failed to fetch speakers:', error);
@@ -62,7 +58,7 @@ export default function EditSeriesPage({ params }: SeriesPageProps) {
     try {
       setLoading(true);
       const apiClient = createApiClient(session.accessToken as string);
-      const data = await apiClient.get(`/series/${seriesId}`);
+      const data = await apiClient.get<Series>(`/series/${seriesId}`);
 
       setFormData({
         title: data.title,
