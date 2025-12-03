@@ -1,6 +1,6 @@
 import { Metadata } from 'next';
 import Link from 'next/link';
-import { Calendar, User, Eye, ChevronDown, ChevronUp } from 'lucide-react';
+import { Calendar, User, Eye, ChevronDown, ChevronUp, FileText, Share2, Download } from 'lucide-react';
 import { apiClient } from '@/lib/api-client';
 import { Sermon } from '@/types/api';
 import { formatDate, getRelativeTime } from '@/lib/utils';
@@ -115,6 +115,26 @@ export default async function SermonPage({ params }: SermonPageProps) {
                   <Eye className="h-4 w-4" />
                   <span>{sermon.viewCount.toLocaleString()} views</span>
                 </div>
+              </div>
+
+              {/* Action Buttons */}
+              <div className="flex flex-wrap gap-3 mt-6">
+                {audioUrl && (
+                  <Button asChild variant="default">
+                    <a href={audioUrl} download>
+                      <Download className="h-4 w-4 mr-2" />
+                      Download Audio
+                    </a>
+                  </Button>
+                )}
+                <Button variant="outline">
+                  <FileText className="h-4 w-4 mr-2" />
+                  Take Notes
+                </Button>
+                <Button variant="outline">
+                  <Share2 className="h-4 w-4 mr-2" />
+                  Share
+                </Button>
               </div>
             </div>
 

@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { Mic, Youtube, Download, FileText, Share2 } from 'lucide-react';
+import { Mic, Youtube, Download } from 'lucide-react';
 import type { Sermon } from '@/types/api';
 
 interface FeaturedSermonSectionProps {
@@ -66,15 +66,13 @@ export function FeaturedSermonSection({ sermon }: FeaturedSermonSectionProps) {
                 {/* Action Buttons */}
                 <div className="flex flex-wrap gap-4 mb-8">
                   {sermon.videoAsset?.url && (
-                    <a
-                      href={sermon.videoAsset.url}
-                      target="_blank"
-                      rel="noopener noreferrer"
+                    <Link
+                      href={`/sermons/${sermon.id}`}
                       className="flex items-center gap-2 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
                     >
                       <Youtube className="h-5 w-5" />
                       Watch
-                    </a>
+                    </Link>
                   )}
                   {sermon.audioAsset?.url && (
                     <a
@@ -86,14 +84,6 @@ export function FeaturedSermonSection({ sermon }: FeaturedSermonSectionProps) {
                       Download
                     </a>
                   )}
-                  <button className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
-                    <FileText className="h-5 w-5" />
-                    Notes
-                  </button>
-                  <button className="flex items-center gap-2 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors">
-                    <Share2 className="h-5 w-5" />
-                    Share
-                  </button>
                 </div>
 
                 {/* Audio Player */}
