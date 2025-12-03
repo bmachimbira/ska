@@ -8,7 +8,6 @@ import { DevotionalCard } from '@/components/content/DevotionalCard';
 import { QuarterlyCard } from '@/components/content/QuarterlyCard';
 import { Button } from '@/components/ui/Button';
 import { HeroSlider } from '@/components/layout/HeroSlider';
-import { EventSection } from '@/components/content/EventSection';
 import { EventsSection } from '@/components/content/EventsSection';
 import { AnnouncementsSection } from '@/components/content/AnnouncementsSection';
 import { FeaturedSermonSection } from '@/components/content/FeaturedSermonSection';
@@ -43,19 +42,6 @@ export default async function HomePage() {
     <div className="min-h-screen">
       {/* Hero Slider */}
       <HeroSlider />
-
-      {/* Next Event Section (Featured) */}
-      {data.nextEvent && <EventSection event={data.nextEvent} />}
-
-      {/* Church Announcements - Only for logged-in church members */}
-      {data.churchAnnouncements && data.churchAnnouncements.length > 0 && (
-        <AnnouncementsSection announcements={data.churchAnnouncements} />
-      )}
-
-      {/* All Upcoming Events - Visible to everyone */}
-      {data.upcomingEvents && data.upcomingEvents.length > 0 && (
-        <EventsSection events={data.upcomingEvents} />
-      )}
 
       {/* Featured Sermon */}
       <FeaturedSermonSection sermon={data.featuredSermon} />
@@ -165,6 +151,29 @@ export default async function HomePage() {
               {data.currentQuarterlies.map((quarterly) => (
                 <QuarterlyCard key={quarterly.id} quarterly={quarterly} />
               ))}
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* Combined Announcements and Events Section */}
+      {((data.announcements && data.announcements.length > 0) || (data.upcomingEvents && data.upcomingEvents.length > 0)) && (
+        <section className="bg-gray-50 py-16">
+          <div className="container mx-auto px-4">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+              {/* Announcements Card - Takes 1 column */}
+              {data.announcements && data.announcements.length > 0 && (
+                <div className="lg:col-span-1">
+                  <AnnouncementsSection announcements={data.announcements} compact={true} />
+                </div>
+              )}
+
+              {/* Events Section - Takes 2 columns */}
+              {data.upcomingEvents && data.upcomingEvents.length > 0 && (
+                <div className={data.announcements && data.announcements.length > 0 ? "lg:col-span-2" : "lg:col-span-3"}>
+                  <EventsSection events={data.upcomingEvents} compact={true} />
+                </div>
+              )}
             </div>
           </div>
         </section>

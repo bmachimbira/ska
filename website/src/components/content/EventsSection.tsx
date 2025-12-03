@@ -1,14 +1,15 @@
 'use client';
 
 import Link from 'next/link';
-import { Calendar, Clock, MapPin, User, ArrowRight } from 'lucide-react';
+import { Calendar, Clock, MapPin, User, ArrowRight, Building2 } from 'lucide-react';
 import type { Event } from '@/types/api';
 
 interface EventsSectionProps {
   events: Event[];
+  compact?: boolean;
 }
 
-export function EventsSection({ events }: EventsSectionProps) {
+export function EventsSection({ events, compact = false }: EventsSectionProps) {
   if (!events || events.length === 0) {
     return null;
   }
@@ -39,26 +40,28 @@ export function EventsSection({ events }: EventsSectionProps) {
   };
 
   return (
-    <div className="bg-gray-50 py-16">
-      <div className="container mx-auto px-4">
-        <div className="mb-8">
+    <div className={compact ? "" : "bg-gray-50 py-16"}>
+      <div className={compact ? "" : "container mx-auto px-4"}>
+        <div className="mb-6">
           <div className="flex items-center justify-between">
             <div>
-              <h2 className="text-3xl font-bold text-gray-900 mb-2">Upcoming Events</h2>
-              <p className="text-gray-600">Join us for these special gatherings</p>
+              <h2 className="text-2xl font-bold text-gray-900 mb-1">Upcoming Events</h2>
+              <p className="text-sm text-gray-600">Join us for these special gatherings</p>
             </div>
-            <Link
-              href="/about"
-              className="hidden md:flex items-center gap-2 text-primary-600 hover:text-primary-700 font-semibold transition-colors"
-            >
-              View All
-              <ArrowRight className="h-5 w-5" />
-            </Link>
+            {!compact && (
+              <Link
+                href="/about"
+                className="hidden md:flex items-center gap-2 text-primary-600 hover:text-primary-700 font-semibold transition-colors"
+              >
+                View All
+                <ArrowRight className="h-5 w-5" />
+              </Link>
+            )}
           </div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {events.slice(0, 6).map((event) => {
+        <div className={`grid grid-cols-1 ${compact ? 'md:grid-cols-2' : 'md:grid-cols-2 lg:grid-cols-3'} gap-6`}>
+          {events.slice(0, compact ? 4 : 6).map((event) => {
             const { day, month, year, fullDate } = formatDate(event.eventDate);
             
             return (
@@ -83,9 +86,17 @@ export function EventsSection({ events }: EventsSectionProps) {
 
                 {/* Event Details */}
                 <div className="p-6">
-                  <h3 className="text-xl font-bold text-gray-900 mb-3 line-clamp-2">
-                    {event.title}
-                  </h3>
+                  <div className="flex items-start justify-between gap-2 mb-3">
+                    <h3 className="text-xl font-bold text-gray-900 line-clamp-2 flex-1">
+                      {event.title}
+                    </h3>
+                    {event.church && (
+                      <span className="flex-shrink-0 inline-flex items-center gap-1 px-2 py-1 bg-primary-100 text-primary-700 text-xs font-medium rounded">
+                        <Building2 className="h-3 w-3" />
+                        {event.church.name}
+                      </span>
+                    )}
+                  </div>
 
                   {event.description && (
                     <p className="text-gray-600 text-sm mb-4 line-clamp-2">
@@ -132,15 +143,17 @@ export function EventsSection({ events }: EventsSectionProps) {
         </div>
 
         {/* Mobile View All Link */}
-        <div className="mt-8 text-center md:hidden">
-          <Link
-            href="/about"
-            className="inline-flex items-center gap-2 text-primary-600 hover:text-primary-700 font-semibold transition-colors"
-          >
-            View All Events
-            <ArrowRight className="h-5 w-5" />
-          </Link>
-        </div>
+        {!compact && (
+          <div className="mt-8 text-center md:hidden">
+            <Link
+              href="/about"
+              className="inline-flex items-center gap-2 text-primary-600 hover:text-primary-700 font-semibold transition-colors"
+            >
+              View All Events
+              <ArrowRight className="h-5 w-5" />
+            </Link>
+          </div>
+        )}
       </div>
     </div>
   );

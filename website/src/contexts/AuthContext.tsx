@@ -40,6 +40,17 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000/v1';
 
+// Helper functions to manage auth token cookie
+function setCookie(name: string, value: string, days = 30) {
+  const expires = new Date();
+  expires.setTime(expires.getTime() + days * 24 * 60 * 60 * 1000);
+  document.cookie = `${name}=${value};expires=${expires.toUTCString()};path=/;SameSite=Lax`;
+}
+
+function deleteCookie(name: string) {
+  document.cookie = `${name}=;expires=Thu, 01 Jan 1970 00:00:00 UTC;path=/;`;
+}
+
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [token, setToken] = useState<string | null>(null);
@@ -57,6 +68,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (storedToken && storedUser) {
         setToken(storedToken);
         setUser(JSON.parse(storedUser));
+        // Ensure cookie is also set (for existing logged-in users)
+        setCookie('authToken', storedToken, 30);
 
         // Fetch fresh user data to get church information
         await fetchUserData(storedToken);
@@ -123,6 +136,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     localStorage.setItem('authToken', data.token);
     localStorage.setItem('user', JSON.stringify(data.user));
+    setCookie('authToken', data.token, 30); // Set cookie for 30 days
 
     setToken(data.token);
     setUser(data.user);
@@ -146,6 +160,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     localStorage.setItem('authToken', data.token);
     localStorage.setItem('user', JSON.stringify(data.user));
+    setCookie('authToken', data.token, 30); // Set cookie for 30 days
 
     setToken(data.token);
     setUser(data.user);
@@ -157,6 +172,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const logout = () => {
     localStorage.removeItem('authToken');
     localStorage.removeItem('user');
+    deleteCookie('authToken'); // Delete the cookie
     setToken(null);
     setUser(null);
   };

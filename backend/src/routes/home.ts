@@ -218,9 +218,8 @@ homeRouter.get(
       `
     );
 
-    // Query all upcoming events
-    const upcomingEventsResult = await pool.query(
-      `
+    // Query all upcoming events (global and user's church if authenticated)
+    let upcomingEventsQuery = `
       SELECT
         e.id,
         e.title,
@@ -228,6 +227,7 @@ homeRouter.get(
         e.event_date as "eventDate",
         e.event_time as "eventTime",
         e.location,
+        e.scope,
         e.is_featured as "isFeatured",
         e.is_published as "isPublished",
         e.created_at as "createdAt",
@@ -238,6 +238,12 @@ homeRouter.get(
             'name', sp.name
           )
         ELSE NULL END as speaker,
+        CASE WHEN c.id IS NOT NULL THEN
+          json_build_object(
+            'id', c.id,
+            'name', c.name
+          )
+        ELSE NULL END as church,
         CASE WHEN thumb.id IS NOT NULL THEN
           json_build_object(
             'id', thumb.id,
@@ -247,12 +253,37 @@ homeRouter.get(
         ELSE NULL END as "thumbnailAsset"
       FROM event e
       LEFT JOIN speaker sp ON e.speaker_id = sp.id
+      LEFT JOIN church c ON e.church_id = c.id
       LEFT JOIN media_asset thumb ON e.thumbnail_asset = thumb.id
       WHERE e.is_published = true AND e.event_date >= NOW()
+    `;
+
+    // If user is authenticated, show global events + their church's events
+    // If not authenticated, show only global events
+    if (userId) {
+      const membershipResult = await pool.query(
+        `SELECT church_id FROM church_member 
+         WHERE user_id = $1 AND is_primary = true
+         LIMIT 1`,
+        [userId]
+      );
+      
+      if (membershipResult.rows.length > 0) {
+        const churchId = membershipResult.rows[0].church_id;
+        upcomingEventsQuery += ` AND (e.scope = 'global' OR e.church_id = ${churchId})`;
+      } else {
+        upcomingEventsQuery += ` AND e.scope = 'global'`;
+      }
+    } else {
+      upcomingEventsQuery += ` AND e.scope = 'global'`;
+    }
+
+    upcomingEventsQuery += `
       ORDER BY e.event_date ASC, e.event_time ASC
       LIMIT 10
-      `
-    );
+    `;
+
+    const upcomingEventsResult = await pool.query(upcomingEventsQuery);
 
     // Query active causes/projects
     const activeCausesResult = await pool.query(
@@ -292,6 +323,42 @@ homeRouter.get(
     const nextEvent = upcomingEvents[0] || null; // Keep for backward compatibility
     const activeCauses = activeCausesResult.rows || [];
 
+    // Fetch announcements: global announcements for everyone, 
+    // plus church-specific announcements if user is authenticated and is a member
+    let allAnnouncements: any[] = [];
+    
+    // Always fetch global announcements
+    const globalAnnouncementsResult = await pool.query(
+      `
+      SELECT 
+        ca.id, 
+        ca.title, 
+        ca.content, 
+        ca.priority,
+        ca.scope,
+        ca.expires_at as "expiresAt",
+        ca.created_at as "createdAt",
+        NULL as "churchId",
+        'Organization' as "churchName"
+      FROM church_announcement ca
+      WHERE ca.scope = 'global'
+        AND ca.is_published = true
+        AND (ca.expires_at IS NULL OR ca.expires_at > NOW())
+      ORDER BY 
+        CASE ca.priority
+          WHEN 'urgent' THEN 1
+          WHEN 'high' THEN 2
+          WHEN 'normal' THEN 3
+          WHEN 'low' THEN 4
+          ELSE 5
+        END,
+        ca.created_at DESC
+      LIMIT 10
+      `
+    );
+    
+    allAnnouncements = globalAnnouncementsResult.rows;
+
     // Fetch church announcements if user is authenticated and is a member
     let churchAnnouncements: any[] = [];
     if (userId) {
@@ -314,7 +381,8 @@ homeRouter.get(
               ca.id, 
               ca.title, 
               ca.content, 
-              ca.priority, 
+              ca.priority,
+              ca.scope,
               ca.expires_at as "expiresAt",
               ca.created_at as "createdAt",
               c.id as "churchId",
@@ -322,6 +390,7 @@ homeRouter.get(
             FROM church_announcement ca
             JOIN church c ON ca.church_id = c.id
             WHERE ca.church_id = $1 
+              AND ca.scope = 'church'
               AND ca.is_published = true
               AND (ca.expires_at IS NULL OR ca.expires_at > NOW())
             ORDER BY 
@@ -339,10 +408,12 @@ homeRouter.get(
           );
           
           churchAnnouncements = announcementsResult.rows;
+          // Combine church announcements with global ones
+          allAnnouncements = [...churchAnnouncements, ...allAnnouncements].slice(0, 10);
         }
       } catch (error) {
         console.error('Error fetching church announcements:', error);
-        // Continue without announcements on error
+        // Continue with just global announcements on error
       }
     }
 
@@ -360,8 +431,8 @@ homeRouter.get(
         year: row.year,
         quarter: row.quarter,
       })),
-      // Only include announcements if user is authenticated and has a church
-      ...(churchAnnouncements.length > 0 && { churchAnnouncements }),
+      // Include announcements (global + church-specific if authenticated)
+      ...(allAnnouncements.length > 0 && { announcements: allAnnouncements }),
     };
 
     res.json(homeData);

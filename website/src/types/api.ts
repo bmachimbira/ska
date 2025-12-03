@@ -141,6 +141,11 @@ export interface Event {
   eventDate: string;
   eventTime?: string;
   location?: string;
+  scope?: 'church' | 'global';
+  church?: {
+    id: number;
+    name: string;
+  };
   speaker?: Speaker;
   thumbnailAsset?: MediaAsset;
   isFeatured: boolean;
@@ -171,9 +176,10 @@ export interface ChurchAnnouncement {
   title: string;
   content: string;
   priority: AnnouncementPriority;
+  scope?: 'church' | 'global';
   expiresAt?: string;
   createdAt: string;
-  churchId: number;
+  churchId?: number;
   churchName: string;
 }
 
@@ -186,7 +192,8 @@ export interface HomePageData {
   nextEvent?: Event;
   upcomingEvents?: Event[]; // All upcoming events
   activeCauses: Cause[];
-  churchAnnouncements?: ChurchAnnouncement[]; // Only for authenticated church members
+  announcements?: ChurchAnnouncement[]; // Global + church-specific (if authenticated)
+  churchAnnouncements?: ChurchAnnouncement[]; // Legacy field for backward compatibility
 }
 
 // Backend pagination format

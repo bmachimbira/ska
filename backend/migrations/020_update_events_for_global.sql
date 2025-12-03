@@ -18,12 +18,20 @@ ALTER TABLE event
 UPDATE event SET scope = 'global' WHERE scope IS NULL;
 
 -- Add constraint: global events must have null church_id, church events must have church_id
-ALTER TABLE event
-  ADD CONSTRAINT IF NOT EXISTS check_event_scope 
-  CHECK (
-    (scope = 'global' AND church_id IS NULL) OR
-    (scope = 'church' AND church_id IS NOT NULL)
-  );
+-- First check if constraint exists, if not add it
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_constraint WHERE conname = 'check_event_scope'
+  ) THEN
+    ALTER TABLE event
+      ADD CONSTRAINT check_event_scope 
+      CHECK (
+        (scope = 'global' AND church_id IS NULL) OR
+        (scope = 'church' AND church_id IS NOT NULL)
+      );
+  END IF;
+END $$;
 
 -- Add indexes for better query performance
 CREATE INDEX IF NOT EXISTS idx_event_church ON event(church_id);

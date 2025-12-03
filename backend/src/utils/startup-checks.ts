@@ -7,7 +7,7 @@ import * as Minio from 'minio';
 
 /**
  * Validate Mux environment variables
- * @throws Error if Mux credentials are missing or invalid
+ * Mux is optional - only warns if not configured
  */
 export function validateMuxCredentials(): void {
   const MUX_TOKEN_ID = process.env.MUX_TOKEN_ID;
@@ -28,11 +28,12 @@ export function validateMuxCredentials(): void {
   }
 
   if (errors.length > 0) {
-    throw new Error(
-      `Mux configuration error:\n  - ${errors.join('\n  - ')}\n\n` +
-      'Please set valid Mux credentials in your .env file.\n' +
-      'Get credentials at: https://dashboard.mux.com/settings/access-tokens'
+    console.log(
+      '⚠️  Mux configuration warning:\n  - ' + errors.join('\n  - ') + '\n' +
+      '   Video upload features will be disabled.\n' +
+      '   Get credentials at: https://dashboard.mux.com/settings/access-tokens'
     );
+    return;
   }
 
   console.log('✓ Mux credentials validated');

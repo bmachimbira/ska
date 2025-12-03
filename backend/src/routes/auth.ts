@@ -223,6 +223,22 @@ authRouter.put(
     const { firstName, lastName, phone, churchId } = req.body;
     const pool = getPool();
 
+    console.log('Profile update request:', { userId, churchId, userIdType: typeof userId });
+
+    // First verify the user exists
+    const userCheck = await pool.query(
+      'SELECT id FROM app_user WHERE id = $1',
+      [userId]
+    );
+
+    if (userCheck.rows.length === 0) {
+      console.error('User not found in database:', userId);
+      return res.status(404).json({
+        error: 'Not Found',
+        message: 'User account not found. Please log in again.',
+      });
+    }
+
     // Update basic profile information
     const result = await pool.query(
       `UPDATE app_user
@@ -233,6 +249,14 @@ authRouter.put(
        RETURNING id, email, first_name as "firstName", last_name as "lastName", phone`,
       [firstName, lastName, phone, userId]
     );
+
+    // Check if user was found and updated
+    if (result.rows.length === 0) {
+      return res.status(404).json({
+        error: 'Not Found',
+        message: 'User not found',
+      });
+    }
 
     // Handle church update if churchId is provided
     if (churchId) {
@@ -256,11 +280,28 @@ authRouter.put(
       );
 
       // Add new church membership
-      await pool.query(
-        `INSERT INTO church_member (church_id, user_id, role, joined_at)
-         VALUES ($1, $2, 'member', NOW())`,
-        [churchId, userId]
-      );
+      try {
+        await pool.query(
+          `INSERT INTO church_member (church_id, user_id, role, joined_at, is_primary)
+           VALUES ($1, $2, 'member', NOW(), true)`,
+          [parseInt(churchId), parseInt(userId)]
+        );
+      } catch (err: any) {
+        console.error('Error inserting church membership:', {
+          userId,
+          churchId,
+          userIdType: typeof userId,
+          churchIdType: typeof churchId,
+          error: err.message
+        });
+        
+        // Return more helpful error message
+        return res.status(400).json({
+          error: 'Bad Request',
+          message: 'Failed to update church membership. Please ensure you are logged in and the church exists.',
+          details: err.message
+        });
+      }
     }
 
     // Fetch updated user profile with church info
