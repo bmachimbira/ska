@@ -8,7 +8,7 @@ import * as dotenv from 'dotenv';
 
 dotenv.config();
 
-// MinIO client configuration
+// MinIO client configuration (for internal backend operations)
 const minioClient = new Minio.Client({
   endPoint: process.env.MINIO_ENDPOINT || 'localhost',
   port: parseInt(process.env.MINIO_PORT || '9000'),
@@ -16,6 +16,17 @@ const minioClient = new Minio.Client({
   accessKey: process.env.MINIO_ACCESS_KEY || 'minioadmin',
   secretKey: process.env.MINIO_SECRET_KEY || 'minioadmin',
 });
+
+// MinIO client for generating public presigned URLs (browser-accessible)
+const minioPublicClient = process.env.MINIO_PUBLIC_ENDPOINT
+  ? new Minio.Client({
+      endPoint: process.env.MINIO_PUBLIC_ENDPOINT,
+      port: parseInt(process.env.MINIO_PUBLIC_PORT || '443'),
+      useSSL: process.env.MINIO_PUBLIC_USE_SSL === 'true',
+      accessKey: process.env.MINIO_ACCESS_KEY || 'minioadmin',
+      secretKey: process.env.MINIO_SECRET_KEY || 'minioadmin',
+    })
+  : minioClient; // Fall back to internal client if public endpoint not configured
 
 const BUCKET_NAME = process.env.MINIO_BUCKET || 'sda-media';
 
@@ -87,14 +98,14 @@ export async function uploadBuffer(
 }
 
 /**
- * Get a presigned URL for uploading
+ * Get a presigned URL for uploading (uses public endpoint for browser access)
  */
 export async function getUploadUrl(
   objectName: string,
   expirySeconds: number = 3600
 ): Promise<string> {
   try {
-    return await minioClient.presignedPutObject(BUCKET_NAME, objectName, expirySeconds);
+    return await minioPublicClient.presignedPutObject(BUCKET_NAME, objectName, expirySeconds);
   } catch (error) {
     console.error('Failed to generate upload URL:', error);
     throw error;
@@ -102,14 +113,14 @@ export async function getUploadUrl(
 }
 
 /**
- * Get a presigned URL for downloading/accessing a file
+ * Get a presigned URL for downloading/accessing a file (uses public endpoint for browser access)
  */
 export async function getDownloadUrl(
   objectName: string,
   expirySeconds: number = 3600
 ): Promise<string> {
   try {
-    return await minioClient.presignedGetObject(BUCKET_NAME, objectName, expirySeconds);
+    return await minioPublicClient.presignedGetObject(BUCKET_NAME, objectName, expirySeconds);
   } catch (error) {
     console.error('Failed to generate download URL:', error);
     throw error;
@@ -118,12 +129,33 @@ export async function getDownloadUrl(
 
 /**
  * Get public URL for a file (if bucket allows public access)
+ * Uses public endpoint for browser-accessible URLs (HTTPS)
  */
 export function getPublicUrl(objectName: string): string {
-  const protocol = process.env.MINIO_USE_SSL === 'true' ? 'https' : 'http';
-  const port = process.env.MINIO_PORT || '9000';
-  const endpoint = process.env.MINIO_ENDPOINT || 'localhost';
-  return `${protocol}://${endpoint}:${port}/${BUCKET_NAME}/${objectName}`;
+  // Use public endpoint if available (for browser access), otherwise fall back to internal
+  const usePublic = process.env.MINIO_PUBLIC_ENDPOINT !== undefined;
+
+  const protocol = usePublic
+    ? (process.env.MINIO_PUBLIC_USE_SSL === 'true' ? 'https' : 'http')
+    : (process.env.MINIO_USE_SSL === 'true' ? 'https' : 'http');
+
+  const endpoint = usePublic
+    ? process.env.MINIO_PUBLIC_ENDPOINT
+    : (process.env.MINIO_ENDPOINT || 'localhost');
+
+  const port = usePublic
+    ? process.env.MINIO_PUBLIC_PORT
+    : (process.env.MINIO_PORT || '9000');
+
+  // Don't include port for standard ports (80 for HTTP, 443 for HTTPS)
+  const shouldIncludePort = !(
+    (protocol === 'http' && port === '80') ||
+    (protocol === 'https' && port === '443')
+  );
+
+  const portPart = shouldIncludePort ? `:${port}` : '';
+
+  return `${protocol}://${endpoint}${portPart}/${BUCKET_NAME}/${objectName}`;
 }
 
 /**
