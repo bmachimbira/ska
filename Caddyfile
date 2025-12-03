@@ -138,7 +138,7 @@
 		Referrer-Policy "strict-origin-when-cross-origin"
 		
 		# CSP for website
-		Content-Security-Policy "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' data:; connect-src 'self' https://{$API_DOMAIN:api.ska.aureliaonline.co.za}; media-src 'self' https:; frame-src 'self' https:;"
+		Content-Security-Policy "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' data: https: blob:; font-src 'self' data: https://fonts.gstatic.com; connect-src 'self' https://{$API_DOMAIN:api.ska.aureliaonline.co.za} https://{$STORAGE_DOMAIN:storage.ska.aureliaonline.co.za} https://*.mux.com https://cdn.jsdelivr.net blob:; media-src 'self' https: blob:; worker-src 'self' blob:; frame-src 'self' https:;"
 	}
 	
 	reverse_proxy website:3000 {
@@ -170,7 +170,7 @@
 		Referrer-Policy "strict-origin-when-cross-origin"
 
 		# CSP for mobile app
-		Content-Security-Policy "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' data:; connect-src 'self' https://{$API_DOMAIN:api.ska.aureliaonline.co.za} https://{$STORAGE_DOMAIN:storage.ska.aureliaonline.co.za}; media-src 'self' https:; frame-src 'self';"
+		Content-Security-Policy "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' data: https: blob:; font-src 'self' data: https://fonts.gstatic.com; connect-src 'self' https://{$API_DOMAIN:api.ska.aureliaonline.co.za} https://{$STORAGE_DOMAIN:storage.ska.aureliaonline.co.za} https://*.mux.com https://cdn.jsdelivr.net blob:; media-src 'self' https: blob:; worker-src 'self' blob:; frame-src 'self' https:;"
 	}
 
 	reverse_proxy mobile-app:8081 {
@@ -217,10 +217,12 @@
 	
 	header {
 		-Server
-		# CORS headers for media access
+		# CORS headers for media access and S3 operations
 		Access-Control-Allow-Origin "*"
-		Access-Control-Allow-Methods "GET, HEAD, OPTIONS"
-		Access-Control-Allow-Headers "Range, Content-Type"
+		Access-Control-Allow-Methods "GET, HEAD, PUT, POST, DELETE, OPTIONS"
+		Access-Control-Allow-Headers "Range, Content-Type, Authorization, X-Amz-*, x-amz-*"
+		Access-Control-Expose-Headers "ETag, Content-Length"
+		Access-Control-Max-Age "3600"
 	}
 	
 	reverse_proxy minio:9000 {

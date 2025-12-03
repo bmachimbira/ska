@@ -102,6 +102,11 @@ services:
       MINIO_ACCESS_KEY: ${MINIO_ROOT_USER:-minioadmin}
       MINIO_SECRET_KEY: ${MINIO_ROOT_PASSWORD:-minioadmin}
       MINIO_BUCKET: ${MINIO_BUCKET:-sda-media}
+
+      # MinIO Public Endpoint (for browser-accessible URLs)
+      MINIO_PUBLIC_ENDPOINT: ${MINIO_PUBLIC_ENDPOINT}
+      MINIO_PUBLIC_PORT: ${MINIO_PUBLIC_PORT:-443}
+      MINIO_PUBLIC_USE_SSL: ${MINIO_PUBLIC_USE_SSL:-true}
       
       # Streaming
       STREAMING_PROVIDER: ${STREAMING_PROVIDER:-mux}
