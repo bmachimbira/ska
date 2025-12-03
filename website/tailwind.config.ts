@@ -10,7 +10,7 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        // SKAC Zimbabwe Brand Colors
+        // SKA Zimbabwe Brand Colors
         primary: {
           50: '#f4f0f9',
           100: '#e8e0f3',

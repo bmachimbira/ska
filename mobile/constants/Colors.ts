@@ -1,4 +1,4 @@
-// Brand colors from SKAC Zimbabwe logo
+// Brand colors from SKA Zimbabwe logo
 const tintColorLight = '#5B3A9D'; // Purple from logo
 const tintColorDark = '#8B7AB8'; // Lighter purple for dark mode
 const brandGray = '#8B8B8B'; // Gray from logo
@@ -11,9 +11,9 @@ export default {
     tabIconDefault: brandGray,
     tabIconSelected: tintColorLight,
     cardBackground: '#FFFFFF',
-    primary: tintColorLight, // SKAC purple
+    primary: tintColorLight, // SKA purple
     secondary: '#7C5AB8', // Lighter purple
-    accent: brandGray, // SKAC gray
+    accent: brandGray, // SKA gray
     success: '#10B981',
     danger: '#EF4444',
     warning: '#F59E0B',

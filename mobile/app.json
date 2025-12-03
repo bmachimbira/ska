@@ -1,11 +1,11 @@
 {
   "expo": {
-    "name": "SKAC Zimbabwe",
-    "slug": "skac-zimbabwe",
+    "name": "SKA Zimbabwe",
+    "slug": "ska-zimbabwe",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/logo.png",
-    "scheme": "skac",
+    "scheme": "ska",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "splash": {

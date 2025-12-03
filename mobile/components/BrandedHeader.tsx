@@ -14,7 +14,7 @@ export default function BrandedHeader() {
         resizeMode="contain"
       />
       <View style={[styles.textContainer, { backgroundColor: 'transparent' }]}>
-        <Text style={styles.churchName}>SKAC ZIMBABWE</Text>
+        <Text style={styles.churchName}>SKA ZIMBABWE</Text>
         <Text style={styles.subtitle}>Sabbath Keeping Adventist Church</Text>
       </View>
     </View>

@@ -33,7 +33,7 @@ export function Header() {
               <div className="relative w-14 h-14">
                 <Image
                   src="/logo.png"
-                  alt="SKAC Zimbabwe Logo"
+                  alt="SKA Zimbabwe Logo"
                   fill
                   className="object-contain"
                   priority
@@ -41,7 +41,7 @@ export function Header() {
               </div>
               <div className="flex flex-col">
                 <span className="text-xl font-bold text-white leading-tight">
-                  SKAC ZIMBABWE
+                  SKA ZIMBABWE
                 </span>
                 <span className="text-xs text-white/90 leading-tight">
                   Sabbath Keeping Adventist Church
@@ -175,7 +175,7 @@ export function Header() {
               <div className="relative w-10 h-10">
                 <Image
                   src="/logo.png"
-                  alt="SKAC Zimbabwe Logo"
+                  alt="SKA Zimbabwe Logo"
                   fill
                   className="object-contain"
                   priority
@@ -183,7 +183,7 @@ export function Header() {
               </div>
               <div className="flex flex-col">
                 <span className="text-lg font-bold text-white leading-tight">
-                  SKAC ZIMBABWE
+                  SKA ZIMBABWE
                 </span>
               </div>
             </Link>
